@@ -1,0 +1,1 @@
+window.LIBRAS_STUDIO_CONFIG={supabaseUrl:"",supabasePublishableKey:""};
