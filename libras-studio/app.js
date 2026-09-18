@@ -1,0 +1,35 @@
+const cfg=window.LIBRAS_STUDIO_CONFIG||{};
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+let sb=null,state={session:null,signs:[],categories:[],reviews:[],queue:[],i:0};
+function status(t){$("#sync-status").textContent=t}
+function cacheSave(){localStorage.setItem("ls-mobile-cache",JSON.stringify({signs:state.signs,categories:state.categories,reviews:state.reviews}))}
+function cacheLoad(){try{const x=JSON.parse(localStorage.getItem("ls-mobile-cache")||"{}");state.signs=x.signs||[];state.categories=x.categories||[];state.reviews=x.reviews||[]}catch{}}
+async function init(){
+  if("serviceWorker"in navigator)navigator.serviceWorker.register("./sw.js").catch(()=>{});
+  if(!cfg.supabaseUrl||!cfg.supabasePublishableKey){$("#auth-status").textContent="A nuvem do Libras Studio está sendo conectada. O app já pode ser instalado.";return}
+  sb=supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey);
+  const{data:{session}}=await sb.auth.getSession();state.session=session;
+  sb.auth.onAuthStateChange((_e,s)=>{state.session=s;renderAuth();if(s)syncAll()});
+  renderAuth();if(session)await syncAll();
+}
+function renderAuth(){const on=!!state.session;$("#auth-view").classList.toggle("hidden",on);$("#main-view").classList.toggle("hidden",!on)}
+$("#auth-form").onsubmit=async e=>{e.preventDefault();if(!sb)return;$("#auth-status").textContent="Entrando…";const{error}=await sb.auth.signInWithPassword({email:$("#email").value,password:$("#password").value});$("#auth-status").textContent=error?error.message:""};
+$("#signup-btn").onclick=async()=>{if(!sb)return;const{error}=await sb.auth.signUp({email:$("#email").value,password:$("#password").value});$("#auth-status").textContent=error?error.message:"Conta criada. Verifique seu e-mail se for solicitado."};
+$("#logout-btn").onclick=()=>sb?.auth.signOut();
+async function syncAll(){if(!sb||!state.session)return;status("sincronizando…");try{const[c,s,r]=await Promise.all([sb.from("categories").select("*").is("deleted_at",null).order("sort_order"),sb.from("signs").select("*").is("deleted_at",null).order("name"),sb.from("review_state").select("*")]);if(c.error)throw c.error;if(s.error)throw s.error;if(r.error)throw r.error;state.categories=c.data||[];state.signs=s.data||[];state.reviews=r.data||[];cacheSave();renderAll();status("sincronizado")}catch(e){cacheLoad();renderAll();status("offline")}}
+function renderAll(){renderHome();renderLibrary();fillCategories()}
+function reviewMap(){return Object.fromEntries(state.reviews.map(r=>[r.norm,r]))}
+function uniqueSigns(){const m=new Map();state.signs.forEach(s=>{if(!m.has(s.norm))m.set(s.norm,s)});return[...m.values()]}
+function renderHome(){const m=reviewMap(),now=Date.now(),u=uniqueSigns();let due=0,fresh=0;u.forEach(s=>{const r=m[s.norm];if(!r)fresh++;else if(r.due_at&&new Date(r.due_at).getTime()<=now)due++});$("#home-due").textContent=due;$("#home-new").textContent=fresh;$("#stat-signs").textContent=u.length;$("#stat-cats").textContent=new Set(u.map(s=>s.category_name).filter(Boolean)).size;$("#stat-today").textContent=state.reviews.filter(r=>(r.last_reviewed_at||"").slice(0,10)===new Date().toISOString().slice(0,10)).length}
+function renderLibrary(){const q=($("#library-search").value||"").toLocaleLowerCase(),groups={};state.signs.filter(s=>!q||s.name.toLocaleLowerCase().includes(q)).forEach(s=>(groups[s.category_name||"Outros"]??=[]).push(s));$("#library-list").innerHTML=Object.entries(groups).map(([cat,items])=>{const meta=state.categories.find(c=>c.name===cat);return`<div class="category"><div class="category-head"><span>${meta?.emoji||"🧩"} ${cat}</span><small>${new Set(items.map(x=>x.norm)).size}</small></div>${items.map(x=>`<div class="sign-row"><b>${x.name}</b><small>${x.variant_no>1?`V${x.variant_no}`:""}</small></div>`).join("")}</div>`}).join("")||"<p>Nenhum sinal.</p>"}
+function fillCategories(){const sel=$("#review-category"),v=sel.value;sel.innerHTML='<option value="">Todas as categorias</option>'+state.categories.filter(c=>state.signs.some(s=>s.category_name===c.name)).map(c=>`<option value="${c.name}">${c.emoji||"🧩"} ${c.name}</option>`).join("");sel.value=v}
+$("#library-search").oninput=renderLibrary;$("#refresh-btn").onclick=syncAll;
+function nextValues(rating,current){const now=new Date(),reps=current?.reps||0,ease=current?.ease||2.5,iv=Number(current?.interval_days||0);let d=0,e=ease,l=current?.lapses||0,n=reps;if(rating==="again"){d=10/1440;e=Math.max(1.3,ease-.2);l++}if(rating==="hard"){d=reps===0?.25:Math.max(1,iv*1.2);e=Math.max(1.3,ease-.15);n++}if(rating==="good"){d=reps===0?1:reps===1?3:Math.max(1,iv*ease);n++}if(rating==="easy"){e=Math.min(3.5,ease+.15);d=reps===0?4:Math.max(2,iv*(e+.3));n++}return{interval_days:d,ease:e,reps:n,lapses:l,due_at:new Date(now.getTime()+d*86400000).toISOString()}}
+function buildQueue(){const cat=$("#review-category").value,mode=$("#review-mode").value,m=reviewMap(),now=Date.now(),u=uniqueSigns().filter(s=>!cat||s.category_name===cat),due=[],fresh=[];u.forEach(s=>{const r=m[s.norm];if(!r)fresh.push(s);else if(r.due_at&&new Date(r.due_at).getTime()<=now)due.push(s)});return mode==="due"?due:mode==="new"?fresh:[...due,...fresh]}
+$("#review-start").onclick=()=>{state.queue=buildQueue();state.i=0;$("#review-setup").classList.add("hidden");$("#review-done").classList.add("hidden");showCard()};
+function showCard(){const s=state.queue[state.i];if(!s){$("#review-card").classList.add("hidden");$("#review-done").classList.remove("hidden");return}$("#review-card").classList.remove("hidden");$("#review-name").textContent=s.name;$("#review-media").classList.add("hidden");$("#ratings").classList.add("hidden");$("#review-reveal").classList.remove("hidden");const variants=state.signs.filter(x=>x.norm===s.norm&&x.media_url);$("#review-media").innerHTML=variants.map(v=>`<video controls loop playsinline src="${v.media_url}"></video>`).join("")}
+$("#review-reveal").onclick=()=>{$("#review-media").classList.remove("hidden");$("#ratings").classList.remove("hidden");$("#review-reveal").classList.add("hidden")};
+$$("[data-rate]").forEach(b=>b.onclick=async()=>{const s=state.queue[state.i],old=reviewMap()[s.norm],n=nextValues(b.dataset.rate,old),row={user_id:state.session.user.id,norm:s.norm,...n,last_rating:b.dataset.rate,last_reviewed_at:new Date().toISOString(),updated_at:new Date().toISOString()};const{error}=await sb.from("review_state").upsert(row,{onConflict:"user_id,norm"});if(error){status("erro ao salvar");return}const ix=state.reviews.findIndex(x=>x.norm===s.norm);if(ix>=0)state.reviews[ix]=row;else state.reviews.push(row);state.i++;cacheSave();renderHome();showCard()});
+$$("[data-tab]").forEach(b=>b.onclick=()=>{$$("[data-tab]").forEach(x=>x.classList.remove("active"));b.classList.add("active");$$(".tab").forEach(x=>x.classList.remove("active"));$("[id='"+b.dataset.tab+"-tab']").classList.add("active")});
+$$("[data-go]").forEach(b=>b.onclick=()=>document.querySelector('[data-tab="'+b.dataset.go+'"]').click());
+init();
