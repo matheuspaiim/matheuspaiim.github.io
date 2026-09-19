@@ -84,7 +84,7 @@
     "emergencia e seguranca":()=>tile(p("M16 33h16l-2-16c-1-7-11-7-12 0z","#ff6f79")+rect(12,33,24,5,2,"#6e7b9d")+line("M24 9V5M12 14 8 11M36 14l4-3","#ffd05d",2.4),"#fff0f1"),
     "acessibilidade e inclusao":()=>tile(circle(19,12,4,"#75b7f7")+circle(26,30,9,"#fff")+line("M20 17l3 11h12l5 9M23 22h10","#7258e9",2.7),"#eef7ff"),
     "relacionamentos":()=>tile(p("M18 36S8 30 8 21c0-5 6-8 10-4l6 6 6-6c4-4 10-1 10 4 0 9-10 15-16 20z","#ff7894")+circle(14,13,3,"#ffd05d")+circle(34,13,3,"#78b8f6"),"#fff0f4"),
-    "outros":()=>tile(circle(15,24,3,"#7258e9")+circle(24,24,3,"#ff7f96")+circle(33,24,3,"#62c995"),"#f3efff")
+    "frases":()=>tile(p("M8 12h27a7 7 0 0 1 7 7v11a7 7 0 0 1-7 7H22l-9 7v-7H8a7 7 0 0 1-7-7V19a7 7 0 0 1 7-7z","#ff8fa3")+line("M13 21h17M13 27h12","#fff",2.5)+circle(34,31,3,"#ffd05d"),"#fff0f4"),\n    "outros":()=>tile(circle(15,24,3,"#7258e9")+circle(24,24,3,"#ff7f96")+circle(33,24,3,"#62c995"),"#f3efff")
   };
   window.LSCategoryIcon=name=>(C[N(name)]||C.outros)();
 })();
