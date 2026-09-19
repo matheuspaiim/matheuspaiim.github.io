@@ -61,15 +61,16 @@ jobs:
           node - <<'NODE'
           const fs=require("fs");
           const src=fs.readFileSync("../libras-studio/app.js","utf8");
-          if(src.includes('$$(')){
-            console.error("Undefined $$ selector helper found.");
+          const d=String.fromCharCode(36);
+          if(src.includes(d.repeat(3)+"(")){
+            console.error("Undefined triple-dollar selector helper found.");
             process.exit(1);
           }
-          if(!src.includes('function go(v){$(".view").forEach')){
+          if(!src.includes('function go(v){'+d.repeat(2)+'(".view").forEach')){
             console.error("Navigation smoke check failed: go() is not using the multi-selector helper.");
             process.exit(1);
           }
-          if(!src.includes('$("nav [data-view]").forEach')){
+          if(!src.includes(d.repeat(2)+'("nav [data-view]").forEach')){
             console.error("Navigation wiring smoke check failed.");
             process.exit(1);
           }
