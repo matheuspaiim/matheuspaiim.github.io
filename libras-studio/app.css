@@ -58,3 +58,18 @@ html.native-app nav span{font-size:9px;overflow:hidden;text-overflow:ellipsis;wh
 }
 
 .native-build-badge{position:fixed;right:8px;top:66px;z-index:9999;background:#20163d;color:#fff;border:1px solid #ffffff33;border-radius:999px;padding:5px 8px;font-size:10px;font-weight:900;letter-spacing:.03em;box-shadow:0 8px 24px #20163d33;pointer-events:none}
+
+/* Biblioteca: categorias recolhíveis */
+.lib-category{background:#fff;border:1px solid var(--line);border-radius:18px;margin:9px 0;overflow:hidden;box-shadow:0 4px 18px #2a184608}
+.lib-category .cat-head{width:100%;border:0;background:transparent;color:inherit;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 13px;cursor:pointer;text-align:left;font:inherit;transition:background .18s ease}
+.lib-category .cat-head:hover{background:#faf8ff}
+.lib-category .cat-head:active{background:#f5f0ff}
+.cat-head-main{display:flex;align-items:center;gap:9px;min-width:0;font-weight:850}
+.cat-chevron{display:grid;place-items:center;width:25px;height:25px;flex:0 0 25px;border-radius:9px;background:#f1ebff;color:#6d38d5;font-size:17px;line-height:1;transform:rotate(-90deg);transition:transform .26s cubic-bezier(.2,.8,.2,1),background .18s ease}
+.cat-toggle[aria-expanded="true"] .cat-chevron{transform:rotate(0deg);background:#e8ddff}
+.cat-count{min-width:30px;text-align:center;border-radius:999px;background:#f4f1f9;color:#756c82;padding:4px 8px;font-size:11px;font-weight:900}
+.cat-collapse{display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .28s cubic-bezier(.2,.8,.2,1),opacity .18s ease}
+.cat-collapse.open{grid-template-rows:1fr;opacity:1}
+.cat-items{min-height:0;overflow:hidden;padding:0 8px}
+.cat-collapse.open .cat-items{padding-bottom:8px}
+.lib-category .lib-row{margin:7px 0}
