@@ -56,3 +56,5 @@ html.native-app nav span{font-size:9px;overflow:hidden;text-overflow:ellipsis;wh
   html.native-app .quick button{min-height:98px;padding:13px}
   html.native-app nav span{font-size:8px}
 }
+
+.native-build-badge{position:fixed;right:8px;top:66px;z-index:9999;background:#20163d;color:#fff;border:1px solid #ffffff33;border-radius:999px;padding:5px 8px;font-size:10px;font-weight:900;letter-spacing:.03em;box-shadow:0 8px 24px #20163d33;pointer-events:none}
