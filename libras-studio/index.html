@@ -1,95 +1,13 @@
-<!doctype html>
-<html lang="pt-BR">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#7650e8">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <title>Libras Studio</title>
-  <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="icon" href="./icon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="./icon.svg">
-  <link rel="stylesheet" href="./app.css">
-</head>
-<body>
-  <div id="app">
-    <section id="auth-view" class="screen auth-screen">
-      <div class="logo">👐</div>
-      <h1>Libras Studio</h1>
-      <p>Seus sinais e revisões, agora no celular.</p>
-      <form id="auth-form" class="card auth-card">
-        <input id="email" type="email" placeholder="Seu e-mail" required autocomplete="email">
-        <input id="password" type="password" placeholder="Sua senha" minlength="6" required autocomplete="current-password">
-        <button class="primary" type="submit">Entrar</button>
-        <button id="signup-btn" class="ghost" type="button">Criar conta</button>
-        <small id="auth-status"></small>
-      </form>
-    </section>
-
-    <section id="main-view" class="screen hidden">
-      <header class="topbar">
-        <div><b>👐 Libras Studio</b><small id="sync-status">offline</small></div>
-        <button id="logout-btn" class="icon-btn" aria-label="Sair">↪</button>
-      </header>
-
-      <main id="content">
-        <section id="home-tab" class="tab active">
-          <div class="hero">
-            <span>REVISÃO DE HOJE</span>
-            <h2><b id="home-due">0</b> vencidos · <b id="home-new">0</b> novos</h2>
-            <button class="primary" data-go="review">🧠 Revisar agora</button>
-          </div>
-          <div class="stats">
-            <article><strong id="stat-signs">0</strong><span>Sinais</span></article>
-            <article><strong id="stat-cats">0</strong><span>Categorias</span></article>
-            <article><strong id="stat-today">0</strong><span>Hoje</span></article>
-          </div>
-        </section>
-
-        <section id="library-tab" class="tab">
-          <div class="title"><h2>📚 Biblioteca</h2><button id="refresh-btn" class="ghost small">↻</button></div>
-          <input id="library-search" class="search" placeholder="Buscar sinal">
-          <div id="library-list"></div>
-        </section>
-
-        <section id="review-tab" class="tab">
-          <div id="review-setup">
-            <h2>🧠 Revisar</h2>
-            <select id="review-category"><option value="">Todas as categorias</option></select>
-            <select id="review-mode">
-              <option value="mixed">Vencidos + novos</option>
-              <option value="due">Somente vencidos</option>
-              <option value="new">Somente novos</option>
-            </select>
-            <button id="review-start" class="primary">Começar</button>
-          </div>
-          <div id="review-card" class="card hidden">
-            <small>FAÇA O SINAL DE</small>
-            <h2 id="review-name">Mãe</h2>
-            <div id="review-media" class="media hidden"></div>
-            <button id="review-reveal" class="primary">👁 Revelar</button>
-            <div id="ratings" class="ratings hidden">
-              <button data-rate="again">De novo<small>10 min</small></button>
-              <button data-rate="hard">Difícil<small>6 h</small></button>
-              <button data-rate="good">Bom<small>1 dia</small></button>
-              <button data-rate="easy">Fácil<small>4 dias</small></button>
-            </div>
-          </div>
-          <div id="review-done" class="card hidden center">🎉 Sessão concluída</div>
-        </section>
-      </main>
-
-      <nav class="bottom-nav">
-        <button class="active" data-tab="home">🏠<span>Início</span></button>
-        <button data-tab="library">📚<span>Biblioteca</span></button>
-        <button data-tab="review">🧠<span>Revisar</span></button>
-      </nav>
-    </section>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./config.js"></script>
-  <script src="./app.js"></script>
-</body>
-</html>
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#7c3cff"><title>Libras Studio</title><link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="app.css?v=041"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><script src="study.js?v=041"></script><script src="explore-data.js?v=041"></script></head><body>
+<div id="auth" class="auth"><div class="logo">🖐️</div><h1>Libras Studio</h1><p>Seu estudo de Libras, sincronizado em todo lugar.</p><form id="auth-form"><input id="email" type="email" placeholder="E-mail" required><input id="password" type="password" placeholder="Senha" required><button class="primary">Entrar</button></form><button id="signup" class="soft">Criar conta</button><small id="auth-status"></small></div>
+<div id="app" class="hidden"><header><b>🖐️ Libras Studio</b><small id="sync-status">☁️</small><button id="sync">↻</button></header><main>
+<section id="home" class="view active"><div class="hero"><h1>👐 O que vamos aprender hoje?</h1><p>Crie, explore, estude e revise. Tudo sincronizado com o PC.</p></div><div class="stats"><div><b id="due">0</b><small>⏰ revisar</small></div><div><b id="fresh">0</b><small>✨ novos</small></div><div><b id="total">0</b><small>👐 sinais</small></div></div><div class="quick"><button data-go="review">🧠<b>Revisar</b></button><button data-go="create">➕<b>Criar</b></button><button data-go="study">🎓<b>Estudar</b></button><button data-go="explore">🧭<b>Explorar</b></button></div></section>
+<section id="create" class="view"><div class="title"><h2>➕ Criar</h2><p>Sinal, variação, frase ou vídeo seu.</p></div><div class="switch"><button class="active" data-mode="sign">👐 Sinal</button><button data-mode="phrase">💬 Frase</button></div><div id="sign-box" class="card"><input id="create-name" placeholder="Ex.: casa, mãe, vermelho"><button id="create-search" class="primary wide">🔎 Buscar e salvar</button><button id="variants" class="soft wide">🎞 Ver variações</button><label class="soft wide file">📁 Usar vídeo meu<input id="video-file" type="file" accept="video/*" hidden></label><div id="create-result"></div></div><div id="phrase-box" class="card hidden"><p>O Studio só salva se houver uma gravação contínua da frase inteira.</p><input id="phrase-name" placeholder="Ex.: Eu te amo"><button id="phrase-search" class="primary wide">Buscar frase</button><div id="phrase-result"></div></div></section>
+<section id="batch" class="view"><div class="title"><h2>📦 Lote</h2><p>Um sinal por linha.</p></div><div class="card"><textarea id="batch-text" rows="12" placeholder="Casa&#10;Mãe&#10;Pai"></textarea><button id="batch-run" class="primary wide">⚡ Processar lote</button><div id="batch-result"></div></div></section>
+<section id="explore" class="view"><div class="title"><h2>🧭 Explorar</h2><p>Complete sua biblioteca por categoria.</p></div><input id="explore-search" placeholder="Buscar categoria"><div id="explore-cats" class="chips"></div><div id="explore-panel"></div></section>
+<section id="study" class="view"><div class="title"><h2>🎓 Estudar</h2><p>Gramática, expressão facial, espaço, classificadores, conversação e cultura.</p></div><div class="progress"><b id="study-count">0 de 12 aulas</b><span id="study-pct">0%</span></div><input id="study-search" placeholder="Buscar aula"><div id="study-modules" class="chips"></div><div id="study-list"></div></section>
+<section id="library" class="view"><div class="title"><h2>📚 Biblioteca</h2><p>Seus sinais e frases sincronizados.</p></div><input id="library-search" placeholder="Buscar na biblioteca"><div class="actions"><button id="new-cat" class="soft">＋ Categoria</button><button id="move" class="soft">📂 Mover</button><button id="delete" class="danger">Excluir</button></div><div id="library-list"></div></section>
+<section id="review" class="view"><div class="title"><h2>🧠 Revisar</h2><p>Faça o sinal, revele o vídeo e avalie.</p></div><div id="review-setup" class="card"><label>Categoria<select id="review-cat"><option value="">Todas</option></select></label><label>Cartões<select id="review-mode"><option value="mixed">Vencidos + novos</option><option value="due">Somente vencidos</option><option value="new">Somente novos</option></select></label><label>Tamanho<select id="review-limit"><option>10</option><option selected>20</option><option>30</option><option>50</option></select></label><button id="review-start" class="primary wide">▶ Começar</button></div><div id="review-card" class="card review hidden"><small>FAÇA O SINAL DE:</small><h1 id="review-name"></h1><div id="review-media" class="hidden"></div><button id="reveal" class="primary wide">👁 Revelar resposta</button><div id="ratings" class="ratings hidden"><button data-rate="again">1<br><b>De novo</b></button><button data-rate="hard">2<br><b>Difícil</b></button><button data-rate="good">3<br><b>Bom</b></button><button data-rate="easy">4<br><b>Fácil</b></button></div></div><div id="review-done" class="card hidden center"><h2>🎉 Sessão concluída</h2><button id="again-session" class="primary">Outra sessão</button></div></section>
+<section id="settings" class="view"><div class="title"><h2>⚙️ Configurações</h2></div><div class="card"><h3>☁️ Libras Studio Nuvem</h3><p id="account"></p><button id="sync-now" class="primary wide">🔄 Sincronizar agora</button><button id="logout" class="soft wide">Sair deste celular</button></div><div class="card"><h3>🖥️ Integração com o PC</h3><p>AnkiConnect continua no computador, porque é um serviço local. O conteúdo criado e revisado aqui sincroniza com o desktop.</p></div></section>
+</main><nav><button data-view="home" class="active">🏠<span>Início</span></button><button data-view="create">➕<span>Criar</span></button><button data-view="explore">🧭<span>Explorar</span></button><button data-view="study">🎓<span>Estudar</span></button><button data-view="library">📚<span>Biblioteca</span></button><button data-view="review">🧠<span>Revisar</span></button><button data-view="more">•••<span>Mais</span></button></nav><div id="more" class="sheet hidden"><button data-go="batch">📦 Lote</button><button data-go="settings">⚙️ Configurações</button></div></div>
+<div id="modal" class="modal hidden"><div class="modalbox"><button id="close-modal">×</button><div id="modal-body"></div></div></div><div id="toast"></div><script src="app.js?v=041"></script></body></html>
