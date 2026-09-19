@@ -1,7 +1,16 @@
-const APP_VERSION="0.4.9";
+const APP_VERSION="0.4.10";
 const cfg=window.LIBRAS_STUDIO_CONFIG||{},$=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
-const IS_NATIVE_ANDROID=new URLSearchParams(location.search).get("native")==="android";
+const nativeParams=new URLSearchParams(location.search);
+const IS_NATIVE_ANDROID=nativeParams.get("native")==="android";
+const NATIVE_APK_BUILD=nativeParams.get("apk")||"";
 if(IS_NATIVE_ANDROID)document.documentElement.classList.add("native-app");
+document.addEventListener("DOMContentLoaded",()=>{
+  if(!IS_NATIVE_ANDROID||!NATIVE_APK_BUILD)return;
+  const badge=document.createElement("div");
+  badge.className="native-build-badge";
+  badge.textContent="TESTE APK B"+NATIVE_APK_BUILD+" · WEB "+APP_VERSION;
+  document.body.appendChild(badge);
+});
 let sb,S={session:null,signs:[],cats:[],reviews:[],study:[],catalog:null,catalogStats:null,phraseResults:[],queue:[],i:0,explore:null,librasLabCandidates:[]};
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const norm=s=>String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
