@@ -12,6 +12,7 @@ permissions:
   contents: write
 
 jobs:
+  # Builds both Android editions and validates the live web shell before packaging.
   build:
     runs-on: ubuntu-latest
     defaults:
