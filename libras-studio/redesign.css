@@ -148,11 +148,3 @@ html.native-app main{padding:12px 10px 90px}
   .explore-row{display:flex;align-items:center;gap:8px}
   .explore-row button{flex:0 0 40px}
 }
-
-/* Biblioteca polida v0600 */
-.lib-row input[type="checkbox"]{appearance:none;-webkit-appearance:none;width:22px;height:22px;min-width:22px;border:2px solid #c8c2e8;border-radius:7px;background:#fff;display:grid;place-content:center;cursor:pointer;transition:.18s ease}
-.lib-row input[type="checkbox"]::before{content:"";width:10px;height:6px;border-left:2.5px solid #fff;border-bottom:2.5px solid #fff;transform:rotate(-45deg) scale(0);margin-top:-2px;transition:.15s ease}
-.lib-row input[type="checkbox"]:checked{background:#7258e9;border-color:#7258e9;box-shadow:0 0 0 3px #eeeaff}
-.lib-row input[type="checkbox"]:checked::before{transform:rotate(-45deg) scale(1)}
-.lib-sign-main{min-width:0;flex:1}.lib-sign-main b{display:block;overflow-wrap:anywhere}.lib-row-actions{display:flex;align-items:center;gap:7px;flex:0 0 auto}.variant-button{width:auto!important;min-width:0!important;height:36px!important;padding:5px 9px!important;border-radius:11px!important;background:#f3efff!important;color:#5e44dd!important;display:flex;align-items:center;gap:5px;font-size:12px;font-weight:800}.variant-button .ls-icon{width:20px;height:20px}.library-variants{display:grid;gap:14px}.library-variant{padding:12px;border:1px solid var(--line);border-radius:16px}.library-variant-title{margin-bottom:8px}.library-variant video{width:100%;border-radius:12px}
-@media(max-width:520px){.variant-button span{display:none}.variant-button{width:36px!important;padding:6px!important;justify-content:center}.lib-row-actions{gap:5px}}
