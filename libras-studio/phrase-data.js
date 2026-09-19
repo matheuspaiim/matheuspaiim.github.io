@@ -1,0 +1,20 @@
+window.LIBRAS_PHRASE_DATA=[
+{text:"Bom dia",source:"Sing Libras",source_id:"singlibras_phrase",url:"https://www.singlibras.com/dicionario/clipes/bom-dia-v2.mp4",page:"https://www.singlibras.com/dicionario/bom-dia"},
+{text:"Como cumprimentar",source:"Sing Libras",source_id:"singlibras_phrase",url:"https://www.singlibras.com/dicionario/clipes/como-cumprimentar-v2.mp4",page:"https://www.singlibras.com/dicionario/como-cumprimentar"},
+{text:"Como dizer as horas",source:"Sing Libras",source_id:"singlibras_phrase",url:"https://www.singlibras.com/dicionario/clipes/como-dizer-as-horas-v2.mp4",page:"https://www.singlibras.com/dicionario/como-dizer-as-horas"},
+{text:"Desculpa",source:"Sing Libras",source_id:"singlibras_phrase",url:"https://www.singlibras.com/dicionario/clipes/desculpa-v2.mp4",page:"https://www.singlibras.com/dicionario/desculpa"},
+{text:"Estou com fome",source:"Sing Libras",source_id:"singlibras_phrase",url:"https://www.singlibras.com/dicionario/clipes/estou-com-fome-v2.mp4",page:"https://www.singlibras.com/dicionario/estou-com-fome"},
+{text:"Estou com pressa",source:"Sing Libras",source_id:"singlibras_phrase",youtube:"fyHOCVHWUI0",page:"https://www.singlibras.com/dicionario/estou-com-pressa"},
+{text:"Eu amo minha família",source:"Sing Libras",source_id:"singlibras_phrase",url:"https://www.singlibras.com/dicionario/clipes/eu-amo-minha-familia-v2.mp4",page:"https://www.singlibras.com/dicionario/eu-amo-minha-familia"},
+{text:"Eu te amo",source:"Sing Libras",source_id:"singlibras_phrase",url:"https://www.singlibras.com/dicionario/clipes/eu-te-amo-v2.mp4",page:"https://www.singlibras.com/dicionario/eu-te-amo",aliases:["Eu amo você"]},
+{text:"Eu vou",source:"Sing Libras",source_id:"singlibras_phrase",url:"https://www.singlibras.com/dicionario/clipes/eu-vou-v2.mp4",page:"https://www.singlibras.com/dicionario/eu-vou"},
+{text:"Fica em casa",source:"Sing Libras",source_id:"singlibras_phrase",url:"https://www.singlibras.com/dicionario/clipes/fica-em-casa-v2.mp4",page:"https://www.singlibras.com/dicionario/fica-em-casa"},
+{text:"Me ajuda",source:"Sing Libras",source_id:"singlibras_phrase",url:"https://www.singlibras.com/dicionario/clipes/me-ajuda-v2.mp4",page:"https://www.singlibras.com/dicionario/me-ajuda",aliases:["Me ajudar"]},
+{text:"Não entendi",source:"Sing Libras",source_id:"singlibras_phrase",url:"https://www.singlibras.com/dicionario/clipes/nao-entendi-v2.mp4",page:"https://www.singlibras.com/dicionario/nao-entendi"},
+{text:"Não pode",source:"Sing Libras",source_id:"singlibras_phrase",url:"https://www.singlibras.com/dicionario/clipes/nao-pode-v2.mp4",page:"https://www.singlibras.com/dicionario/nao-pode"},
+{text:"Não se preocupe",source:"Sing Libras",source_id:"singlibras_phrase",url:"https://www.singlibras.com/dicionario/clipes/nao-se-preocupe-v2.mp4",page:"https://www.singlibras.com/dicionario/nao-se-preocupe"},
+{text:"Não tem",source:"Sing Libras",source_id:"singlibras_phrase",url:"https://www.singlibras.com/dicionario/clipes/nao-tem-v2.mp4",page:"https://www.singlibras.com/dicionario/nao-tem"},
+{text:"Não ver",source:"Sing Libras",source_id:"singlibras_phrase",url:"https://www.singlibras.com/dicionario/clipes/nao-ver-v2.mp4",page:"https://www.singlibras.com/dicionario/nao-ver"},
+{text:"Não vi nada",source:"Sing Libras",source_id:"singlibras_phrase",url:"https://www.singlibras.com/dicionario/clipes/nao-vi-nada-v2.mp4",page:"https://www.singlibras.com/dicionario/nao-vi-nada"},
+{text:"Vamos embora",source:"Sing Libras",source_id:"singlibras_phrase",url:"https://www.singlibras.com/dicionario/clipes/vamos-embora-v2.mp4",page:"https://www.singlibras.com/dicionario/vamos-embora"}
+];
