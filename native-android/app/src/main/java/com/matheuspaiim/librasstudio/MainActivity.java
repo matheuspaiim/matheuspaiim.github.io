@@ -12,7 +12,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 public class MainActivity extends Activity {
-    private static final String STUDIO_URL = "https://matheuspaiim.github.io/libras-studio/?native=android&build=5";
+    private static final String STUDIO_URL = "file:///android_asset/web/index.html?native=android&apk=6";
     private static final String STUDIO_HOST = "matheuspaiim.github.io";
     private static final String STUDIO_PATH = "/libras-studio/";
     private static final int FILE_CHOOSER_REQUEST = 4301;
@@ -36,14 +36,14 @@ public class MainActivity extends Activity {
         settings.setDomStorageEnabled(true);
         settings.setDatabaseEnabled(true);
         settings.setMediaPlaybackRequiresUserGesture(false);
-        settings.setAllowFileAccess(false);
+        settings.setAllowFileAccess(true);
         settings.setAllowContentAccess(true);
         settings.setTextZoom(100);
         settings.setSupportZoom(false);
         settings.setBuiltInZoomControls(false);
         settings.setDisplayZoomControls(false);
         settings.setUseWideViewPort(true);
-        settings.setLoadWithOverviewMode(false);
+        settings.setLoadWithOverviewMode(false);\n        settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
 
         webView.setVerticalScrollBarEnabled(false);
         webView.setHorizontalScrollBarEnabled(false);
@@ -57,6 +57,9 @@ public class MainActivity extends Activity {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 Uri uri = request.getUrl();
+                if ("file".equalsIgnoreCase(uri.getScheme())) {
+                    return false;
+                }
                 String host = uri.getHost();
                 String path = uri.getPath();
                 if (STUDIO_HOST.equalsIgnoreCase(host) && path != null && path.startsWith(STUDIO_PATH)) {
