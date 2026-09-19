@@ -24,6 +24,10 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        if (NativeEdition.openDedicatedExperience(this, STUDIO_URL)) {
+            return;
+        }
+
         webView = new WebView(this);
         setContentView(webView);
 
