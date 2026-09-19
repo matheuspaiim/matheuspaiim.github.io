@@ -43,7 +43,8 @@ public class MainActivity extends Activity {
         settings.setBuiltInZoomControls(false);
         settings.setDisplayZoomControls(false);
         settings.setUseWideViewPort(true);
-        settings.setLoadWithOverviewMode(false);\n        settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
+        settings.setLoadWithOverviewMode(false);
+        settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
 
         webView.setVerticalScrollBarEnabled(false);
         webView.setHorizontalScrollBarEnabled(false);
