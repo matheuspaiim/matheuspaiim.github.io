@@ -10,8 +10,8 @@ android {
         applicationId "com.matheuspaiim.librasstudio"
         minSdk 26
         targetSdk 35
-        versionCode 5
-        versionName "0.3.1"
+        versionCode 6
+        versionName "0.4.0"
     }
 
     flavorDimensions += "edition"
@@ -40,3 +40,32 @@ android {
     }
 }
 
+
+
+def studioWebDir = file("../../libras-studio")
+def bundledWebDir = file("src/main/assets/web")
+
+tasks.register("syncWebAssets", Copy) {
+    from(studioWebDir) {
+        include "index.html"
+        include "app.css"
+        include "app.js"
+        include "config.js"
+        include "study.js"
+        include "explore-data.js"
+        include "phrase-data.js"
+        include "manifest.webmanifest"
+        include "icon.svg"
+        include "version.json"
+    }
+    into bundledWebDir
+    doFirst {
+        delete bundledWebDir
+    }
+}
+
+tasks.configureEach { task ->
+    if (task.name == "preBuild") {
+        task.dependsOn("syncWebAssets")
+    }
+}
