@@ -1,34 +1,179 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#7c3cff"><title>Libras Studio</title><link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="app.css?v=0414"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><script src="study.js?v=0414"></script><script src="explore-data.js?v=0414"></script><script src="phrase-data.js?v=0414"></script></head><body>
-<div id="auth" class="auth"><div class="logo">🖐️</div><h1>Libras Studio</h1><p>Seu estudo de Libras, sincronizado em todo lugar.</p><form id="auth-form"><input id="email" type="email" placeholder="E-mail" required><input id="password" type="password" placeholder="Senha" required><button class="primary">Entrar</button></form><button id="signup" class="soft">Criar conta</button><small id="auth-status"></small></div>
-<div id="app" class="hidden"><header><b>🖐️ Libras Studio</b><small id="sync-status">☁️</small><button id="app-update" title="Atualizar aplicativo" aria-label="Atualizar aplicativo">⬆</button><button id="sync" title="Sincronizar" aria-label="Sincronizar">↻</button></header><main>
-<section id="home" class="view active"><div class="hero"><h1>👐 O que vamos aprender hoje?</h1><p>Crie, explore, estude e revise. Tudo sincronizado com o PC.</p></div><div class="stats"><div><b id="due">0</b><small>⏰ revisar</small></div><div><b id="fresh">0</b><small>✨ novos</small></div><div><b id="total">0</b><small>👐 sinais</small></div></div><div class="quick"><button data-go="review">🧠<b>Revisar</b></button><button data-go="create">➕<b>Criar</b></button><button data-go="study">🎓<b>Estudar</b></button><button data-go="explore">🧭<b>Explorar</b></button><button id="libraslab-quick" class="hidden" data-go="libraslab">🔗<b>LibrasLab</b></button></div></section>
-<section id="create" class="view"><div class="title"><h2>➕ Criar</h2><p>Sinal, variação, frase ou vídeo seu.</p></div><div class="switch"><button class="active" data-mode="sign">👐 Sinal</button><button data-mode="phrase">💬 Frase</button></div><div id="sign-box" class="card"><div class="source-note">🔎 Busca ampliada em SignBank, INES, UFV, USP, Spread the Sign e V-LIBRASIL.</div><input id="create-name" placeholder="Ex.: casa, mãe, vermelho"><button id="create-search" class="primary wide">🔎 Buscar e salvar</button><button id="variants" class="soft wide">🎞 Ver variações</button><label class="soft wide file">📁 Usar vídeo meu<input id="video-file" type="file" accept="video/*" hidden></label><div id="create-result"></div></div><div id="phrase-box" class="card hidden"><div class="source-note">💬 Primeiro procuramos uma gravação real contínua em vários bancos. Se não existir, mostramos expressões próximas e, separadamente, a tradução automática oficial do VLibras.</div><input id="phrase-name" placeholder="Ex.: Eu te amo"><button id="phrase-search" class="primary wide">Buscar frase</button><div id="phrase-result"></div></div></section>
-<section id="batch" class="view"><div class="title"><h2>📦 Lote</h2><p>Um sinal por linha.</p></div><div class="card"><textarea id="batch-text" rows="12" placeholder="Casa&#10;Mãe&#10;Pai"></textarea><button id="batch-run" class="primary wide">⚡ Processar lote</button><div id="batch-result"></div></div></section>
-<section id="explore" class="view"><div class="title"><h2>🧭 Explorar</h2><p>Complete sua biblioteca por categoria.</p></div><input id="explore-search" placeholder="Buscar categoria"><div id="explore-cats" class="chips"></div><div id="explore-panel"></div></section>
-<section id="study" class="view"><div class="title"><h2>🎓 Estudar</h2><p>Gramática, expressão facial, espaço, classificadores, conversação e cultura.</p></div><div class="progress"><b id="study-count">0 de 12 aulas</b><span id="study-pct">0%</span></div><input id="study-search" placeholder="Buscar aula"><div id="study-modules" class="chips"></div><div id="study-list"></div></section>
-<section id="library" class="view"><div class="title"><h2>📚 Biblioteca</h2><p>Seus sinais e frases sincronizados.</p></div><div class="library-filters"><input id="library-search" placeholder="Buscar na biblioteca"><select id="library-cat"><option value="">Todas as categorias</option></select></div><div class="actions"><button id="new-cat" class="soft">＋ Categoria</button><button id="move" class="soft">📂 Mover</button><button id="delete" class="danger">Excluir</button></div><div id="library-list"></div></section>
-<section id="review" class="view"><div class="title"><h2>🧠 Revisar</h2><p>Faça o sinal, revele o vídeo e avalie.</p></div><div id="review-setup" class="card"><label>Categoria<select id="review-cat"><option value="">Todas</option></select></label><label>Cartões<select id="review-mode"><option value="mixed">Vencidos + novos</option><option value="due">Somente vencidos</option><option value="new">Somente novos</option></select></label><label>Tamanho<select id="review-limit"><option value="10">10</option><option value="20" selected>20</option><option value="30">30</option><option value="50">50</option><option value="100">100</option><option value="200">200</option><option value="all">Todos</option></select></label><button id="review-start" class="primary wide">▶ Começar</button></div><div id="review-card" class="card review hidden"><small>FAÇA O SINAL DE:</small><h1 id="review-name"></h1><div id="review-media" class="hidden"></div><button id="reveal" class="primary wide">👁 Revelar resposta</button><div id="ratings" class="ratings hidden"><button data-rate="again"><span class="rating-time" data-time="again">10 min</span><b>De novo</b></button><button data-rate="hard"><span class="rating-time" data-time="hard">6 h</span><b>Difícil</b></button><button data-rate="good"><span class="rating-time" data-time="good">1 dia</span><b>Bom</b></button><button data-rate="easy"><span class="rating-time" data-time="easy">4 dias</span><b>Fácil</b></button></div></div><div id="review-done" class="card hidden center"><h2>🎉 Sessão concluída</h2><button id="again-session" class="primary">Outra sessão</button></div></section>
-<section id="libraslab" class="view hidden"><div class="title"><h2>🔗 LibrasLab Bridge</h2><p>Estude normalmente no LibrasLab. O Studio detecta os nomes dos sinais e transforma a aula em revisão espaçada.</p></div>
-<div id="ll-not-native" class="card hidden"><h3>📱 Recurso do aplicativo Android</h3><p>Esta ponte usa um recurso nativo do Android para ler somente os textos exibidos pelo LibrasLab. Ela não usa captura de tela.</p></div>
-<div id="ll-status-card" class="card">
-  <div class="ll-status-row"><div><small>PERMISSÃO DO ANDROID</small><b id="ll-accessibility-status">Verificando…</b></div><span id="ll-accessibility-dot" class="status-dot"></span></div>
-  <button id="ll-enable" class="soft wide">⚙️ Ativar acesso ao LibrasLab</button>
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#6f4ef6">
+  <title>Libras Studio</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="app.css?v=0500">
+  <link rel="stylesheet" href="redesign.css?v=0500">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="icons.js?v=0500"></script>
+  <script src="study.js?v=0500"></script>
+  <script src="explore-data.js?v=0500"></script>
+</head>
+<body>
+<div id="auth" class="auth">
+  <div class="brand" style="justify-content:center;margin-bottom:12px">
+    <span class="brand-mark">🖐️</span>
+    <div><div class="brand-title">Libras Studio</div><div class="brand-sub">Aprender conecta pessoas</div></div>
+  </div>
+  <h1>Bem-vindo</h1>
+  <p>Entre para continuar seus estudos e sincronizar seu progresso.</p>
+  <form id="auth-form"><input id="email" type="email" placeholder="E-mail" required><input id="password" type="password" placeholder="Senha" required><button class="primary">Entrar</button></form>
+  <button id="signup" class="soft">Criar conta</button>
+  <small id="auth-status"></small>
 </div>
-<div id="ll-session-card" class="card">
-  <h3>🎓 Sessão de estudo</h3>
-  <p id="ll-session-info">Inicie a captura antes de abrir o LibrasLab.</p>
-  <button id="ll-start" class="primary wide">▶️ Iniciar aula no LibrasLab</button>
-  <button id="ll-open" class="soft wide hidden">↗️ Voltar para o LibrasLab</button>
-  <button id="ll-stop" class="danger wide hidden">⏹️ Finalizar aula</button>
+
+<div id="app" class="hidden app-shell">
+  <aside class="desktop-sidebar">
+    <div class="brand">
+      <div class="brand-mark">🖐️</div>
+      <div><div class="brand-title">Libras Studio</div><div class="brand-sub">Comunicar aproxima.</div></div>
+    </div>
+    <div class="side-nav">
+      <button data-view="home" class="active"><span data-icon="home"></span><span>Início</span></button>
+      <button data-view="study"><span data-icon="trail"></span><span>Trilha de aprendizagem</span></button>
+      <button data-view="explore"><span data-icon="explore"></span><span>Explorar sinais</span></button>
+      <button data-view="library"><span data-icon="library"></span><span>Biblioteca</span></button>
+      <button data-view="review"><span data-icon="review"></span><span>Revisão</span></button>
+      <button data-view="progress"><span data-icon="tracking"></span><span>Acompanhamento de estudos</span></button>
+      <button data-view="settings"><span data-icon="settings"></span><span>Configurações</span></button>
+    </div>
+    <div class="sidebar-footer"><strong>Mais Libras para um mundo mais próximo.</strong><small>Aprenda no seu ritmo, pratique e acompanhe sua evolução.</small></div>
+  </aside>
+
+  <div class="app-stage">
+    <header class="topbar">
+      <div class="global-search"><span data-icon="search"></span><input id="global-search" placeholder="Buscar sinais, categorias ou temas..."></div>
+      <div class="topbar-spacer"></div>
+      <small id="sync-status">☁️</small>
+      <button id="app-update" class="top-action" title="Atualizar aplicativo" aria-label="Atualizar aplicativo">↥</button>
+      <button id="sync" class="top-action" title="Sincronizar" aria-label="Sincronizar">↻</button>
+      <div class="profile-chip"><div class="profile-avatar" id="profile-avatar">LS</div><div class="profile-copy"><b id="profile-name">Olá!</b><small>Continue aprendendo</small></div></div>
+    </header>
+
+    <main>
+      <section id="home" class="view active">
+        <div class="dashboard-grid">
+          <div class="dashboard-main">
+            <div class="hero-new"><div class="eyebrow">Olá, <span id="home-user-name">estudante</span>!</div><h1>Continue sua jornada em <span>Libras</span></h1><p>Pequenos passos todos os dias constroem grandes conexões.</p></div>
+
+            <div class="dash-card">
+              <div class="dash-card-head"><div class="dash-card-title"><span data-icon="explore"></span><h3>Explorar sinais</h3></div><button class="dash-link" data-go="explore">Ver todas →</button></div>
+              <div id="home-explore-cats" class="explore-shortcuts"></div>
+            </div>
+
+            <div class="two-cards">
+              <div class="dash-card library-hero">
+                <div><div class="dash-card-head"><div class="dash-card-title"><span data-icon="library"></span><h3>Biblioteca</h3></div><button class="dash-link" data-go="library">Ver biblioteca →</button></div><p>Seus sinais organizados para aprender e revisar.</p><div class="metric-row"><div><b id="home-sign-count">0</b><small>Sinais</small></div><div><b id="home-cat-count">0</b><small>Categorias</small></div><div><b id="home-library-health">0%</b><small>Com vídeo</small></div></div></div>
+                <span class="big-icon" data-icon="library"></span>
+              </div>
+              <div class="dash-card review-hero">
+                <div><div class="dash-card-head"><div class="dash-card-title"><span data-icon="review"></span><h3>Revisão</h3></div><button class="dash-link" data-go="review">Praticar agora →</button></div><p>Fixe o que aprendeu com repetição espaçada.</p><div class="metric-row"><div><b id="home-due-count">0</b><small>Vencidos</small></div><div><b id="home-new-count">0</b><small>Novos</small></div><div><b id="home-reviewed-count">0</b><small>Revisados</small></div></div></div>
+                <span class="big-icon" data-icon="reviewActivity"></span>
+              </div>
+            </div>
+
+            <div class="dash-card continue-card">
+              <div class="dash-card-head"><div class="dash-card-title"><span data-icon="continue"></span><h3>Continue de onde parou</h3></div><button class="dash-link" data-go="study">Ver toda a trilha →</button></div>
+              <div class="continue-body">
+                <div class="lesson-preview"><span data-icon="lesson"></span></div>
+                <div class="continue-copy"><small id="home-current-module">Módulo atual</small><h3 id="home-current-title">Comece sua trilha</h3><p id="home-current-summary">Escolha uma aula para iniciar.</p><div class="progress-track"><span id="home-current-progress" style="width:0%"></span></div><small id="home-current-progress-label">0% concluído</small></div>
+                <div class="continue-next"><small>Próxima aula</small><b id="home-next-title">Aguardando progresso</b><span id="home-next-meta"></span></div>
+              </div>
+              <div class="continue-actions"><button id="home-continue" class="primary">▶ Continuar aprendendo</button><button class="soft" data-go="study">Ver módulo completo</button></div>
+            </div>
+          </div>
+
+          <aside class="dashboard-side">
+            <div class="dash-card sequence-card">
+              <div class="dash-card-head"><div class="dash-card-title"><span data-icon="sequence"></span><h3>Sequência de estudos</h3></div><button class="dash-link" data-go="study">Ver tudo →</button></div>
+              <div class="sequence-summary"><div class="ring" id="home-module-ring" style="--pct:0"><span id="home-module-pct">0%</span></div><div><b id="home-module-count">0 de 0</b><small>módulos concluídos</small></div></div>
+              <div id="home-sequence-list" class="sequence-list"></div>
+            </div>
+
+            <div class="dash-card">
+              <div class="dash-card-head"><div class="dash-card-title"><span data-icon="streak"></span><h3>Seu progresso</h3></div><button class="dash-link" data-go="progress">Ver detalhes →</button></div>
+              <div id="home-study-days" class="study-days"></div>
+              <div class="progress-pills"><div class="progress-pill"><span data-icon="learned"></span><div><small>Total de sinais aprendidos</small><b id="home-learned">0 sinais</b></div></div><div class="progress-pill"><span data-icon="best"></span><div><small>Melhor sequência</small><b id="home-best-streak">0 dias</b></div></div></div>
+            </div>
+
+            <div class="dash-card tracking-card">
+              <div class="dash-card-head"><div class="dash-card-title"><span data-icon="tracking"></span><h3>Acompanhamento de estudos</h3></div><button class="dash-link" data-go="progress">Ver detalhes →</button></div>
+              <div class="tracking-main"><div class="ring" id="home-overall-ring" style="--pct:0"><span id="home-overall-pct">0%</span></div><div class="tracking-stats"><div class="tracking-stat"><span data-icon="lesson"></span><div><b id="home-lessons-done">0</b><small>aulas concluídas</small></div></div><div class="tracking-stat"><span data-icon="reviewActivity"></span><div><b id="home-review-activity">0</b><small>sinais revisados</small></div></div></div></div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section id="explore" class="view page-shell">
+        <div class="title"><h2>Explorar sinais</h2><p>Busque qualquer sinal, veja variações e salve o que quiser na sua biblioteca.</p></div>
+        <div class="page-grid">
+          <div class="surface">
+            <div class="dash-card-head"><div class="dash-card-title"><span data-icon="search"></span><h3>Buscar e adicionar sinal</h3></div></div>
+            <div class="explore-search-card"><div class="field-wrap"><input id="create-name" placeholder="Ex.: casa, mãe, vermelho"></div><button id="create-search" class="primary">Buscar e salvar</button><button id="variants" class="soft">Ver variações</button></div>
+            <label class="soft wide file" style="margin-top:10px;display:inline-flex;align-items:center;gap:8px"><span data-icon="download" class="icon-sm"></span>Usar vídeo meu<input id="video-file" type="file" accept="video/*" hidden></label>
+            <div id="create-result"></div>
+          </div>
+          <div class="surface"><div class="dash-card-head"><div class="dash-card-title"><span data-icon="explore"></span><h3>Explorar por categoria</h3></div></div><input id="explore-search" placeholder="Buscar categoria"><div id="explore-cats" class="chips" style="margin-top:10px"></div><div id="explore-panel"></div></div>
+        </div>
+      </section>
+
+      <section id="study" class="view page-shell">
+        <div class="title"><h2>Trilha de aprendizagem</h2><p>Avance em uma sequência estruturada, do fundamento à comunicação mais fluida.</p></div>
+        <div class="surface"><div class="progress"><b id="study-count">0 aulas</b><span id="study-pct">0%</span></div><input id="study-search" placeholder="Buscar aula"><div id="study-modules" class="chips" style="margin-top:10px"></div></div>
+        <div id="study-list"></div>
+      </section>
+
+      <section id="library" class="view page-shell">
+        <div class="title"><h2>Biblioteca</h2><p>Seus sinais organizados por categoria, com seções recolhíveis.</p></div>
+        <div class="surface"><div class="library-filters"><input id="library-search" placeholder="Buscar na biblioteca"><select id="library-cat"><option value="">Todas as categorias</option></select></div><div class="actions"><button id="new-cat" class="soft">＋ Categoria</button><button id="move" class="soft">Mover</button><button id="delete" class="danger">Excluir</button></div></div>
+        <div id="library-list"></div>
+      </section>
+
+      <section id="review" class="view page-shell">
+        <div class="title"><h2>Revisão</h2><p>Faça o sinal, revele o vídeo e avalie sua lembrança.</p></div>
+        <div id="review-setup" class="surface"><label>Categoria<select id="review-cat"><option value="">Todas</option></select></label><label>Cartões<select id="review-mode"><option value="mixed">Vencidos + novos</option><option value="due">Somente vencidos</option><option value="new">Somente novos</option></select></label><label>Tamanho<select id="review-limit"><option value="10">10</option><option value="20" selected>20</option><option value="30">30</option><option value="50">50</option><option value="100">100</option><option value="200">200</option><option value="all">Todos</option></select></label><button id="review-start" class="primary wide">▶ Começar</button></div>
+        <div id="review-card" class="surface review hidden"><small>FAÇA O SINAL DE:</small><h1 id="review-name"></h1><div id="review-media" class="hidden"></div><button id="reveal" class="primary wide">Revelar resposta</button><div id="ratings" class="ratings hidden"><button data-rate="again"><span class="rating-time" data-time="again">10 min</span><b>De novo</b></button><button data-rate="hard"><span class="rating-time" data-time="hard">6 h</span><b>Difícil</b></button><button data-rate="good"><span class="rating-time" data-time="good">1 dia</span><b>Bom</b></button><button data-rate="easy"><span class="rating-time" data-time="easy">4 dias</span><b>Fácil</b></button></div></div>
+        <div id="review-done" class="surface hidden center"><h2>🎉 Sessão concluída</h2><button id="again-session" class="primary">Outra sessão</button></div>
+      </section>
+
+      <section id="progress" class="view page-shell">
+        <div class="title"><h2>Acompanhamento de estudos</h2><p>Veja sua constância, avanço na trilha, sinais aprendidos e revisões realizadas.</p></div>
+        <div id="tracking-page" class="tracking-page-grid"></div>
+      </section>
+
+      <section id="batch" class="view page-shell"><div class="title"><h2>Lote</h2><p>Adicione vários sinais de uma vez.</p></div><div class="surface"><textarea id="batch-text" rows="12" placeholder="Casa&#10;Mãe&#10;Pai"></textarea><button id="batch-run" class="primary wide">Processar lote</button><div id="batch-result"></div></div></section>
+
+      <section id="libraslab" class="view hidden page-shell"><div class="title"><h2>LibrasLab Bridge</h2><p>Capture os sinais vistos durante sua sessão pessoal no LibrasLab.</p></div><div id="ll-not-native" class="surface hidden"><h3>Recurso do aplicativo Android</h3><p>Esta ponte usa um recurso nativo do Android e não grava a tela.</p></div><div id="ll-status-card" class="surface"><div class="ll-status-row"><div><small>PERMISSÃO DO ANDROID</small><b id="ll-accessibility-status">Verificando…</b></div><span id="ll-accessibility-dot" class="status-dot"></span></div><button id="ll-enable" class="soft wide">Ativar acesso ao LibrasLab</button></div><div id="ll-session-card" class="surface"><h3>Sessão de estudo</h3><p id="ll-session-info">Inicie a captura antes de abrir o LibrasLab.</p><button id="ll-start" class="primary wide">Iniciar aula no LibrasLab</button><button id="ll-open" class="soft wide hidden">Voltar para o LibrasLab</button><button id="ll-stop" class="danger wide hidden">Finalizar aula</button></div><div id="ll-detected-card" class="surface hidden"><div class="ll-head"><div><small>SINAIS DETECTADOS</small><h3 id="ll-detected-title">0 sinais</h3></div><button id="ll-refresh" class="soft">Atualizar</button></div><p id="ll-detected-meta"></p><div id="ll-detected-list"></div><button id="ll-import" class="primary wide">Adicionar selecionados à revisão</button><button id="ll-clear" class="soft wide">Limpar esta sessão</button></div></section>
+
+      <section id="settings" class="view page-shell">
+        <div class="title"><h2>Configurações</h2></div>
+        <div class="surface"><h3>Nuvem</h3><p id="account"></p><button id="sync-now" class="primary wide">Sincronizar agora</button><button id="logout" class="soft wide">Sair deste dispositivo</button></div>
+        <div class="surface" style="margin-top:12px"><h3>Atualizações</h3><p>Versão <b id="app-version">0.5.0</b>. O Studio verifica atualizações automaticamente.</p><button id="update-now" class="soft wide">Verificar atualização</button></div>
+        <div class="surface" style="margin-top:12px"><h3>Integração com o PC</h3><p>AnkiConnect continua local no computador. Biblioteca e progresso permanecem sincronizados pela nuvem.</p></div>
+      </section>
+
+      <section id="create" class="view hidden" aria-hidden="true"><div id="sign-box"></div><div id="phrase-box" class="hidden"></div><input id="phrase-name" hidden><div id="phrase-result"></div><button id="phrase-search" hidden></button></section>
+    </main>
+
+    <nav class="bottom-nav">
+      <button data-view="home" class="active"><span data-icon="home"></span><span>Início</span></button>
+      <button data-view="study"><span data-icon="trail"></span><span>Trilha</span></button>
+      <button data-view="explore"><span data-icon="explore"></span><span>Explorar</span></button>
+      <button data-view="library"><span data-icon="library"></span><span>Biblioteca</span></button>
+      <button data-view="review"><span data-icon="review"></span><span>Revisão</span></button>
+      <button data-view="more"><span data-icon="more"></span><span>Mais</span></button>
+    </nav>
+    <div id="more" class="sheet hidden"><button data-go="progress">Acompanhamento de estudos</button><button id="libraslab-more" class="hidden" data-go="libraslab">LibrasLab Bridge</button><button data-go="batch">Lote</button><button data-go="settings">Configurações</button></div>
+  </div>
 </div>
-<div id="ll-detected-card" class="card hidden">
-  <div class="ll-head"><div><small>SINAIS DETECTADOS</small><h3 id="ll-detected-title">0 sinais</h3></div><button id="ll-refresh" class="soft">↻ Atualizar</button></div>
-  <p id="ll-detected-meta"></p>
-  <div id="ll-detected-list"></div>
-  <button id="ll-import" class="primary wide">🧠 Adicionar selecionados à revisão</button>
-  <button id="ll-clear" class="soft wide">🗑️ Limpar esta sessão</button>
-</div>
-</section>
-<section id="settings" class="view"><div class="title"><h2>⚙️ Configurações</h2></div><div class="card"><h3>☁️ Libras Studio Nuvem</h3><p id="account"></p><button id="sync-now" class="primary wide">🔄 Sincronizar agora</button><button id="logout" class="soft wide">Sair deste celular</button></div><div class="card"><h3>📲 Atualizações</h3><p>Versão <b id="app-version">0.4.14</b>. O Studio verifica atualizações automaticamente sempre que é aberto.</p><button id="update-now" class="soft wide">⬆️ Verificar e atualizar agora</button></div><div class="card"><h3>🖥️ Integração com o PC</h3><p>AnkiConnect continua no computador, porque é um serviço local. O conteúdo criado e revisado aqui sincroniza com o desktop.</p></div></section>
-</main><nav><button data-view="home" class="active">🏠<span>Início</span></button><button data-view="create">➕<span>Criar</span></button><button data-view="explore">🧭<span>Explorar</span></button><button data-view="study">🎓<span>Estudar</span></button><button data-view="library">📚<span>Biblioteca</span></button><button data-view="review">🧠<span>Revisar</span></button><button data-view="more">•••<span>Mais</span></button></nav><div id="more" class="sheet hidden"><button id="libraslab-more" class="hidden" data-go="libraslab">🔗 LibrasLab Bridge</button><button data-go="batch">📦 Lote</button><button data-go="settings">⚙️ Configurações</button></div></div>
-<div id="modal" class="modal hidden"><div class="modalbox"><button id="close-modal">×</button><div id="modal-body"></div></div></div><div id="toast"></div><script src="app.js?v=0414"></script></body></html>
+
+<div id="modal" class="modal hidden"><div class="modalbox"><button id="close-modal">×</button><div id="modal-body"></div></div></div>
+<div id="toast"></div>
+<script src="app.js?v=0500"></script>
+</body>
+</html>
