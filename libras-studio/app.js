@@ -1,5 +1,5 @@
 const APP_VERSION="0.4.8";
-const cfg=window.LIBRAS_STUDIO_CONFIG||{},$=s=>document.querySelector(s),$=s=>[...document.querySelectorAll(s)];
+const cfg=window.LIBRAS_STUDIO_CONFIG||{},$=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const IS_NATIVE_ANDROID=new URLSearchParams(location.search).get("native")==="android";
 if(IS_NATIVE_ANDROID)document.documentElement.classList.add("native-app");
 let sb,S={session:null,signs:[],cats:[],reviews:[],study:[],catalog:null,catalogStats:null,phraseResults:[],queue:[],i:0,explore:null,librasLabCandidates:[]};
