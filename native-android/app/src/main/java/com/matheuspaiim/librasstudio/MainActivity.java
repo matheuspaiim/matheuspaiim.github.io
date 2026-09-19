@@ -12,7 +12,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 public class MainActivity extends Activity {
-    private static final String STUDIO_URL = "https://matheuspaiim.github.io/libras-studio/?native=android&build=3";
+    private static final String STUDIO_URL = "https://matheuspaiim.github.io/libras-studio/?native=android&build=5";
     private static final String STUDIO_HOST = "matheuspaiim.github.io";
     private static final String STUDIO_PATH = "/libras-studio/";
     private static final int FILE_CHOOSER_REQUEST = 4301;
