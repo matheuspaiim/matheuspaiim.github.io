@@ -85,3 +85,44 @@ html.native-app .bottom-nav{grid-template-columns:repeat(6,minmax(0,1fr))!import
 html.native-app .topbar{height:62px;padding:8px 10px}
 html.native-app .topbar .global-search{min-width:0}
 html.native-app main{padding:12px 10px 90px}
+
+
+/* Mobile: categorias visíveis e navegação responsiva para o painel de sinais */
+#explore-panel{scroll-margin-top:14px}
+#explore-cats .ls-category-selected,
+#explore-cats .category-icon,
+.shortcut-cat .ls-category-selected,
+.cat-head .ls-category-selected{
+  flex:0 0 auto;
+}
+#explore-cats .ls-category-selected svg,
+#explore-cats .category-icon svg{width:32px;height:32px;display:block}
+@media (max-width:720px){
+  #explore.page-shell{padding-bottom:96px}
+  #explore .page-grid{display:block}
+  #explore .page-grid>.surface{margin-bottom:12px}
+  #explore-cats.chips{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:8px;
+    max-height:none;
+    overflow:visible;
+  }
+  #explore-cats.chips button{
+    min-width:0;
+    width:100%;
+    min-height:54px;
+    display:flex;
+    align-items:center;
+    justify-content:flex-start;
+    gap:8px;
+    text-align:left;
+    white-space:normal;
+    line-height:1.15;
+    padding:8px 9px;
+  }
+  #explore-cats .category-icon{width:34px;height:34px}
+  #explore-panel{scroll-margin-top:8px}
+  #explore-panel>.card:first-child{margin-top:10px}
+  .explore-row{min-height:58px}
+}
