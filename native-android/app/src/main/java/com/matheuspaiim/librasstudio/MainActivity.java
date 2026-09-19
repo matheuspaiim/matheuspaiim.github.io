@@ -3,7 +3,12 @@ package com.matheuspaiim.librasstudio;
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Bundle;\nimport android.graphics.Color;\nimport android.view.Gravity;\nimport android.view.MotionEvent;\nimport android.widget.FrameLayout;\nimport android.widget.TextView;
+import android.os.Bundle;
+import android.graphics.Color;
+import android.view.Gravity;
+import android.view.MotionEvent;
+import android.widget.FrameLayout;
+import android.widget.TextView;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
@@ -15,7 +20,10 @@ public class MainActivity extends Activity {
     private static final String STUDIO_URL = "file:///android_asset/web/index.html?native=android&apk=7";
     private static final String STUDIO_HOST = "matheuspaiim.github.io";
     private static final String STUDIO_PATH = "/libras-studio/";
-    private static final int FILE_CHOOSER_REQUEST = 4301;\n\n    private int nativeTouchCount = 0;\n    private TextView nativeTouchBadge;
+    private static final int FILE_CHOOSER_REQUEST = 4301;
+
+    private int nativeTouchCount = 0;
+    private TextView nativeTouchBadge;
 
     private WebView webView;
     private ValueCallback<Uri[]> fileCallback;
