@@ -6,6 +6,10 @@ on:
     branches: ["main"]
     paths:
       - "native-android/**"
+      - "libras-studio/app.js"
+      - "libras-studio/index.html"
+      - "libras-studio/app.css"
+      - "libras-studio/version.json"
       - ".github/workflows/build-libras-studio-android.yml"
 
 permissions:
