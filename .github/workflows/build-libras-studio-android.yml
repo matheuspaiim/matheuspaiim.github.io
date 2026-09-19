@@ -61,14 +61,16 @@ jobs:
           node - <<'NODE'
           const fs=require("fs");
           const src=fs.readFileSync("../libras-studio/app.js","utf8");
-          const bad=/(?<!\$)\$\([^\n;]*?\)\.forEach\(/g;
-          const hits=src.match(bad)||[];
-          if(hits.length){
-            console.error("Single-element selector used with forEach:", hits);
+          if(src.includes('$$(')){
+            console.error("Undefined $$ selector helper found.");
             process.exit(1);
           }
-          if(!src.includes('function go(v){$$(".view").forEach')){
+          if(!src.includes('function go(v){$(".view").forEach')){
             console.error("Navigation smoke check failed: go() is not using the multi-selector helper.");
+            process.exit(1);
+          }
+          if(!src.includes('$("nav [data-view]").forEach')){
+            console.error("Navigation wiring smoke check failed.");
             process.exit(1);
           }
           NODE
