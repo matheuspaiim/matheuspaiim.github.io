@@ -154,3 +154,6 @@ html.native-app main{padding:12px 10px 90px}
 .library-check::after{content:"";width:9px;height:5px;border-left:2.5px solid #fff;border-bottom:2.5px solid #fff;transform:rotate(-45deg) scale(0);margin-top:-2px;transition:transform .15s}
 .library-check:checked{background:#7258e9!important;border-color:#7258e9!important;box-shadow:0 0 0 3px #eeeaff}
 .library-check:checked::after{transform:rotate(-45deg) scale(1)}
+
+/* Variações da Biblioteca v0511 */
+.lib-row-actions{display:flex;align-items:center;gap:6px;margin-left:auto}.library-variants-btn{width:auto!important;height:34px!important;padding:5px 9px!important;border-radius:10px!important;background:#f3efff!important;color:#5e44dd!important;font-size:12px!important;font-weight:800!important}.library-variants{display:grid;gap:12px}.library-variant{padding:10px;border:1px solid var(--line);border-radius:14px}.library-variant video{display:block;width:100%;border-radius:11px}
