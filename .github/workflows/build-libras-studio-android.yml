@@ -9,7 +9,7 @@ on:
       - ".github/workflows/build-libras-studio-android.yml"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -49,6 +49,9 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.7"
+
+      - name: Validate web application JavaScript
+        run: node --check ../libras-studio/app.js
 
       - name: Build public and personal APKs
         run: gradle :app:assemblePublicDebug :app:assemblePersonalDebug --stacktrace
@@ -96,3 +99,18 @@ jobs:
           name: Libras-Studio-Pessoal
           path: Libras-Studio-Pessoal.apk
           retention-days: 30
+
+      - name: Publish public beta APK to GitHub Pages
+        working-directory: .
+        run: |
+          mkdir -p libras-studio/downloads
+          cp native-android/app/build/outputs/apk/public/debug/app-public-debug.apk libras-studio/downloads/LibrasStudio-Publico-beta.apk
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add libras-studio/downloads/LibrasStudio-Publico-beta.apk
+          if git diff --cached --quiet; then
+            echo "Public beta APK unchanged."
+          else
+            git commit -m "Publish Libras Studio public beta APK"
+            git push
+          fi
