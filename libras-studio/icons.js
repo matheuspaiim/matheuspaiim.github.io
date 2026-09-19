@@ -43,3 +43,48 @@
   window.LSCategoryIcon=name=>{const hit=catRules.find(([r])=>r.test(String(name||'')));return window.LSIcon(hit?hit[1]:'more','category-icon')};
   window.LSHydrateIcons=(root=document)=>root.querySelectorAll('[data-icon]').forEach(el=>{el.innerHTML=(I[el.dataset.icon]||I.more);el.classList.add('ls-icon')});
 })();
+
+/* Sistema C selecionado: ícones 2D, arredondados, coloridos e sem rostos em objetos inanimados. */
+(()=> {
+  const ink="#18204b";
+  const tile=(body,bg="#f3efff")=>'<span class="ls-icon category-icon ls-category-selected"><svg viewBox="0 0 48 48" aria-hidden="true"><rect x="2" y="2" width="44" height="44" rx="13" fill="'+bg+'"/>'+body+'</svg></span>';
+  const p=(d,fill,sw=2)=>'<path d="'+d+'" fill="'+fill+'" stroke="'+ink+'" stroke-width="'+sw+'" stroke-linecap="round" stroke-linejoin="round"/>';
+  const line=(d,c=ink,sw=2)=>'<path d="'+d+'" fill="none" stroke="'+c+'" stroke-width="'+sw+'" stroke-linecap="round" stroke-linejoin="round"/>';
+  const circle=(x,y,r,fill)=>'<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="'+fill+'" stroke="'+ink+'" stroke-width="2"/>';
+  const rect=(x,y,w,h,rx,fill)=>'<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="'+rx+'" fill="'+fill+'" stroke="'+ink+'" stroke-width="2"/>';
+  const N=s=>String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
+  const C={
+    "familia":()=>tile(circle(15,18,5,"#ffad91")+circle(33,18,5,"#83b8f7")+circle(24,14,4.5,"#ffd36f")+line("M8 37c1-8 4-12 8-12s7 4 8 12M24 37c1-8 4-12 8-12s7 4 8 12M17 36c1-7 3-10 7-10s6 3 7 10"),"#fff1ed"),
+    "cores":()=>tile(circle(17,17,6,"#ff718d")+circle(31,17,6,"#6f9df6")+circle(17,31,6,"#ffd05d")+circle(31,31,6,"#67ca91"),"#fff8ed"),
+    "numeros e quantidades":()=>tile(rect(9,9,30,30,8,"#fff")+line("M17 15l-2 18M28 15l-2 18M12 22h22M11 30h22","#7258e9",2.7),"#f2efff"),
+    "perguntas":()=>tile(p("M17 17c1-6 14-7 14 1 0 5-7 5-7 10","#ffd15f")+circle(24,35,2.2,"#ff7892"),"#fff7e7"),
+    "pessoas e pronomes":()=>tile(circle(18,17,6,"#ffad91")+circle(31,18,5,"#7eb4f6")+p("M9 37c1-8 5-12 9-12s8 4 9 12","#ffd066")+p("M25 37c1-7 3-10 7-10s6 3 7 10","#7fd1a2"),"#fff2ee"),
+    "saudacoes e cortesia":()=>tile(p("M14 35c-3-7-3-14-1-20 1-3 4-2 4 1l1 8V11c0-4 5-4 5 0v11V9c0-4 5-4 5 0v14l3-7c2-3 6-1 5 3-2 9-6 16-12 19-4 2-8 1-10-3z","#ffc19f")+line("M9 11 6 8M12 7V4M7 16H3","#ffd05c",2.4),"#fff2ec"),
+    "tempo e calendario":()=>tile(rect(9,11,30,28,7,"#fff")+p("M9 18h30v-3a4 4 0 0 0-4-4H13a4 4 0 0 0-4 4z","#ff7893")+line("M16 8v7M32 8v7","#7258e9",2.5)+circle(18,27,2.5,"#ffd05d")+circle(29,27,2.5,"#6ecb96"),"#fff0f5"),
+    "casa e objetos":()=>tile(p("M8 23 24 9l16 14v16H8z","#fff1d6")+p("M6 24 24 8l18 16","#ff7774",4)+rect(20,28,8,11,2,"#79b8f8"),"#fff2ef"),
+    "alimentos e bebidas":()=>tile(p("M11 19h22l-2 17H13z","#ffd05f")+p("M16 19c1-6 5-9 9-9 4 0 7 3 8 8","#ff7a72")+line("M25 11c0-3 2-5 5-6","#4cab6b",2.4),"#fff7e8"),
+    "animais":()=>tile(p("M12 21 9 13l8 4c4-2 10-2 14 0l8-4-3 8c2 3 2 8 0 12-3 5-7 7-12 7s-9-2-12-7c-2-4-2-9 0-12z","#dda06d")+circle(19,26,1.5,ink)+circle(29,26,1.5,ink)+p("M21 30h6l-3 3z","#ff7b8e"),"#fff2ea"),
+    "corpo humano":()=>tile(circle(24,12,5,"#ffb092")+p("M18 19h12l3 11-5 1v9h-8v-9l-5-1z","#7fb6f7")+line("M18 22 11 29M30 22l7 7","#ffb092",3),"#eef7ff"),
+    "saude e cuidados":()=>tile(rect(10,13,28,24,7,"#fff")+p("M21 18h6v6h6v6h-6v6h-6v-6h-6v-6h6z","#ff7584"),"#eff9f4"),
+    "roupas e acessorios":()=>tile(p("M16 11 8 17l5 8 5-3v16h12V22l5 3 5-8-8-6-4 5h-8z","#7f9df4"),"#f1f3ff"),
+    "escola e estudo":()=>tile(p("M7 19 24 10l17 9-17 9z","#687fda")+p("M13 23v10c7 4 15 4 22 0V23","#8da0ef")+line("M41 19v13","#f0ae3e",2.5),"#f1f2ff"),
+    "trabalho e profissoes":()=>tile(rect(9,16,30,21,5,"#62aaf5")+line("M18 16v-4h12v4M9 25c8 4 22 4 30 0")+rect(21,23,6,7,2,"#ffd05c"),"#eef7ff"),
+    "lugares":()=>tile(p("M24 41S12 30 12 20c0-8 5-13 12-13s12 5 12 13c0 10-12 21-12 21z","#ff7891")+circle(24,20,5,"#fff0d7"),"#fff0f4"),
+    "transporte e transito":()=>tile(p("M10 27l3-10h22l3 10v9H10z","#71b6f7")+circle(16,35,3,"#ffd05c")+circle(32,35,3,"#ffd05c")+line("M15 22h18"),"#eef7ff"),
+    "natureza e clima":()=>tile(line("M24 39V24","#347652",2.6)+p("M24 27C12 26 10 15 12 9c7 1 14 6 12 18z","#77ca78")+p("M24 24c10 1 15-7 14-14-7 0-13 5-14 14z","#55b86c"),"#eff9ef"),
+    "sentimentos e emocoes":()=>tile(p("M24 39S8 30 8 19c0-6 7-10 12-5l4 4 4-4c5-5 12-1 12 5 0 11-16 20-16 20z","#ff7894"),"#fff0f4"),
+    "caracteristicas e estados":()=>tile(p("M24 8l4 10 11 1-8 7 3 11-10-6-10 6 3-11-8-7 11-1z","#ffd05d")+circle(38,11,3,"#ff7b93"),"#fff7e7"),
+    "acoes e verbos":()=>tile(circle(26,11,4,"#ffad91")+line("M24 16l-5 9 7 5-4 9M20 23l-8 3M24 18l8 5","#6855e7",3),"#f2efff"),
+    "comunicacao e lingua":()=>tile(p("M8 12h27a7 7 0 0 1 7 7v11a7 7 0 0 1-7 7H22l-9 7v-7H8a7 7 0 0 1-7-7V19a7 7 0 0 1 7-7z","#76b9f7")+line("M13 22h18M13 28h12","#fff",2.5),"#eef7ff"),
+    "tecnologia e midia":()=>tile(rect(8,10,32,23,4,"#79b6f7")+rect(18,36,12,3,1.5,"#ffd05c")+line("M16 39h16"),"#eef7ff"),
+    "lazer e esportes":()=>tile(circle(24,24,14,"#fff")+p("M24 16l5 4-2 6h-6l-2-6z","#7258e9")+line("M12 22l7-2M29 20l7 2M21 26l-4 8M27 26l4 8"),"#f2efff"),
+    "dinheiro e compras":()=>tile(p("M12 17h24l-2 20H14z","#ff8aa0")+line("M17 17c0-6 14-6 14 0")+circle(24,27,5,"#ffd05d"),"#fff0f4"),
+    "rotina diaria":()=>tile(circle(24,24,15,"#fff")+line("M24 14v11l7 4","#7258e9",2.8)+circle(24,24,2,"#ff7b91"),"#f2efff"),
+    "viagens e turismo":()=>tile(p("M8 25l31-12-10 13 9 7-4 3-10-5-8 8-3-2 4-10z","#78b8f6"),"#eef7ff"),
+    "emergencia e seguranca":()=>tile(p("M16 33h16l-2-16c-1-7-11-7-12 0z","#ff6f79")+rect(12,33,24,5,2,"#6e7b9d")+line("M24 9V5M12 14 8 11M36 14l4-3","#ffd05d",2.4),"#fff0f1"),
+    "acessibilidade e inclusao":()=>tile(circle(19,12,4,"#75b7f7")+circle(26,30,9,"#fff")+line("M20 17l3 11h12l5 9M23 22h10","#7258e9",2.7),"#eef7ff"),
+    "relacionamentos":()=>tile(p("M18 36S8 30 8 21c0-5 6-8 10-4l6 6 6-6c4-4 10-1 10 4 0 9-10 15-16 20z","#ff7894")+circle(14,13,3,"#ffd05d")+circle(34,13,3,"#78b8f6"),"#fff0f4"),
+    "outros":()=>tile(circle(15,24,3,"#7258e9")+circle(24,24,3,"#ff7f96")+circle(33,24,3,"#62c995"),"#f3efff")
+  };
+  window.LSCategoryIcon=name=>(C[N(name)]||C.outros)();
+})();
