@@ -23,7 +23,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Java 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "17"
@@ -50,15 +50,49 @@ jobs:
         with:
           gradle-version: "8.7"
 
-      - name: Build APK
-        run: gradle :app:assembleDebug --stacktrace
+      - name: Build public and personal APKs
+        run: gradle :app:assemblePublicDebug :app:assemblePersonalDebug --stacktrace
 
-      - name: Rename APK
-        run: cp app/build/outputs/apk/debug/app-debug.apk ../Libras-Studio-LibrasLab-Bridge.apk
+      - name: Verify edition isolation
+        run: |
+          PUBLIC_APK="app/build/outputs/apk/public/debug/app-public-debug.apk"
+          PERSONAL_APK="app/build/outputs/apk/personal/debug/app-personal-debug.apk"
+          ANALYZER="$HOME/android-sdk/cmdline-tools/latest/bin/apkanalyzer"
 
-      - name: Upload APK
+          "$ANALYZER" manifest print "$PUBLIC_APK" > /tmp/public-manifest.xml
+          "$ANALYZER" manifest print "$PERSONAL_APK" > /tmp/personal-manifest.xml
+
+          if grep -q "LibrasLabAccessibilityService" /tmp/public-manifest.xml; then
+            echo "ERROR: Public APK contains LibrasLab service"
+            exit 1
+          fi
+          if grep -q "BIND_ACCESSIBILITY_SERVICE" /tmp/public-manifest.xml; then
+            echo "ERROR: Public APK contains accessibility binding"
+            exit 1
+          fi
+          if grep -q "com.toleio.brazil" /tmp/public-manifest.xml; then
+            echo "ERROR: Public APK contains LibrasLab package visibility"
+            exit 1
+          fi
+
+          grep -q "LibrasLabAccessibilityService" /tmp/personal-manifest.xml
+          grep -q "BIND_ACCESSIBILITY_SERVICE" /tmp/personal-manifest.xml
+
+      - name: Rename APKs
+        run: |
+          cp app/build/outputs/apk/public/debug/app-public-debug.apk ../Libras-Studio-Publico.apk
+          cp app/build/outputs/apk/personal/debug/app-personal-debug.apk ../Libras-Studio-Pessoal.apk
+
+      - name: Upload public APK
         uses: actions/upload-artifact@v4
         with:
-          name: Libras-Studio-LibrasLab-Bridge
-          path: Libras-Studio-LibrasLab-Bridge.apk
+          name: Libras-Studio-Publico
+          path: Libras-Studio-Publico.apk
+          retention-days: 30
+
+      - name: Upload personal APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Libras-Studio-Pessoal
+          path: Libras-Studio-Pessoal.apk
           retention-days: 30
