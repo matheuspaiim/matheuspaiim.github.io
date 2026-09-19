@@ -15,7 +15,7 @@ async function init(){
 function renderAuth(){const on=!!state.session;$("#auth-view").classList.toggle("hidden",on);$("#main-view").classList.toggle("hidden",!on)}
 $("#auth-form").onsubmit=async e=>{e.preventDefault();if(!sb)return;$("#auth-status").textContent="Entrando…";const{error}=await sb.auth.signInWithPassword({email:$("#email").value,password:$("#password").value});$("#auth-status").textContent=error?error.message:""};
 $("#signup-btn").onclick=async()=>{if(!sb)return;const{error}=await sb.auth.signUp({email:$("#email").value,password:$("#password").value});$("#auth-status").textContent=error?error.message:"Conta criada. Verifique seu e-mail se for solicitado."};
-$("#logout-btn").onclick=()=>sb?.auth.signOut();
+$("#logout-btn").onclick=async()=>{if(!sb)return;await sb.auth.signOut({scope:"local"})};
 async function syncAll(){if(!sb||!state.session)return;status("sincronizando…");try{const[c,s,r]=await Promise.all([sb.from("categories").select("*").is("deleted_at",null).order("sort_order"),sb.from("signs").select("*").is("deleted_at",null).order("name"),sb.from("review_state").select("*")]);if(c.error)throw c.error;if(s.error)throw s.error;if(r.error)throw r.error;state.categories=c.data||[];state.signs=s.data||[];state.reviews=r.data||[];cacheSave();renderAll();status("sincronizado")}catch(e){cacheLoad();renderAll();status("offline")}}
 function renderAll(){renderHome();renderLibrary();fillCategories()}
 function reviewMap(){return Object.fromEntries(state.reviews.map(r=>[r.norm,r]))}
