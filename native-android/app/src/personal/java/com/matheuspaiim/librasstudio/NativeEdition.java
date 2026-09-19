@@ -66,7 +66,7 @@ public final class NativeEdition {
                 JSONObject obj = new JSONObject();
                 obj.put("native", true);
                 obj.put("edition", "personal");
-                obj.put("version", "0.4.12-personal");
+                obj.put("version", "0.4.13-personal");
                 obj.put("accessibilityEnabled", accessibilityEnabled());
                 obj.put(
                         "captureEnabled",
