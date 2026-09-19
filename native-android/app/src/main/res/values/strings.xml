@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Libras Studio</string>
-    <string name="accessibility_service_name">Libras Studio · LibrasLab Bridge</string>
-    <string name="accessibility_description">Captura somente textos exibidos pelo aplicativo LibrasLab quando o Modo LibrasLab estiver ativado, para transformar os sinais estudados em cartões de revisão.</string>
 </resources>
