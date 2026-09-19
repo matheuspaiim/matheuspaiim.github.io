@@ -27,3 +27,32 @@
 .phrase-row small{line-height:1.35}
 
 .ll-status-row{display:flex;align-items:center;justify-content:space-between;gap:12px}.ll-status-row>div{display:grid;gap:3px}.ll-status-row small,.ll-head small{color:var(--muted);font-size:10px;font-weight:900;letter-spacing:.06em}.status-dot{width:13px;height:13px;border-radius:50%;background:#c8c2d4;box-shadow:0 0 0 5px #c8c2d422}.status-dot.ok{background:#22a75a;box-shadow:0 0 0 5px #22a75a22}.status-dot.live{background:#7c3cff;box-shadow:0 0 0 5px #7c3cff22}.ll-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.ll-head h3{margin:2px 0 0}.ll-candidate{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:15px;padding:11px;margin:7px 0;background:#fff}.ll-candidate input{width:auto}.ll-candidate>div{flex:1}.ll-candidate small{display:block;color:var(--muted);margin-top:3px}.ll-candidate.existing{background:#f7f4ff}.ll-badge{display:inline-block;border-radius:999px;background:#efe8ff;color:#6b3bd2;padding:3px 7px;font-size:10px;font-weight:900}.ll-empty{padding:18px;text-align:center;color:var(--muted);border:1px dashed #d9d2e5;border-radius:15px}.ll-progress{padding:10px 12px;border-radius:13px;background:#f2edff;color:#5e36bd;font-weight:800;margin:10px 0}
+
+html.native-app,html.native-app body{width:100%;max-width:100%;overflow-x:hidden}
+html.native-app body{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html.native-app button{touch-action:manipulation;-webkit-tap-highlight-color:#7c3cff1f}
+html.native-app header{height:58px;padding:8px 11px;gap:7px}
+html.native-app header b{font-size:18px;white-space:nowrap}
+html.native-app header small{font-size:12px;white-space:nowrap}
+html.native-app header button{width:38px;height:38px;flex:0 0 38px}
+html.native-app main{padding:12px 11px 92px}
+html.native-app .hero{padding:18px;border-radius:22px}
+html.native-app .hero h1{font-size:24px;line-height:1.12}
+html.native-app .hero p{font-size:15px;line-height:1.38}
+html.native-app .stats{gap:7px}
+html.native-app .stats div{padding:11px 6px;border-radius:16px}
+html.native-app .stats b{font-size:22px}
+html.native-app .stats small{font-size:11px}
+html.native-app .quick{gap:8px}
+html.native-app .quick button{padding:15px;font-size:22px;min-height:108px;border-radius:18px}
+html.native-app .quick b{font-size:15px}
+html.native-app nav{grid-template-columns:repeat(7,minmax(0,1fr));padding:5px 2px max(6px,env(safe-area-inset-bottom))}
+html.native-app nav button{min-width:0;font-size:18px;padding:5px 0}
+html.native-app nav span{font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:390px){
+  html.native-app header small{display:none}
+  html.native-app .hero h1{font-size:22px}
+  html.native-app .hero p{font-size:14px}
+  html.native-app .quick button{min-height:98px;padding:13px}
+  html.native-app nav span{font-size:8px}
+}
