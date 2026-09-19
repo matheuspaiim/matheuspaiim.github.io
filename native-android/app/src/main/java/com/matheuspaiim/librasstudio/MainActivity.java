@@ -3,7 +3,7 @@ package com.matheuspaiim.librasstudio;
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Bundle;
+import android.os.Bundle;\nimport android.graphics.Color;\nimport android.view.Gravity;\nimport android.view.MotionEvent;\nimport android.widget.FrameLayout;\nimport android.widget.TextView;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
@@ -12,10 +12,10 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 public class MainActivity extends Activity {
-    private static final String STUDIO_URL = "file:///android_asset/web/index.html?native=android&apk=6";
+    private static final String STUDIO_URL = "file:///android_asset/web/index.html?native=android&apk=7";
     private static final String STUDIO_HOST = "matheuspaiim.github.io";
     private static final String STUDIO_PATH = "/libras-studio/";
-    private static final int FILE_CHOOSER_REQUEST = 4301;
+    private static final int FILE_CHOOSER_REQUEST = 4301;\n\n    private int nativeTouchCount = 0;\n    private TextView nativeTouchBadge;
 
     private WebView webView;
     private ValueCallback<Uri[]> fileCallback;
@@ -28,8 +28,36 @@ public class MainActivity extends Activity {
             return;
         }
 
+        FrameLayout root = new FrameLayout(this);
         webView = new WebView(this);
-        setContentView(webView);
+        root.addView(
+                webView,
+                new FrameLayout.LayoutParams(
+                        FrameLayout.LayoutParams.MATCH_PARENT,
+                        FrameLayout.LayoutParams.MATCH_PARENT
+                )
+        );
+
+        nativeTouchBadge = new TextView(this);
+        nativeTouchBadge.setText("NATIVE TOUCH 0");
+        nativeTouchBadge.setTextColor(Color.WHITE);
+        nativeTouchBadge.setTextSize(10);
+        nativeTouchBadge.setGravity(Gravity.CENTER);
+        nativeTouchBadge.setBackgroundColor(Color.rgb(46, 32, 82));
+        nativeTouchBadge.setPadding(18, 8, 18, 8);
+        nativeTouchBadge.setClickable(false);
+        nativeTouchBadge.setFocusable(false);
+
+        FrameLayout.LayoutParams diagParams = new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT
+        );
+        diagParams.gravity = Gravity.TOP | Gravity.LEFT;
+        diagParams.leftMargin = 12;
+        diagParams.topMargin = 70;
+        root.addView(nativeTouchBadge, diagParams);
+
+        setContentView(root);
 
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
@@ -50,7 +78,16 @@ public class MainActivity extends Activity {
         webView.setHorizontalScrollBarEnabled(false);
         webView.setFocusable(true);
         webView.setFocusableInTouchMode(true);
+        webView.setClickable(true);
+        webView.setEnabled(true);
         webView.requestFocus();
+        webView.setOnTouchListener((view, event) -> {
+            if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
+                nativeTouchCount++;
+                nativeTouchBadge.setText("NATIVE TOUCH " + nativeTouchCount);
+            }
+            return false;
+        });
 
         NativeEdition.attach(this, webView);
 
