@@ -1,5 +1,7 @@
-const APP_VERSION="0.4.7";
-const cfg=window.LIBRAS_STUDIO_CONFIG||{},$=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const APP_VERSION="0.4.8";
+const cfg=window.LIBRAS_STUDIO_CONFIG||{},$=s=>document.querySelector(s),$=s=>[...document.querySelectorAll(s)];
+const IS_NATIVE_ANDROID=new URLSearchParams(location.search).get("native")==="android";
+if(IS_NATIVE_ANDROID)document.documentElement.classList.add("native-app");
 let sb,S={session:null,signs:[],cats:[],reviews:[],study:[],catalog:null,catalogStats:null,phraseResults:[],queue:[],i:0,explore:null,librasLabCandidates:[]};
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const norm=s=>String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
@@ -80,8 +82,8 @@ async function rate(r){let s=S.queue[S.i],row={user_id:S.session.user.id,norm:s.
 function modal(h){$("#modal-body").innerHTML=h;$("#modal").classList.remove("hidden")}
 async function clearStudioRuntime(){if("caches"in window){let ks=await caches.keys();await Promise.all(ks.filter(k=>k.startsWith("libras-studio-mobile-")||k.startsWith("libras-studio-catalog-")).map(k=>caches.delete(k)))}if("serviceWorker"in navigator){let regs=await navigator.serviceWorker.getRegistrations();await Promise.all(regs.filter(r=>r.scope.includes("/libras-studio/")).map(r=>r.unregister()))}}
 async function forceAppUpdate(){try{localStorage.removeItem(MEDIA_HEALTH_KEY)}catch{}toast("Buscando atualização…");try{let remote=APP_VERSION;try{let r=await fetch("./version.json?t="+Date.now(),{cache:"no-store"});if(r.ok){let v=await r.json();remote=v.version||remote}}catch{}await clearStudioRuntime();location.replace("./?updated="+encodeURIComponent(remote)+"&t="+Date.now())}catch(e){console.error(e);toast("Não consegui atualizar agora.")}}
-async function checkAppUpdate(){try{let r=await fetch("./version.json?t="+Date.now(),{cache:"no-store"});if(!r.ok)return false;let v=await r.json();if(v.version&&v.version!==APP_VERSION){await clearStudioRuntime();location.replace("./?updated="+encodeURIComponent(v.version)+"&t="+Date.now());return true}return false}catch(e){return false}}
-async function setupServiceWorker(){if(!("serviceWorker"in navigator))return;try{let reg=await navigator.serviceWorker.register("./sw.js?v="+APP_VERSION,{updateViaCache:"none"});await reg.update();navigator.serviceWorker.addEventListener("controllerchange",()=>{if(!window.__lsReloading){window.__lsReloading=true;location.reload()}})}catch(e){console.warn("SW",e)}}
+async function checkAppUpdate(){if(IS_NATIVE_ANDROID)return false;try{let r=await fetch("./version.json?t="+Date.now(),{cache:"no-store"});if(!r.ok)return false;let v=await r.json();if(v.version&&v.version!==APP_VERSION){await clearStudioRuntime();location.replace("./?updated="+encodeURIComponent(v.version)+"&t="+Date.now());return true}return false}catch(e){return false}}
+async function setupServiceWorker(){if(IS_NATIVE_ANDROID)return;if(!("serviceWorker"in navigator))return;try{let reg=await navigator.serviceWorker.register("./sw.js?v="+APP_VERSION,{updateViaCache:"none"});await reg.update();navigator.serviceWorker.addEventListener("controllerchange",()=>{if(!window.__lsReloading){window.__lsReloading=true;location.reload()}})}catch(e){console.warn("SW",e)}}
 
 const LL_UI_WORDS=new Set(["continuar","voltar","proximo","pular","sair","menu","inicio","configuracoes","configuracao","concluir","finalizar","tentar novamente","ver resposta","responder","avancar","fechar"]);
 function nativeBridgeAvailable(){return !!(window.LibrasNative&&typeof window.LibrasNative.getState==="function")}
@@ -101,5 +103,25 @@ async function llImport(){if(!S.session)return toast("Entre na sua conta primeir
 window.addEventListener("librasstudio-native-resume",()=>refreshLibrasLab());
 window.addEventListener("focus",()=>{if($("#libraslab")?.classList.contains("active"))refreshLibrasLab()});
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&$("#libraslab")?.classList.contains("active"))refreshLibrasLab()});
+function installNativeTouchNavigation(){
+  if(!IS_NATIVE_ANDROID||window.__lsNativeTouchNav)return;
+  window.__lsNativeTouchNav=true;
+  document.addEventListener("pointerup",e=>{
+    if(e.pointerType&&e.pointerType!=="touch")return;
+    const nav=e.target.closest("nav [data-view]");
+    if(nav){
+      e.preventDefault();
+      const v=nav.dataset.view;
+      if(v==="more")$("#more")?.classList.toggle("hidden");
+      else go(v);
+      return;
+    }
+    const quick=e.target.closest("[data-go]");
+    if(quick){
+      e.preventDefault();
+      go(quick.dataset.go);
+    }
+  },{passive:false});
+}
 function wire(){$("#auth-form").onsubmit=async e=>{e.preventDefault();let{error}=await sb.auth.signInWithPassword({email:$("#email").value,password:$("#password").value});$("#auth-status").textContent=error?error.message:""};$("#signup").onclick=async()=>{let{error}=await sb.auth.signUp({email:$("#email").value,password:$("#password").value});$("#auth-status").textContent=error?error.message:"Conta criada. Confira seu e-mail."};$("#logout").onclick=()=>sb.auth.signOut({scope:"local"});$("#sync").onclick=$("#sync-now").onclick=sync;$("#app-update").onclick=$("#update-now").onclick=forceAppUpdate;$("#ll-enable").onclick=llOpenAccessibility;$("#ll-start").onclick=llStart;$("#ll-open").onclick=llOpen;$("#ll-stop").onclick=llStop;$("#ll-refresh").onclick=refreshLibrasLab;$("#ll-import").onclick=llImport;$("#ll-clear").onclick=llClear;$$("nav [data-view]").forEach(b=>b.onclick=()=>b.dataset.view==="more"?$("#more").classList.toggle("hidden"):go(b.dataset.view));$$("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go));$$("[data-mode]").forEach(b=>b.onclick=()=>{$$("[data-mode]").forEach(x=>x.classList.toggle("active",x===b));$("#sign-box").classList.toggle("hidden",b.dataset.mode!=="sign");$("#phrase-box").classList.toggle("hidden",b.dataset.mode!=="phrase")});$("#create-search").onclick=createSign;$("#variants").onclick=variants;$("#video-file").onchange=e=>uploadVideo(e.target.files[0]);$("#phrase-search").onclick=phrase;$("#batch-run").onclick=batch;$("#explore-search").oninput=exploreCats;$("#study-search").oninput=study;$("#library-search").oninput=library;$("#library-cat").onchange=library;$("#new-cat").onclick=newCat;$("#move").onclick=move;$("#delete").onclick=del;$("#review-start").onclick=()=>{S.queue=queue();S.i=0;$("#review-setup").classList.add("hidden");card()};$("#reveal").onclick=()=>{$("#review-media").classList.remove("hidden");$("#ratings").classList.remove("hidden");$("#reveal").classList.add("hidden")};$$("[data-rate]").forEach(b=>b.onclick=()=>rate(b.dataset.rate));$("#again-session").onclick=()=>{$("#review-setup").classList.remove("hidden");$("#review-done").classList.add("hidden")};$("#close-modal").onclick=()=>$("#modal").classList.add("hidden");$("#modal").onclick=e=>{if(e.target===$("#modal"))$("#modal").classList.add("hidden")}}
-async function init(){if(await checkAppUpdate())return;await setupServiceWorker();sb=supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey);let{data:{session}}=await sb.auth.getSession();S.session=session;sb.auth.onAuthStateChange((_e,s)=>{S.session=s;authUI();if(s)sync()});authUI();wire();applyEditionUI();if(session)await sync()}init();
+async function init(){if(await checkAppUpdate())return;await setupServiceWorker();sb=supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey);let{data:{session}}=await sb.auth.getSession();S.session=session;sb.auth.onAuthStateChange((_e,s)=>{S.session=s;authUI();if(s)sync()});authUI();wire();installNativeTouchNavigation();applyEditionUI();if(session)await sync()}init();
