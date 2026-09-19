@@ -67,7 +67,7 @@ jobs:
             console.error("Single-element selector used with forEach:", hits);
             process.exit(1);
           }
-          if(!src.includes('function go(v){$(".view").forEach')){
+          if(!src.includes('function go(v){$$(".view").forEach')){
             console.error("Navigation smoke check failed: go() is not using the multi-selector helper.");
             process.exit(1);
           }
