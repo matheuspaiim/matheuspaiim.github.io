@@ -1,16 +1,31 @@
-const APP_VERSION="0.4.10";
+const APP_VERSION="0.4.11";
 const cfg=window.LIBRAS_STUDIO_CONFIG||{},$=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const nativeParams=new URLSearchParams(location.search);
 const IS_NATIVE_ANDROID=nativeParams.get("native")==="android";
 const NATIVE_APK_BUILD=nativeParams.get("apk")||"";
 if(IS_NATIVE_ANDROID)document.documentElement.classList.add("native-app");
+let __diagPointer=0,__diagClick=0;
+function updateNativeDiagBadge(){
+  const badge=document.querySelector(".native-build-badge");
+  if(badge)badge.textContent="APK B"+NATIVE_APK_BUILD+" · WEB "+APP_VERSION+" · DOM P"+__diagPointer+" C"+__diagClick;
+}
 document.addEventListener("DOMContentLoaded",()=>{
   if(!IS_NATIVE_ANDROID||!NATIVE_APK_BUILD)return;
   const badge=document.createElement("div");
   badge.className="native-build-badge";
-  badge.textContent="TESTE APK B"+NATIVE_APK_BUILD+" · WEB "+APP_VERSION;
   document.body.appendChild(badge);
+  updateNativeDiagBadge();
 });
+document.addEventListener("pointerdown",()=>{
+  if(!IS_NATIVE_ANDROID)return;
+  __diagPointer++;
+  updateNativeDiagBadge();
+},true);
+document.addEventListener("click",()=>{
+  if(!IS_NATIVE_ANDROID)return;
+  __diagClick++;
+  updateNativeDiagBadge();
+},true);
 let sb,S={session:null,signs:[],cats:[],reviews:[],study:[],catalog:null,catalogStats:null,phraseResults:[],queue:[],i:0,explore:null,librasLabCandidates:[]};
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const norm=s=>String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
