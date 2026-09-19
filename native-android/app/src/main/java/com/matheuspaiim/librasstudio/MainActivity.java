@@ -12,7 +12,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 public class MainActivity extends Activity {
-    private static final String STUDIO_URL = "https://matheuspaiim.github.io/libras-studio/";
+    private static final String STUDIO_URL = "https://matheuspaiim.github.io/libras-studio/?native=android&build=3";
     private static final String STUDIO_HOST = "matheuspaiim.github.io";
     private static final String STUDIO_PATH = "/libras-studio/";
     private static final int FILE_CHOOSER_REQUEST = 4301;
@@ -34,6 +34,18 @@ public class MainActivity extends Activity {
         settings.setMediaPlaybackRequiresUserGesture(false);
         settings.setAllowFileAccess(false);
         settings.setAllowContentAccess(true);
+        settings.setTextZoom(100);
+        settings.setSupportZoom(false);
+        settings.setBuiltInZoomControls(false);
+        settings.setDisplayZoomControls(false);
+        settings.setUseWideViewPort(true);
+        settings.setLoadWithOverviewMode(false);
+
+        webView.setVerticalScrollBarEnabled(false);
+        webView.setHorizontalScrollBarEnabled(false);
+        webView.setFocusable(true);
+        webView.setFocusableInTouchMode(true);
+        webView.requestFocus();
 
         NativeEdition.attach(this, webView);
 
