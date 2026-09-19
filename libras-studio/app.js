@@ -1,4 +1,4 @@
-const APP_VERSION="0.4.8";
+const APP_VERSION="0.4.9";
 const cfg=window.LIBRAS_STUDIO_CONFIG||{},$=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const IS_NATIVE_ANDROID=new URLSearchParams(location.search).get("native")==="android";
 if(IS_NATIVE_ANDROID)document.documentElement.classList.add("native-app");
