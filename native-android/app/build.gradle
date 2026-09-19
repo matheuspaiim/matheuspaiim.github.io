@@ -10,8 +10,8 @@ android {
         applicationId "com.matheuspaiim.librasstudio"
         minSdk 26
         targetSdk 35
-        versionCode 4
-        versionName "0.3.0"
+        versionCode 5
+        versionName "0.3.1"
     }
 
     flavorDimensions += "edition"
@@ -40,7 +40,3 @@ android {
     }
 }
 
-
-dependencies {
-    publicImplementation "androidx.browser:browser:1.8.0"
-}
