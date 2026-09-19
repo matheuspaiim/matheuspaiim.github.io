@@ -13,7 +13,28 @@ function go(v){document.querySelectorAll(".view").forEach(x=>x.classList.remove(
 function authUI(){let on=!!S.session;$("#auth").classList.toggle("hidden",on);$("#app").classList.toggle("hidden",!on);if(on)$("#account").textContent="☁️ "+S.session.user.email}
 function cache(){localStorage.setItem("ls-full",JSON.stringify({signs:S.signs,cats:S.cats,reviews:S.reviews,study:S.study}))}
 function cached(){try{let x=JSON.parse(localStorage.getItem("ls-full")||"{}");S.signs=x.signs||[];S.cats=x.cats||[];S.reviews=x.reviews||[];S.study=x.study||[]}catch{}}
-async function sync(){if(!S.session||window.__lsSyncing)return;window.__lsSyncing=true;$("#sync-status").textContent="sincronizando…";try{let[c,s,r,p]=await Promise.all([sb.from("categories").select("*").is("deleted_at",null).order("sort_order"),sb.from("signs").select("*").is("deleted_at",null).order("name"),sb.from("review_state").select("*").is("deleted_at",null),sb.from("study_progress").select("*")]);for(let x of[c,s,r,p])if(x.error)throw x.error;S.cats=c.data||[];S.signs=s.data||[];S.reviews=r.data||[];S.study=p.data||[];cache();render();$("#sync-status").textContent="☁️ sincronizado";signMedia().then(()=>{cache();render()}).catch(e=>console.warn("mídias",e))}catch(e){console.error(e);cached();render();$("#sync-status").textContent="offline"}finally{window.__lsSyncing=false}}
+async function sync(){
+  if(!S.session||window.__lsSyncing)return;
+  window.__lsSyncing=true;
+  cached();render();
+  $("#sync-status").textContent="sincronizando…";
+  const timeout=new Promise((_,reject)=>setTimeout(()=>reject(new Error("sync-timeout")),8000));
+  try{
+    let[c,s,r,p]=await Promise.race([Promise.all([
+      sb.from("categories").select("*").is("deleted_at",null).order("sort_order"),
+      sb.from("signs").select("*").is("deleted_at",null).order("name"),
+      sb.from("review_state").select("*").is("deleted_at",null),
+      sb.from("study_progress").select("*")
+    ]),timeout]);
+    for(let x of[c,s,r,p])if(x.error)throw x.error;
+    S.cats=c.data||[];S.signs=s.data||[];S.reviews=r.data||[];S.study=p.data||[];
+    cache();render();$("#sync-status").textContent="☁️ sincronizado";
+    signMedia().then(()=>{cache();render()}).catch(e=>console.warn("mídias",e));
+  }catch(e){
+    console.error(e);cached();render();
+    $("#sync-status").textContent=e?.message==="sync-timeout"?"☁️ dados locais":"offline";
+  }finally{window.__lsSyncing=false}
+}
 async function signMedia(){for(let s of S.signs){if(s.media_path&&!s.media_url){let z=await sb.storage.from("sign-videos").createSignedUrl(s.media_path,86400);if(z.data?.signedUrl)s.media_url=z.data.signedUrl}}}
 function render(){home();libraryCats();library();reviewCats();study();exploreCats();renderProgressPage();if(window.LSHydrateIcons)LSHydrateIcons(document)}
 function unique(){let m=new Map;S.signs.forEach(s=>{if(!m.has(s.norm))m.set(s.norm,s)});return[...m.values()]}
