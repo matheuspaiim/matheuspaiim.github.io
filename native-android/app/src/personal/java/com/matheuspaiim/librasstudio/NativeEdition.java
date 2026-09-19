@@ -18,7 +18,11 @@ import org.json.JSONObject;
 public final class NativeEdition {
     private NativeEdition() {}
 
-    public static boolean openDedicatedExperience(Activity activity, String studioUrl) {\n        return false;\n    }\n\n    public static void attach(Activity activity, WebView webView) {
+    public static boolean openDedicatedExperience(Activity activity, String studioUrl) {
+        return false;
+    }
+
+    public static void attach(Activity activity, WebView webView) {
         webView.addJavascriptInterface(new LibrasNativeBridge(activity), "LibrasNative");
     }
 
