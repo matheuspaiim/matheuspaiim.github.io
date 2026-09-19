@@ -18,7 +18,7 @@ import org.json.JSONObject;
 public final class NativeEdition {
     private NativeEdition() {}
 
-    public static void attach(Activity activity, WebView webView) {
+    public static boolean openDedicatedExperience(Activity activity, String studioUrl) {\n        return false;\n    }\n\n    public static void attach(Activity activity, WebView webView) {
         webView.addJavascriptInterface(new LibrasNativeBridge(activity), "LibrasNative");
     }
 
@@ -62,7 +62,7 @@ public final class NativeEdition {
                 JSONObject obj = new JSONObject();
                 obj.put("native", true);
                 obj.put("edition", "personal");
-                obj.put("version", "0.2.0-personal");
+                obj.put("version", "0.3.0-personal");
                 obj.put("accessibilityEnabled", accessibilityEnabled());
                 obj.put(
                         "captureEnabled",
