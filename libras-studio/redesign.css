@@ -126,3 +126,25 @@ html.native-app main{padding:12px 10px 90px}
   #explore-panel>.card:first-child{margin-top:10px}
   .explore-row{min-height:58px}
 }
+
+
+/* Correções mobile v0503 */
+.cat-toggle-mark{display:none!important}
+.explore-category-head{overflow:hidden}
+.explore-category-head h3{display:flex;align-items:center;gap:8px;min-width:0}
+.explore-category-head h3 span,.explore-category-head p,
+#explore .title p,#explore .surface p{
+  max-width:100%;
+  overflow-wrap:anywhere;
+  word-break:normal;
+}
+.explore-row{max-width:100%;overflow:hidden}
+.explore-row>div{min-width:0;max-width:calc(100% - 48px)}
+.explore-row b,.explore-row small{display:block;max-width:100%;overflow-wrap:anywhere}
+@media(max-width:720px){
+  #explore .surface,#explore-panel,#explore-panel .card,.explore-row{box-sizing:border-box;max-width:100%}
+  #explore-panel{width:100%;overflow-x:hidden}
+  .explore-category-head p{font-size:14px;line-height:1.45}
+  .explore-row{display:flex;align-items:center;gap:8px}
+  .explore-row button{flex:0 0 40px}
+}
