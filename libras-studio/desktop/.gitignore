@@ -1,0 +1,35 @@
+# Dados do usuário
+data/
+config.json
+*.sqlite3
+*.db
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Build
+build/
+dist/
+*.spec.bak
+
+# Modelos e mídia local
+models/
+media/
+lessons/
+cache/
+
+# Patches/backups locais
+*.bak
+*.backup
+_backup_*/
+_patch_*.py
+
+# Sistema/IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
