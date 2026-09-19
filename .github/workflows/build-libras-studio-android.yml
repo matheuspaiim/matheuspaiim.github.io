@@ -52,7 +52,22 @@ jobs:
           gradle-version: "8.7"
 
       - name: Validate web application JavaScript
-        run: node --check ../libras-studio/app.js
+        run: |
+          node --check ../libras-studio/app.js
+          node - <<'NODE'
+          const fs=require("fs");
+          const src=fs.readFileSync("../libras-studio/app.js","utf8");
+          const bad=/(?<!\$)\$\([^\n;]*?\)\.forEach\(/g;
+          const hits=src.match(bad)||[];
+          if(hits.length){
+            console.error("Single-element selector used with forEach:", hits);
+            process.exit(1);
+          }
+          if(!src.includes('function go(v){$(".view").forEach')){
+            console.error("Navigation smoke check failed: go() is not using the multi-selector helper.");
+            process.exit(1);
+          }
+          NODE
 
       - name: Build public and personal APKs
         run: gradle :app:assemblePublicDebug :app:assemblePersonalDebug --stacktrace
