@@ -148,3 +148,9 @@ html.native-app main{padding:12px 10px 90px}
   .explore-row{display:flex;align-items:center;gap:8px}
   .explore-row button{flex:0 0 40px}
 }
+
+/* Polimento seguro da Biblioteca v0510 */
+.library-check{appearance:none;-webkit-appearance:none;width:22px!important;height:22px!important;min-width:22px;border:2px solid #c9c3e8!important;border-radius:7px!important;background:#fff!important;display:grid!important;place-content:center;cursor:pointer;transition:background .15s,border-color .15s,box-shadow .15s}
+.library-check::after{content:"";width:9px;height:5px;border-left:2.5px solid #fff;border-bottom:2.5px solid #fff;transform:rotate(-45deg) scale(0);margin-top:-2px;transition:transform .15s}
+.library-check:checked{background:#7258e9!important;border-color:#7258e9!important;box-shadow:0 0 0 3px #eeeaff}
+.library-check:checked::after{transform:rotate(-45deg) scale(1)}
