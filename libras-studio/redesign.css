@@ -171,3 +171,17 @@ html.native-app main{padding:12px 10px 90px}
   .explore-row>.explore-row-actions{gap:6px}
   .explore-row>.explore-row-actions .explore-variants-btn{min-width:84px;padding:0 9px!important;font-size:13px}
 }
+
+/* Home, Explorar e entrada múltipla v0517 */
+.home-top-progress{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.home-top-progress .dash-card{min-width:0}
+.explore-search-card textarea{width:100%;min-height:82px;resize:vertical;border:1px solid var(--line);border-radius:15px;padding:12px 14px;font:inherit;line-height:1.35;background:#fff;color:inherit;box-sizing:border-box}
+.explore-search-card textarea:focus{outline:2px solid #dcd4ff;outline-offset:1px}
+.batch-hint{display:block;margin:6px 2px 0;color:var(--muted);font-size:12px;line-height:1.35}
+.explore-row>.explore-row-actions{margin-left:auto}
+.explore-row>.explore-row-actions .explore-variants-btn{order:2}
+.explore-row>.explore-row-actions [data-add],
+.explore-row>.explore-row-actions [data-find],
+.explore-row>.explore-row-actions .explore-owned-mark{order:1}
+.explore-owned-mark{display:grid;place-items:center;width:40px;height:40px;color:#36a269;font-weight:900;flex:0 0 40px}
+@media(max-width:760px){.home-top-progress{grid-template-columns:1fr}}
