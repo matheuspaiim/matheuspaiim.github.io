@@ -190,3 +190,457 @@ html.native-app main{padding:12px 10px 90px}
 /* Play principal no Explorar v0519 */
 .explore-row>.explore-row-actions .explore-play-btn{order:3;width:40px!important;height:40px!important;padding:0!important;flex:0 0 40px}
 .explore-row>.explore-row-actions .explore-variants-btn{order:2}
+
+
+/* Desktop com a mesma linguagem visual do app mobile v0534 */
+@media(min-width:821px){
+  html:not(.native-app) body{
+    --ink:#211b35;
+    --ink2:#403650;
+    --muted:#746d84;
+    --purple:#7c3cff;
+    --purple2:#9466ff;
+    --line:#e7e2f1;
+    --panel:#fff;
+    --bg:#f7f6fc;
+    --soft:#f0eaff;
+    --shadow:0 8px 26px #38205c0b;
+    background:linear-gradient(180deg,#faf9ff 0%,#f6f4fb 100%);
+  }
+
+  html:not(.native-app) .app-shell{
+    grid-template-columns:220px minmax(0,1fr);
+  }
+
+  html:not(.native-app) .desktop-sidebar{
+    padding:18px 14px 14px;
+    background:#fffffff0;
+    border-right:1px solid var(--line);
+    backdrop-filter:blur(16px);
+  }
+
+  html:not(.native-app) .brand{
+    gap:10px;
+    margin:2px 4px 20px;
+  }
+
+  html:not(.native-app) .brand-mark{
+    width:46px;
+    height:46px;
+    border-radius:18px;
+    background:#7c3cff;
+    box-shadow:0 12px 28px #7c3cff2b;
+  }
+
+  html:not(.native-app) .brand-title{
+    font-size:18px;
+    color:#211b35;
+  }
+
+  html:not(.native-app) .brand-sub{
+    color:#746d84;
+  }
+
+  html:not(.native-app) .side-nav{
+    gap:5px;
+  }
+
+  html:not(.native-app) .side-nav button{
+    min-height:50px;
+    padding:8px 10px;
+    border-radius:14px;
+    color:#5a5267;
+    font-weight:800;
+  }
+
+  html:not(.native-app) .side-nav button:hover{
+    background:#f5f0ff;
+    transform:none;
+  }
+
+  html:not(.native-app) .side-nav button.active{
+    background:#f0eaff;
+    color:#6134c7;
+    box-shadow:none;
+  }
+
+  html:not(.native-app) .side-nav .ls-icon{
+    width:32px;
+    height:32px;
+  }
+
+  html:not(.native-app) .sidebar-footer{
+    border-radius:19px;
+    padding:14px;
+    background:#f6f2ff;
+    border:1px solid #e4d9ff;
+    box-shadow:0 8px 26px #38205c08;
+  }
+
+  html:not(.native-app) .sidebar-footer:before{
+    display:none;
+  }
+
+  html:not(.native-app) .sidebar-footer strong{
+    color:#3f3159;
+    font-size:14px;
+    max-width:none;
+  }
+
+  html:not(.native-app) .sidebar-footer small{
+    color:#746d84;
+    line-height:1.4;
+  }
+
+  html:not(.native-app) .topbar{
+    height:68px;
+    gap:9px;
+    padding:10px 18px;
+    background:#fffffff0;
+    border-bottom:1px solid var(--line);
+    backdrop-filter:blur(16px);
+  }
+
+  html:not(.native-app) .global-search{
+    max-width:560px;
+  }
+
+  html:not(.native-app) .global-search input{
+    height:46px;
+    border-radius:15px;
+    border-color:#e7e2f1;
+    box-shadow:none;
+    padding-left:47px;
+  }
+
+  html:not(.native-app) .top-action{
+    width:40px;
+    height:40px;
+    border-radius:13px;
+    border-color:#e7e2f1;
+    box-shadow:none;
+  }
+
+  html:not(.native-app) .profile-chip{
+    min-height:44px;
+    padding:5px 9px;
+    border-radius:14px;
+    background:#f0eaff;
+  }
+
+  html:not(.native-app) .profile-avatar{
+    background:#e7ddff;
+    color:#6134c7;
+  }
+
+  html:not(.native-app) main{
+    max-width:1240px;
+    padding:16px 18px 72px;
+  }
+
+  html:not(.native-app) .view>.title{
+    margin:3px 2px 14px;
+  }
+
+  html:not(.native-app) .view>.title h2{
+    font-size:26px;
+    color:#211b35;
+    letter-spacing:-.02em;
+  }
+
+  html:not(.native-app) .view>.title p{
+    color:#746d84;
+  }
+
+  html:not(.native-app) .dashboard-grid{
+    grid-template-columns:minmax(0,1fr) 320px;
+    gap:12px;
+  }
+
+  html:not(.native-app) .dashboard-main,
+  html:not(.native-app) .dashboard-side{
+    gap:11px;
+  }
+
+  html:not(.native-app) .hero-new{
+    min-height:126px;
+    padding:20px 22px;
+    border-radius:25px;
+    background:linear-gradient(135deg,#eee7ff 0%,#f8f5ff 54%,#fff 100%);
+    border:1px solid #e2d8ff;
+    box-shadow:0 8px 26px #38205c08;
+  }
+
+  html:not(.native-app) .hero-new:after{
+    display:none;
+  }
+
+  html:not(.native-app) .hero-new .eyebrow{
+    color:#7040d7;
+  }
+
+  html:not(.native-app) .hero-new h1{
+    max-width:680px;
+    font-size:32px;
+    color:#211b35;
+  }
+
+  html:not(.native-app) .hero-new h1 span{
+    color:#7c3cff;
+  }
+
+  html:not(.native-app) .hero-new p{
+    color:#746d84;
+    margin-top:8px;
+  }
+
+  html:not(.native-app) .dash-card,
+  html:not(.native-app) .card,
+  html:not(.native-app) .surface,
+  html:not(.native-app) .lesson,
+  html:not(.native-app) .result,
+  html:not(.native-app) .variant,
+  html:not(.native-app) .explore-row,
+  html:not(.native-app) .lib-category{
+    border:1px solid #e7e2f1;
+    border-radius:19px;
+    background:#fff;
+    box-shadow:0 8px 26px #38205c08;
+  }
+
+  html:not(.native-app) .dash-card{
+    padding:14px;
+  }
+
+  html:not(.native-app) .dash-card-head{
+    margin-bottom:10px;
+  }
+
+  html:not(.native-app) .dash-card-title h3{
+    font-size:18px;
+    color:#211b35;
+  }
+
+  html:not(.native-app) .dash-link{
+    padding:7px 11px;
+    background:#f0eaff;
+    color:#6134c7;
+  }
+
+  html:not(.native-app) .home-top-progress{
+    gap:11px;
+  }
+
+  html:not(.native-app) .explore-shortcuts{
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:9px;
+  }
+
+  html:not(.native-app) .shortcut-cat{
+    min-height:108px;
+    padding:13px 12px;
+    border-radius:18px;
+    border:1px solid #e7e2f1;
+    background:#fff;
+    text-align:left;
+    box-shadow:0 8px 26px #38205c08;
+  }
+
+  html:not(.native-app) .shortcut-cat:hover{
+    transform:translateY(-1px);
+    border-color:#d8cbff;
+    box-shadow:0 12px 30px #38205c12;
+  }
+
+  html:not(.native-app) .shortcut-cat .ls-icon{
+    width:44px;
+    height:44px;
+    margin:0 0 6px;
+  }
+
+  html:not(.native-app) .shortcut-cat b{
+    font-size:13px;
+    color:#211b35;
+  }
+
+  html:not(.native-app) .shortcut-cat small{
+    color:#746d84;
+    font-size:10px;
+  }
+
+  html:not(.native-app) .library-hero,
+  html:not(.native-app) .review-hero{
+    min-height:182px;
+    grid-template-columns:minmax(0,1fr) 105px;
+  }
+
+  html:not(.native-app) .library-hero .big-icon,
+  html:not(.native-app) .review-hero .big-icon{
+    width:92px;
+    height:92px;
+  }
+
+  html:not(.native-app) .metric-row>div{
+    border-radius:14px;
+    border-color:#eeeaf5;
+    background:#faf9ff;
+  }
+
+  html:not(.native-app) .metric-row b{
+    color:#7040d7;
+  }
+
+  html:not(.native-app) .continue-card{
+    padding:14px;
+  }
+
+  html:not(.native-app) .continue-body{
+    grid-template-columns:135px minmax(0,1fr) 190px;
+    gap:10px;
+  }
+
+  html:not(.native-app) .lesson-preview,
+  html:not(.native-app) .continue-next{
+    border-radius:17px;
+  }
+
+  html:not(.native-app) .lesson-preview{
+    min-height:116px;
+    background:linear-gradient(145deg,#f3edff,#faf8ff);
+  }
+
+  html:not(.native-app) .continue-next{
+    background:#faf9ff;
+    border-color:#e7e2f1;
+  }
+
+  html:not(.native-app) .primary,
+  html:not(.native-app) .soft,
+  html:not(.native-app) .danger,
+  html:not(.native-app) .wide{
+    border-radius:14px;
+    min-height:44px;
+  }
+
+  html:not(.native-app) .primary{
+    background:#7c3cff;
+    box-shadow:none;
+  }
+
+  html:not(.native-app) .soft{
+    background:#f0eaff;
+    color:#6134c7;
+    border-color:#ded2ff;
+  }
+
+  html:not(.native-app) .page-shell{
+    max-width:980px;
+  }
+
+  html:not(.native-app) .surface{
+    padding:16px;
+  }
+
+  html:not(.native-app) input,
+  html:not(.native-app) select,
+  html:not(.native-app) textarea{
+    border-radius:15px;
+    border-color:#e7e2f1;
+    color:#211b35;
+  }
+
+  html:not(.native-app) input:focus,
+  html:not(.native-app) select:focus,
+  html:not(.native-app) textarea:focus{
+    border-color:#bda6ff;
+    box-shadow:0 0 0 4px #7c3cff12;
+  }
+
+  html:not(.native-app) .chips button{
+    background:#fff;
+    border-color:#e7e2f1;
+    color:#62586f;
+  }
+
+  html:not(.native-app) .chips button.active{
+    background:#eee7ff;
+    color:#6134c7;
+    border-color:#cbb8ff;
+  }
+
+  html:not(.native-app) .explore-row{
+    padding:12px;
+    margin:7px 0;
+    border-radius:15px;
+  }
+
+  html:not(.native-app) .explore-row button,
+  html:not(.native-app) .lib-row button{
+    background:#f0eaff;
+    color:#6033c5;
+    border-radius:11px;
+  }
+
+  html:not(.native-app) .lesson{
+    padding:15px;
+    margin:9px 0;
+  }
+
+  html:not(.native-app) .practice{
+    background:#f4efff;
+    border-radius:14px;
+  }
+
+  html:not(.native-app) .progress{
+    background:#eee7ff;
+    border:1px solid #dfd3ff;
+    border-radius:17px;
+  }
+
+  html:not(.native-app) .lib-category{
+    margin:9px 0;
+  }
+
+  html:not(.native-app) .lib-row{
+    border-radius:15px;
+    border-color:#e7e2f1;
+  }
+
+  html:not(.native-app) .review{
+    max-width:680px;
+  }
+
+  html:not(.native-app) .modal{
+    background:#241a3d66;
+  }
+
+  html:not(.native-app) .modalbox{
+    max-width:650px;
+    border-radius:25px;
+    padding:19px;
+  }
+
+  html:not(.native-app) .sheet{
+    border-radius:17px;
+    border-color:#e7e2f1;
+    box-shadow:0 18px 50px #251a4533;
+  }
+}
+
+@media(min-width:821px) and (max-width:1180px){
+  html:not(.native-app) .app-shell{
+    grid-template-columns:205px minmax(0,1fr);
+  }
+
+  html:not(.native-app) .dashboard-grid{
+    grid-template-columns:1fr;
+  }
+
+  html:not(.native-app) .dashboard-side{
+    grid-template-columns:1fr;
+  }
+
+  html:not(.native-app) .explore-shortcuts{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+}
