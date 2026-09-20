@@ -10,8 +10,8 @@ android {
         applicationId "com.matheuspaiim.librasstudio"
         minSdk 26
         targetSdk 35
-        versionCode 9
-        versionName "0.4.13"
+        versionCode 10
+        versionName "0.5.19"
     }
 
     flavorDimensions += "edition"
@@ -49,7 +49,9 @@ tasks.register("syncWebAssets", Copy) {
     from(studioWebDir) {
         include "index.html"
         include "app.css"
+        include "redesign.css"
         include "app.js"
+        include "icons.js"
         include "config.js"
         include "study.js"
         include "explore-data.js"
