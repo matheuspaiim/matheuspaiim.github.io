@@ -1,4 +1,4 @@
-const APP_VERSION="0.5.19";
+const APP_VERSION="0.5.20";
 const cfg=window.LIBRAS_STUDIO_CONFIG||{},$=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const nativeParams=new URLSearchParams(location.search);
 const IS_NATIVE_ANDROID=nativeParams.get("native")==="android";
@@ -171,8 +171,8 @@ async function openCat(c){
     let owned=new Set(S.signs.map(x=>x.norm));
     panel.innerHTML='<div class="card explore-category-head"><h3>'+LSCategoryIcon(c)+' <span>'+esc(c)+'</span></h3><p>'+esc(d.description)+'</p></div>'+d.terms.map((t,i)=>{let o=optionMap.get(norm(t))||[],has=owned.has(norm(t));return '<div class="explore-row"><div class="explore-row-copy"><b>'+esc(title(t))+'</b>'+(has?'<small>✓ na biblioteca</small>':!o.length?'<small>'+(loading?'procurando vídeo…':'vídeo ainda não localizado')+'</small>':'')+'</div><div class="explore-row-actions">'+(has?'<span class="explore-owned-mark">✓</span>':o.length?'<button data-add="'+i+'" aria-label="Adicionar '+esc(title(t))+'">＋</button>':'<button class="soft" data-find="'+i+'" aria-label="Procurar vídeo de '+esc(title(t))+'">↻</button>')+(o.length?'<button class="soft explore-variants-btn" data-explore-variants="'+i+'">Variações</button><button class="explore-play-btn" data-explore-play="'+i+'" aria-label="Reproduzir '+esc(title(t))+'">▶</button>':'')+'</div></div>'}).join("");
     $$("[data-add]").forEach(b=>b.onclick=async()=>{let t=d.terms[+b.dataset.add],o=optionMap.get(norm(t))||[];try{let picked=await firstPlayable(o,{timeout:3500,max:10});if(!picked)return toast("Nenhum vídeo funcionando agora.");await save(t,picked,c,"category_explorer");renderRows(false)}catch(e){console.error(e);toast("Falha ao adicionar")}});
-    $("[data-explore-variants]").forEach(b=>b.onclick=()=>openAvailableVariants(d.terms[+b.dataset.exploreVariants],c));
-    $("[data-explore-play]").forEach(b=>b.onclick=()=>playPreferredSign(d.terms[+b.dataset.explorePlay]));
+    $$("[data-explore-variants]").forEach(b=>b.onclick=()=>openAvailableVariants(d.terms[+b.dataset.exploreVariants],c));
+    $$("[data-explore-play]").forEach(b=>b.onclick=()=>playPreferredSign(d.terms[+b.dataset.explorePlay]));
     $$("[data-find]").forEach(b=>b.onclick=async()=>{let t=d.terms[+b.dataset.find];b.disabled=true;b.textContent="…";try{let o=await signOptions(t,{refresh:true});optionMap.set(norm(t),o);renderRows(false)}catch(e){console.error(e);b.disabled=false;b.textContent="↻";toast("Não consegui consultar as fontes agora.")}});
   };
   renderRows(true);requestAnimationFrame(()=>panel.scrollIntoView({behavior:"smooth",block:"start"}));
