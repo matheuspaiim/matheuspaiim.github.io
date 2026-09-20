@@ -157,3 +157,17 @@ html.native-app main{padding:12px 10px 90px}
 
 /* Variações da Biblioteca v0511 */
 .lib-row-actions{display:flex;align-items:center;gap:6px;margin-left:auto}.library-variants-btn{width:auto!important;height:34px!important;padding:5px 9px!important;border-radius:10px!important;background:#f3efff!important;color:#5e44dd!important;font-size:12px!important;font-weight:800!important}.library-variants{display:grid;gap:12px}.library-variant{padding:10px;border:1px solid var(--line);border-radius:14px}.library-variant video{display:block;width:100%;border-radius:11px}
+
+/* Ajuste dos controles do Explorar v0516 */
+.explore-row{overflow:visible}
+.explore-row>.explore-row-copy{flex:1 1 auto;min-width:0;max-width:none}
+.explore-row>.explore-row-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex:0 0 auto;min-width:auto;max-width:none;margin-left:auto}
+.explore-row>.explore-row-actions button{flex:0 0 auto}
+.explore-row>.explore-row-actions .explore-variants-btn{width:auto!important;min-width:92px;height:40px!important;padding:0 12px!important;white-space:nowrap}
+.explore-row>.explore-row-actions [data-add],
+.explore-row>.explore-row-actions [data-find]{width:40px!important;height:40px!important;padding:0!important}
+@media(max-width:420px){
+  .explore-row{gap:8px;padding:11px 12px}
+  .explore-row>.explore-row-actions{gap:6px}
+  .explore-row>.explore-row-actions .explore-variants-btn{min-width:84px;padding:0 9px!important;font-size:13px}
+}
