@@ -84,6 +84,7 @@
     "emergencia e seguranca":()=>tile(p("M16 33h16l-2-16c-1-7-11-7-12 0z","#ff6f79")+rect(12,33,24,5,2,"#6e7b9d")+line("M24 9V5M12 14 8 11M36 14l4-3","#ffd05d",2.4),"#fff0f1"),
     "acessibilidade e inclusao":()=>tile(circle(19,12,4,"#75b7f7")+circle(26,30,9,"#fff")+line("M20 17l3 11h12l5 9M23 22h10","#7258e9",2.7),"#eef7ff"),
     "relacionamentos":()=>tile(p("M18 36S8 30 8 21c0-5 6-8 10-4l6 6 6-6c4-4 10-1 10 4 0 9-10 15-16 20z","#ff7894")+circle(14,13,3,"#ffd05d")+circle(34,13,3,"#78b8f6"),"#fff0f4"),
+    "frases":()=>tile(p("M7 12h24a6 6 0 0 1 6 6v8a6 6 0 0 1-6 6H20l-7 6v-6H7a6 6 0 0 1-6-6v-8a6 6 0 0 1 6-6z","#78b8f6")+p("M24 20h13a6 6 0 0 1 6 6v5a6 6 0 0 1-6 6h-4v5l-6-5h-3z","#ff8fa6")+line("M9 20h17M9 25h12","#fff",2.2),"#eef7ff"),
     "outros":()=>tile(circle(15,24,3,"#7258e9")+circle(24,24,3,"#ff7f96")+circle(33,24,3,"#62c995"),"#f3efff")
   };
   window.LSCategoryIcon=name=>(C[N(name)]||C.outros)();
