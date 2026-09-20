@@ -1,4 +1,4 @@
-const APP_VERSION="0.5.31";
+const APP_VERSION="0.5.32";
 const cfg=window.LIBRAS_STUDIO_CONFIG||{},$=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const nativeParams=new URLSearchParams(location.search);
 const IS_NATIVE_ANDROID=nativeParams.get("native")==="android";
@@ -180,17 +180,33 @@ async function openCat(c){
   S.explore=c;exploreCats();
   let panel=$("#explore-panel"),d=(window.LIBRAS_EXPLORE_DATA||{})[c];
   if(!d)return;
-  let optionMap=new Map;
+  let optionMap=new Map,playable=new Set,verificationFailed=false;
   const renderRows=(loading=false)=>{
     let owned=new Set(S.signs.map(x=>x.norm));
-    panel.innerHTML='<div class="card explore-category-head"><h3>'+LSCategoryIcon(c)+' <span>'+esc(c)+'</span></h3><p>'+esc(d.description)+'</p></div>'+d.terms.map((t,i)=>{let o=optionMap.get(norm(t))||[],has=owned.has(norm(t));return '<div class="explore-row"><div class="explore-row-copy"><b>'+esc(title(t))+'</b>'+(has?'<small>✓ na biblioteca</small>':!o.length?'<small>'+(loading?'procurando vídeo…':'vídeo ainda não localizado')+'</small>':'')+'</div><div class="explore-row-actions">'+(has?'<span class="explore-owned-mark">✓</span>':o.length?'<button data-add="'+i+'" aria-label="Adicionar '+esc(title(t))+'">＋</button>':'<button class="soft" data-find="'+i+'" aria-label="Procurar vídeo de '+esc(title(t))+'">↻</button>')+(o.length?'<button class="soft explore-variants-btn" data-explore-variants="'+i+'">Variações</button><button class="explore-play-btn" data-explore-play="'+i+'" aria-label="Reproduzir '+esc(title(t))+'">▶</button>':'')+'</div></div>'}).join("");
-    $$("[data-add]").forEach(b=>b.onclick=async()=>{let t=d.terms[+b.dataset.add],o=optionMap.get(norm(t))||[];try{let picked=await firstPlayable(o,{timeout:3500,max:10});if(!picked)return toast("Nenhum vídeo funcionando agora.");await save(t,picked,c,"category_explorer");renderRows(false)}catch(e){console.error(e);toast("Falha ao adicionar")}});
+    let visible=d.terms.map((t,i)=>({t,i})).filter(x=>loading||playable.has(norm(x.t)));
+    let rows=visible.map(({t,i})=>{
+      let o=optionMap.get(norm(t))||[],has=owned.has(norm(t));
+      return '<div class="explore-row"><div class="explore-row-copy"><b>'+esc(title(t))+'</b>'+(has?'<small>✓ na biblioteca</small>':loading?'<small>verificando vídeo…</small>':'')+'</div><div class="explore-row-actions">'+(loading?'<span class="explore-owned-mark">…</span>':(has?'<span class="explore-owned-mark">✓</span>':'<button data-add="'+i+'" aria-label="Adicionar '+esc(title(t))+'">＋</button>')+'<button class="soft explore-variants-btn" data-explore-variants="'+i+'">Variações</button><button class="explore-play-btn" data-explore-play="'+i+'" aria-label="Reproduzir '+esc(title(t))+'">▶</button>')+'</div></div>';
+    }).join("");
+    let empty=!loading&&!rows?'<div class="surface center"><p>'+(verificationFailed?'Não consegui verificar os vídeos desta categoria agora.':'Nenhum sinal com vídeo disponível nesta categoria agora.')+'</p></div>':'';
+    panel.innerHTML='<div class="card explore-category-head"><h3>'+LSCategoryIcon(c)+' <span>'+esc(c)+'</span></h3><p>'+esc(d.description)+'</p></div>'+rows+empty;
+    $$("[data-add]").forEach(b=>b.onclick=async()=>{let t=d.terms[+b.dataset.add],o=optionMap.get(norm(t))||[];try{let picked=await firstPlayable(o,{timeout:3500,max:10});if(!picked){playable.delete(norm(t));renderRows(false);return toast("Este vídeo deixou de responder e o sinal foi ocultado.");}await save(t,picked,c,"category_explorer");renderRows(false)}catch(e){console.error(e);toast("Falha ao adicionar")}});
     $$("[data-explore-variants]").forEach(b=>b.onclick=()=>openAvailableVariants(d.terms[+b.dataset.exploreVariants],c));
-    $$("[data-explore-play]").forEach(b=>b.onclick=()=>playPreferredSign(d.terms[+b.dataset.explorePlay]));
-    $$("[data-find]").forEach(b=>b.onclick=async()=>{let t=d.terms[+b.dataset.find];b.disabled=true;b.textContent="…";try{let o=await signOptions(t,{refresh:true});optionMap.set(norm(t),o);renderRows(false)}catch(e){console.error(e);b.disabled=false;b.textContent="↻";toast("Não consegui consultar as fontes agora.")}});
+    $$("[data-explore-play]").forEach(b=>b.onclick=async()=>{let t=d.terms[+b.dataset.explorePlay],picked=await preferredSignMedia(t);if(!picked){playable.delete(norm(t));renderRows(false);return toast("Vídeo indisponível. O sinal foi ocultado do Explorar.");}let id="explore-"+Date.now();modal('<h2>'+esc(title(t))+'</h2><video data-video-id="'+id+'" controls autoplay loop playsinline preload="metadata" src="'+esc(picked.url)+'"></video>'+speedTools(id));bindSpeeds($("#modal-body"));bindVideoFallbacks($("#modal-body"),t)});
   };
   renderRows(true);requestAnimationFrame(()=>panel.scrollIntoView({behavior:"smooth",block:"start"}));
-  try{await catalog();d.terms.forEach(t=>optionMap.set(norm(t),opts(t)))}catch(e){console.error(e)}
+  try{
+    await catalog();
+    d.terms.forEach(t=>optionMap.set(norm(t),opts(t)));
+    let cursor=0,workers=Math.min(6,d.terms.length);
+    await Promise.all(Array.from({length:workers},async()=>{
+      while(cursor<d.terms.length){
+        let t=d.terms[cursor++],o=optionMap.get(norm(t))||[];
+        if(!o.length)continue;
+        try{if(await firstPlayable(o,{timeout:3200,max:10}))playable.add(norm(t))}catch(e){console.warn("verificação explorar",t,e)}
+      }
+    }));
+  }catch(e){console.error(e);verificationFailed=true}
   renderRows(false);requestAnimationFrame(()=>panel.scrollIntoView({behavior:"smooth",block:"start"}));
 }
 function smap(){return Object.fromEntries(S.study.map(x=>[x.lesson_id,x]))}
