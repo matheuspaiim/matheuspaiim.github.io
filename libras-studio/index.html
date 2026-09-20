@@ -6,13 +6,14 @@
   <meta name="theme-color" content="#6f4ef6">
   <title>Libras Studio</title>
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="app.css?v=0518">
-  <link rel="stylesheet" href="redesign.css?v=0518">
+  <link rel="icon" href="icon.svg?v=0519" type="image/svg+xml">
+  <link rel="stylesheet" href="app.css?v=0519">
+  <link rel="stylesheet" href="redesign.css?v=0519">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
-  <script src="icons.js?v=0518"></script>
-  <script src="study.js?v=0518"></script>
-  <script src="explore-data.js?v=0518"></script>
+  <script src="icons.js?v=0519"></script>
+  <script src="study.js?v=0519"></script>
+  <script src="explore-data.js?v=0519"></script>
 </head>
 <body>
 <div id="auth" class="auth">
@@ -142,7 +143,7 @@
 
       <section id="review" class="view page-shell">
         <div class="title"><h2>Revisão</h2><p>Faça o sinal, revele o vídeo e avalie sua lembrança.</p></div>
-        <div id="review-setup" class="surface"><label>Categoria<select id="review-cat"><option value="">Todas</option></select></label><label>Cartões<select id="review-mode"><option value="mixed">Vencidos + novos</option><option value="due">Somente vencidos</option><option value="new">Somente novos</option></select></label><label>Tamanho<select id="review-limit"><option value="10">10</option><option value="20" selected>20</option><option value="30">30</option><option value="50">50</option><option value="100">100</option><option value="200">200</option><option value="all">Todos</option></select></label><button id="review-start" class="primary wide">▶ Começar</button></div>
+        <div id="review-setup" class="surface"><label>Categoria<select id="review-cat"><option value="">Todas</option></select></label><label>Cartões<select id="review-mode"><option value="mixed">Vencidos + novos</option><option value="due">Somente vencidos</option><option value="new">Somente novos</option></select></label><label>Tamanho<select id="review-limit"><option value="10">10</option><option value="20">20</option><option value="30">30</option><option value="50">50</option><option value="100">100</option><option value="200">200</option><option value="all" selected>Todos</option></select></label><button id="review-start" class="primary wide">▶ Começar</button></div>
         <div id="review-card" class="surface review hidden"><small>FAÇA O SINAL DE:</small><h1 id="review-name"></h1><div id="review-media" class="hidden"></div><button id="reveal" class="primary wide">Revelar resposta</button><div id="ratings" class="ratings hidden"><button data-rate="again"><span class="rating-time" data-time="again">10 min</span><b>De novo</b></button><button data-rate="hard"><span class="rating-time" data-time="hard">6 h</span><b>Difícil</b></button><button data-rate="good"><span class="rating-time" data-time="good">1 dia</span><b>Bom</b></button><button data-rate="easy"><span class="rating-time" data-time="easy">4 dias</span><b>Fácil</b></button></div></div>
         <div id="review-done" class="surface hidden center"><h2>🎉 Sessão concluída</h2><button id="again-session" class="primary">Outra sessão</button></div>
       </section>
@@ -157,7 +158,7 @@
       <section id="settings" class="view page-shell">
         <div class="title"><h2>Configurações</h2></div>
         <div class="surface"><h3>Nuvem</h3><p id="account"></p><button id="sync-now" class="primary wide">Sincronizar agora</button><button id="logout" class="soft wide">Sair deste dispositivo</button></div>
-        <div class="surface" style="margin-top:12px"><h3>Atualizações</h3><p>Versão <b id="app-version">0.5.18</b>. O Studio verifica atualizações automaticamente.</p><button id="update-now" class="soft wide">Verificar atualização</button></div>
+        <div class="surface" style="margin-top:12px"><h3>Atualizações</h3><p>Versão <b id="app-version">0.5.19</b>. O Studio verifica atualizações automaticamente.</p><button id="update-now" class="soft wide">Verificar atualização</button></div>
         <div class="surface" style="margin-top:12px"><h3>Integração com o PC</h3><p>AnkiConnect continua local no computador. Biblioteca e progresso permanecem sincronizados pela nuvem.</p></div>
       </section>
 
@@ -178,6 +179,6 @@
 
 <div id="modal" class="modal hidden"><div class="modalbox"><button id="close-modal">×</button><div id="modal-body"></div></div></div>
 <div id="toast"></div>
-<script src="app.js?v=0518"></script>
+<script src="app.js?v=0519"></script>
 </body>
 </html>

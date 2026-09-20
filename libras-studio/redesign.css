@@ -185,3 +185,7 @@ html.native-app main{padding:12px 10px 90px}
 .explore-row>.explore-row-actions .explore-owned-mark{order:1}
 .explore-owned-mark{display:grid;place-items:center;width:40px;height:40px;color:#36a269;font-weight:900;flex:0 0 40px}
 @media(max-width:760px){.home-top-progress{grid-template-columns:1fr}}
+
+/* Play principal no Explorar v0519 */
+.explore-row>.explore-row-actions .explore-play-btn{order:3;width:40px!important;height:40px!important;padding:0!important;flex:0 0 40px}
+.explore-row>.explore-row-actions .explore-variants-btn{order:2}
