@@ -7,14 +7,14 @@
   <script>if(new URLSearchParams(location.search).get("native")==="android")document.documentElement.classList.add("native-app")</script>
   <title>Libras Studio</title>
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" href="icon.svg?v=0539" type="image/svg+xml">
-  <link rel="stylesheet" href="app.css?v=0539">
-  <link rel="stylesheet" href="redesign.css?v=0539">
-  <script src="vendor/supabase-js-2.116.0.js?v=0539"></script>
+  <link rel="icon" href="icon.svg?v=0540" type="image/svg+xml">
+  <link rel="stylesheet" href="app.css?v=0540">
+  <link rel="stylesheet" href="redesign.css?v=0540">
+  <script src="vendor/supabase-js-2.116.0.js?v=0540"></script>
   <script src="config.js"></script>
-  <script src="icons.js?v=0539"></script>
-  <script src="study.js?v=0539"></script>
-  <script src="explore-data.js?v=0539"></script>
+  <script src="icons.js?v=0540"></script>
+  <script src="study.js?v=0540"></script>
+  <script src="explore-data.js?v=0540"></script>
 </head>
 <body>
 <div id="auth" class="auth">
@@ -61,16 +61,35 @@
       <div id="profile-menu" class="profile-menu hidden" role="menu">
         <div class="profile-menu-head">
           <div class="profile-avatar profile-avatar-large" id="profile-menu-avatar">LS</div>
-          <div><b id="profile-menu-name">Conta</b><small id="profile-menu-email"></small></div>
+          <div class="profile-menu-identity"><b id="profile-menu-name">Conta</b><small id="profile-menu-email"></small></div>
         </div>
+        <div class="profile-quick-actions">
+          <button id="profile-change-photo" class="profile-quick-action" type="button" role="menuitem">
+            <span class="profile-action-glyph">📷</span>
+            <span><b>Foto</b><small>Alterar imagem</small></span>
+          </button>
+          <button id="profile-edit-name" class="profile-quick-action" type="button" role="menuitem">
+            <span class="profile-action-glyph">✏️</span>
+            <span><b>Nome</b><small>Editar exibição</small></span>
+          </button>
+        </div>
+        <button id="profile-remove-photo" class="profile-remove-photo hidden" type="button" role="menuitem">Remover foto atual</button>
         <div class="profile-menu-sep"></div>
-        <button id="profile-change-photo" type="button" role="menuitem">📷 Alterar foto</button>
-        <button id="profile-remove-photo" class="hidden" type="button" role="menuitem">🗑️ Remover foto</button>
-        <button id="profile-edit-name" type="button" role="menuitem">✏️ Editar nome</button>
-        <button type="button" data-profile-go="progress" role="menuitem">📊 Acompanhamento de estudos</button>
-        <button type="button" data-profile-go="settings" role="menuitem">⚙️ Configurações</button>
+        <button class="profile-menu-row" type="button" data-profile-go="progress" role="menuitem">
+          <span data-icon="tracking"></span>
+          <span class="profile-row-copy"><b>Acompanhamento de estudos</b><small>Progresso, sequência e revisões</small></span>
+          <span class="profile-row-chevron">›</span>
+        </button>
+        <button class="profile-menu-row" type="button" data-profile-go="settings" role="menuitem">
+          <span data-icon="settings"></span>
+          <span class="profile-row-copy"><b>Configurações</b><small>Conta, nuvem e atualizações</small></span>
+          <span class="profile-row-chevron">›</span>
+        </button>
         <div class="profile-menu-sep"></div>
-        <button id="profile-logout" class="profile-logout" type="button" role="menuitem">↪ Sair</button>
+        <button id="profile-logout" class="profile-menu-row profile-logout" type="button" role="menuitem">
+          <span class="profile-logout-glyph">↪</span>
+          <span class="profile-row-copy"><b>Sair</b><small>Encerrar sessão neste dispositivo</small></span>
+        </button>
       </div>
       <input id="profile-photo-input" type="file" accept="image/*" hidden>
     </header>
@@ -177,7 +196,7 @@
       <section id="settings" class="view page-shell">
         <div class="title"><h2>Configurações</h2></div>
         <div class="surface"><h3>Nuvem</h3><p id="account"></p><button id="sync-now" class="primary wide">Sincronizar agora</button><button id="logout" class="soft wide">Sair deste dispositivo</button></div>
-        <div class="surface" style="margin-top:12px"><h3>Atualizações</h3><p>Versão <b id="app-version">0.5.39</b>. O Studio verifica atualizações automaticamente.</p><button id="update-now" class="soft wide">Verificar atualização</button></div>
+        <div class="surface" style="margin-top:12px"><h3>Atualizações</h3><p>Versão <b id="app-version">0.5.40</b>. O Studio verifica atualizações automaticamente.</p><button id="update-now" class="soft wide">Verificar atualização</button></div>
         <div class="surface" style="margin-top:12px"><h3>Integração com o PC</h3><p>AnkiConnect continua local no computador. Biblioteca e progresso permanecem sincronizados pela nuvem.</p></div>
       </section>
 
@@ -192,12 +211,12 @@
       <button data-view="review"><span data-icon="review"></span><span>Revisão</span></button>
       <button data-view="more"><span data-icon="more"></span><span>Mais</span></button>
     </nav>
-    <div id="more" class="sheet hidden"><button id="mobile-update-now" type="button">↻ Atualizar aplicativo</button><button data-go="progress">Acompanhamento de estudos</button><button id="libraslab-more" class="hidden" data-go="libraslab">LibrasLab Bridge</button><button data-go="settings">Configurações</button></div>
+    <div id="more" class="sheet hidden"><button id="mobile-update-now" type="button">↻ Atualizar aplicativo</button><button id="libraslab-more" class="hidden" data-go="libraslab">LibrasLab Bridge</button><button data-go="settings">Configurações</button></div>
   </div>
 </div>
 
 <div id="modal" class="modal hidden"><div class="modalbox"><button id="close-modal">×</button><div id="modal-body"></div></div></div>
 <div id="toast"></div>
-<script src="app.js?v=0539"></script>
+<script src="app.js?v=0540"></script>
 </body>
 </html>
