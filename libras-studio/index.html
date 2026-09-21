@@ -7,19 +7,19 @@
   <script>if(new URLSearchParams(location.search).get("native")==="android")document.documentElement.classList.add("native-app")</script>
   <title>Libras Studio</title>
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" href="icon.svg?v=0541" type="image/svg+xml">
-  <link rel="stylesheet" href="app.css?v=0541">
-  <link rel="stylesheet" href="redesign.css?v=0541">
+  <link rel="icon" href="icon.svg?v=0542" type="image/svg+xml">
+  <link rel="stylesheet" href="app.css?v=0542">
+  <link rel="stylesheet" href="redesign.css?v=0542">
   <script src="vendor/supabase-js-2.116.0.js?v=0540"></script>
   <script src="config.js"></script>
-  <script src="icons.js?v=0541"></script>
-  <script src="study.js?v=0541"></script>
-  <script src="explore-data.js?v=0541"></script>
+  <script src="icons.js?v=0542"></script>
+  <script src="study.js?v=0542"></script>
+  <script src="explore-data.js?v=0542"></script>
 </head>
 <body>
 <div id="auth" class="auth">
   <div class="brand" style="justify-content:center;margin-bottom:12px">
-    <span class="brand-mark"><img src="icon.svg?v=0541" alt=""></span>
+    <span class="brand-mark"><img src="icon.svg?v=0542" alt=""></span>
     <div><div class="brand-title">Libras Studio</div><div class="brand-sub">Aprender conecta pessoas</div></div>
   </div>
   <h1>Bem-vindo</h1>
@@ -32,7 +32,7 @@
 <div id="app" class="hidden app-shell">
   <aside class="desktop-sidebar">
     <div class="brand">
-      <div class="brand-mark"><img src="icon.svg?v=0541" alt=""></div>
+      <div class="brand-mark"><img src="icon.svg?v=0542" alt=""></div>
       <div><div class="brand-title">Libras Studio</div><div class="brand-sub">Comunicar aproxima.</div></div>
     </div>
     <div class="side-nav">
@@ -44,7 +44,7 @@
       <button data-view="progress"><span data-icon="tracking"></span><span>Acompanhamento de estudos</span></button>
       <button data-view="settings"><span data-icon="settings"></span><span>Configurações</span></button>
     </div>
-    <div class="sidebar-footer"><strong>Mais Libras para um mundo mais próximo.</strong><small>Aprenda no seu ritmo, pratique e acompanhe sua evolução.</small></div>
+    <div class="sidebar-footer studio-promo"><div class="promo-art" aria-hidden="true">🤟</div><strong>Aprender Libras aproxima.</strong><small>Continue sua trilha e transforme prática em comunicação.</small><button data-go="study">Continuar trilha →</button></div>
   </aside>
 
   <div class="app-stage">
@@ -98,7 +98,7 @@
       <section id="home" class="view active">
         <div class="dashboard-grid">
           <div class="dashboard-main">
-            <div class="hero-new"><div class="eyebrow">Olá, <span id="home-user-name">estudante</span>!</div><h1>Continue sua jornada em <span>Libras</span></h1><p>Pequenos passos todos os dias constroem grandes conexões.</p></div>
+            <div class="hero-new studio-hero"><div class="hero-copy"><div class="eyebrow">OLÁ, <span id="home-user-name">estudante</span>! 👋</div><h1>Continue sua jornada em <span>Libras</span></h1><p>Aprenda, pratique e acompanhe sua evolução em um só lugar.</p><div class="hero-actions"><button class="primary" data-go="study">Continuar aprendendo</button><button class="soft" data-go="explore">Explorar sinais</button></div></div><div class="hero-art" aria-hidden="true"><div class="hero-art-orbit"></div><div class="hero-hand">🤟</div><span class="hero-chip chip-one">LIBRAS</span><span class="hero-chip chip-two">APRENDER</span><span class="hero-spark">✦</span></div></div>
 
             <div class="home-top-progress">
             <div class="dash-card">
@@ -196,7 +196,7 @@
       <section id="settings" class="view page-shell">
         <div class="title"><h2>Configurações</h2></div>
         <div class="surface"><h3>Nuvem</h3><p id="account"></p><button id="sync-now" class="primary wide">Sincronizar agora</button><button id="logout" class="soft wide">Sair deste dispositivo</button></div>
-        <div class="surface" style="margin-top:12px"><h3>Atualizações</h3><p>Versão <b id="app-version">0.5.41</b>. O Studio verifica atualizações automaticamente.</p><button id="update-now" class="soft wide">Verificar atualização</button></div>
+        <div class="surface" style="margin-top:12px"><h3>Atualizações</h3><p>Versão <b id="app-version">0.5.42</b>. O Studio verifica atualizações automaticamente.</p><button id="update-now" class="soft wide">Verificar atualização</button></div>
         <div class="surface" style="margin-top:12px"><h3>Integração com o PC</h3><p>AnkiConnect continua local no computador. Biblioteca e progresso permanecem sincronizados pela nuvem.</p></div>
       </section>
 
@@ -217,6 +217,6 @@
 
 <div id="modal" class="modal hidden"><div class="modalbox"><button id="close-modal">×</button><div id="modal-body"></div></div></div>
 <div id="toast"></div>
-<script src="app.js?v=0541"></script>
+<script src="app.js?v=0542"></script>
 </body>
 </html>
