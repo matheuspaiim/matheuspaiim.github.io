@@ -7,19 +7,20 @@
   <script>if(new URLSearchParams(location.search).get("native")==="android")document.documentElement.classList.add("native-app")</script>
   <title>Libras Studio</title>
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" href="icon.svg?v=0542" type="image/svg+xml">
-  <link rel="stylesheet" href="app.css?v=0542">
-  <link rel="stylesheet" href="redesign.css?v=0542">
+  <link rel="icon" href="icon.svg?v=0543" type="image/svg+xml">
+  <link rel="stylesheet" href="app.css?v=0543">
+  <link rel="stylesheet" href="redesign.css?v=0543">
   <script src="vendor/supabase-js-2.116.0.js?v=0540"></script>
   <script src="config.js"></script>
-  <script src="icons.js?v=0542"></script>
-  <script src="study.js?v=0542"></script>
-  <script src="explore-data.js?v=0542"></script>
+  <script src="icons.js?v=0543"></script>
+  <script src="study.js?v=0543"></script>
+  <script src="explore-data.js?v=0543"></script>
+  <script src="phrase-data.js?v=0543"></script>
 </head>
 <body>
 <div id="auth" class="auth">
   <div class="brand" style="justify-content:center;margin-bottom:12px">
-    <span class="brand-mark"><img src="icon.svg?v=0542" alt=""></span>
+    <span class="brand-mark"><img src="icon.svg?v=0543" alt=""></span>
     <div><div class="brand-title">Libras Studio</div><div class="brand-sub">Aprender conecta pessoas</div></div>
   </div>
   <h1>Bem-vindo</h1>
@@ -32,7 +33,7 @@
 <div id="app" class="hidden app-shell">
   <aside class="desktop-sidebar">
     <div class="brand">
-      <div class="brand-mark"><img src="icon.svg?v=0542" alt=""></div>
+      <div class="brand-mark"><img src="icon.svg?v=0543" alt=""></div>
       <div><div class="brand-title">Libras Studio</div><div class="brand-sub">Comunicar aproxima.</div></div>
     </div>
     <div class="side-nav">
@@ -113,6 +114,15 @@
             </div>
             </div>
 
+            <div class="dash-card quick-actions-card">
+              <div class="dash-card-head"><div class="dash-card-title"><span data-icon="continue"></span><h3>Ações rápidas</h3></div></div>
+              <div class="home-quick-actions">
+                <button class="home-quick primaryish" data-go="explore"><span data-icon="search"></span><span><b>Buscar sinais</b><small>Encontre e salve novos sinais</small></span></button>
+                <button class="home-quick reviewish" data-go="review"><span data-icon="review"></span><span><b>Revisar agora</b><small>Pratique os cartões disponíveis</small></span></button>
+                <button class="home-quick libraryish" data-go="library"><span data-icon="library"></span><span><b>Abrir biblioteca</b><small>Organize seus sinais e variações</small></span></button>
+              </div>
+            </div>
+
             <div class="dash-card">
               <div class="dash-card-head"><div class="dash-card-title"><span data-icon="explore"></span><h3>Explorar sinais</h3></div><button class="dash-link" data-go="explore">Ver todas →</button></div>
               <div id="home-explore-cats" class="explore-shortcuts"></div>
@@ -175,7 +185,7 @@
 
       <section id="library" class="view page-shell">
         <div class="title"><h2>Biblioteca</h2><p>Seus sinais organizados por categoria, com seções recolhíveis.</p></div>
-        <div class="surface"><div class="library-filters"><input id="library-search" placeholder="Buscar na biblioteca"><select id="library-cat"><option value="">Todas as categorias</option></select></div><div class="actions"><button id="new-cat" class="soft">＋ Categoria</button><button id="move" class="soft">Mover</button><button id="delete" class="danger">Excluir</button></div></div>
+        <div class="surface library-toolbar"><div class="library-overview"><div><span data-icon="library"></span><div><b id="library-total-signs">0</b><small>sinais</small></div></div><div><span data-icon="sequence"></span><div><b id="library-total-cats">0</b><small>categorias</small></div></div><p>Arraste um card para outra categoria ou use <b>Mover…</b> no próprio sinal.</p></div><div class="library-filters"><input id="library-search" placeholder="Buscar na biblioteca"><select id="library-cat"><option value="">Todas as categorias</option></select></div><div class="actions"><button id="library-refresh" class="soft">↻ Atualizar</button><button id="new-cat" class="soft">＋ Categoria</button></div></div>
         <div id="library-list"></div>
       </section>
 
@@ -196,7 +206,7 @@
       <section id="settings" class="view page-shell">
         <div class="title"><h2>Configurações</h2></div>
         <div class="surface"><h3>Nuvem</h3><p id="account"></p><button id="sync-now" class="primary wide">Sincronizar agora</button><button id="logout" class="soft wide">Sair deste dispositivo</button></div>
-        <div class="surface" style="margin-top:12px"><h3>Atualizações</h3><p>Versão <b id="app-version">0.5.42</b>. O Studio verifica atualizações automaticamente.</p><button id="update-now" class="soft wide">Verificar atualização</button></div>
+        <div class="surface" style="margin-top:12px"><h3>Atualizações</h3><p>Versão <b id="app-version">0.5.43</b>. O Studio verifica atualizações automaticamente.</p><button id="update-now" class="soft wide">Verificar atualização</button></div>
         <div class="surface" style="margin-top:12px"><h3>Integração com o PC</h3><p>AnkiConnect continua local no computador. Biblioteca e progresso permanecem sincronizados pela nuvem.</p></div>
       </section>
 
@@ -217,6 +227,6 @@
 
 <div id="modal" class="modal hidden"><div class="modalbox"><button id="close-modal">×</button><div id="modal-body"></div></div></div>
 <div id="toast"></div>
-<script src="app.js?v=0542"></script>
+<script src="app.js?v=0543"></script>
 </body>
 </html>
