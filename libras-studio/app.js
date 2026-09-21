@@ -1,4 +1,4 @@
-const APP_VERSION="0.5.43";
+const APP_VERSION="0.5.44";
 const cfg=window.LIBRAS_STUDIO_CONFIG||{},$=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const nativeParams=new URLSearchParams(location.search);
 const IS_NATIVE_ANDROID=nativeParams.get("native")==="android";
@@ -321,7 +321,7 @@ function library(){
     let rows=it.map((x,i)=>{
       let media=libraryVideoUrl(x),tone=(groupIndex+i)%5,moveOptions=categories.filter(z=>z!==c).map(z=>'<option value="'+esc(z)+'">'+esc(z)+'</option>').join("");
       return '<article class="library-sign-card tone-'+tone+'" draggable="true" data-library-card="'+esc(x.studio_id)+'" data-current-category="'+esc(c)+'">'+
-        '<div class="library-media">'+(media?'<video muted playsinline preload="metadata" src="'+esc(media)+'"></video>':'<div class="library-media-empty">'+LSCategoryIcon(c)+'</div>')+'<button class="library-media-play" data-library-play="'+esc(x.studio_id)+'" aria-label="Reproduzir '+esc(x.name)+'">▶</button></div>'+
+        '<div class="library-media">'+(media?'<video data-library-preview="'+esc(x.studio_id)+'" muted playsinline preload="metadata" src="'+esc(media)+'"></video>':'<div class="library-media-empty">'+LSCategoryIcon(c)+'</div>')+'<button class="library-media-play" data-library-play="'+esc(x.studio_id)+'" data-library-play-name="'+esc(x.name)+'" aria-label="Reproduzir '+esc(x.name)+'">▶</button></div>'+
         '<div class="library-card-copy"><b>'+esc(x.name)+'</b><small>'+esc(c)+'</small></div>'+
         '<div class="library-card-actions"><select data-library-move="'+esc(x.studio_id)+'" aria-label="Mover '+esc(x.name)+'"><option value="">Mover…</option>'+moveOptions+'</select><button class="soft" data-library-variants="'+esc(x.norm||norm(x.name))+'">Variações</button><button class="danger" data-library-delete="'+esc(x.studio_id)+'">Excluir</button></div>'+
       '</article>';
@@ -356,7 +356,7 @@ function bindLibraryRows(){
   });
   document.querySelectorAll("[data-library-move]").forEach(sel=>sel.onchange=()=>{let c=sel.value;if(c)moveLibraryItem(sel.dataset.libraryMove,c)});
   document.querySelectorAll("[data-library-delete]").forEach(b=>b.onclick=()=>deleteLibraryItem(b.dataset.libraryDelete));
-  document.querySelectorAll("[data-library-play]").forEach(b=>b.onclick=()=>openOrRepairLibrarySign(b.dataset.libraryPlay));
+  document.querySelectorAll("[data-library-play]").forEach(b=>b.onclick=()=>playPreferredSign(b.dataset.libraryPlayName||"",b.dataset.libraryPlay));document.querySelectorAll("[data-library-preview]").forEach(v=>{v.onerror=()=>v.closest("[data-library-card]")?.remove()});
   document.querySelectorAll("[data-library-variants]").forEach(b=>b.onclick=()=>openLibraryVariants(b.dataset.libraryVariants));
 }
 async function moveLibraryItem(studioId,category){
@@ -372,7 +372,7 @@ async function deleteLibraryItem(studioId){
   try{let{error}=await sb.from("signs").update(patch).eq("studio_id",studioId);if(error)throw error;toast("Sinal excluído.")}catch(e){console.error(e);S.signs.push(item);cache();render();toast("Não consegui excluir o sinal.")}
 }
 async function newCat(){let n=prompt("Nome da categoria:");if(!n)return;let e=prompt("Emoji:","🧩")||"🧩",row={user_id:S.session.user.id,name:title(n),emoji:e,sort_order:999,is_custom:true,is_hidden:false,updated_at:new Date().toISOString()},{data,error}=await sb.from("categories").insert(row).select().single();if(error)return toast(error.message);S.cats.push(data);render()}
-function reviewCats(){let s=$("#review-cat"),v=s.value,cs=[...new Set(S.signs.map(x=>x.category_name).filter(Boolean))].sort();s.innerHTML='<option value="">Todas</option>'+cs.map(x=>'<option>'+esc(x)+"</option>").join("");s.value=v}
+function reviewCats(){let s=$("#review-cat");if(!s)return;let v=s.value,cs=[...new Set(S.signs.map(x=>x.category_name).filter(Boolean))].sort();s.innerHTML='<option value="">Todas</option>'+cs.map(x=>'<option>'+esc(x)+"</option>").join("");s.value=v;let m=rmap(),now=Date.now(),u=unique(),due=0,fresh=0,reviewed=0;u.forEach(x=>{let r=m[x.norm];if(!r)fresh++;else{if(r.last_reviewed_at)reviewed++;if(r.due_at&&new Date(r.due_at).getTime()<=now)due++}});let d=$("#review-due-metric"),n=$("#review-new-metric"),rv=$("#review-reviewed-metric");if(d)d.textContent=due;if(n)n.textContent=fresh;if(rv)rv.textContent=reviewed}
 function next(rate,c){let reps=c?.reps||0,e=c?.ease||2.5,iv=+c?.interval_days||0,d=0,l=c?.lapses||0,n=reps;if(rate==="again"){d=10/1440;e=Math.max(1.3,e-.2);l++}if(rate==="hard"){d=reps?Math.max(1,iv*1.2):.25;e=Math.max(1.3,e-.15);n++}if(rate==="good"){d=reps===0?1:reps===1?3:Math.max(1,iv*e);n++}if(rate==="easy"){e=Math.min(3.5,e+.15);d=reps?Math.max(2,iv*(e+.3)):4;n++}return{interval_days:d,ease:e,reps:n,lapses:l,due_at:new Date(Date.now()+d*864e5).toISOString()}}
 function queue(){let c=$("#review-cat").value,mode=$("#review-mode").value,m=rmap(),now=Date.now(),due=[],fresh=[];unique().filter(s=>!c||s.category_name===c).forEach(s=>{let r=m[s.norm];if(!r)fresh.push(s);else if(r.due_at&&new Date(r.due_at).getTime()<=now)due.push(s)});let out=mode==="due"?due:mode==="new"?fresh:[...due,...fresh],lim=$("#review-limit").value;return lim==="all"?out:out.slice(0,+lim)}
 function card(){let s=S.queue[S.i];if(!s){$("#review-card").classList.add("hidden");$("#review-done").classList.remove("hidden");return}$("#review-card").classList.remove("hidden");$("#review-done").classList.add("hidden");$("#review-name").textContent=s.name;$("#review-media").classList.add("hidden");$("#ratings").classList.add("hidden");$("#reveal").classList.remove("hidden");let current=rmap()[s.norm];["again","hard","good","easy"].forEach(k=>{let el=document.querySelector('[data-time="'+k+'"]');if(el)el.textContent=fmtInterval(next(k,current).interval_days)});let vs=S.signs.filter(x=>x.norm===s.norm&&libraryVideoUrl(x));$("#review-media").innerHTML=vs.length?vs.map((v,i)=>{let id="rev-"+S.i+"-"+i;return '<video data-video-id="'+id+'" data-studio-id="'+esc(v.studio_id)+'" controls loop playsinline preload="metadata" src="'+esc(libraryVideoUrl(v))+'"></video>'+speedTools(id)+'<small>'+(vs.length>1?"Variação "+(i+1)+" · ":"")+esc(v.source_name||"")+"</small>"}).join(""):"<p>Vídeo indisponível.</p>";bindSpeeds($("#review-media"));bindVideoFallbacks($("#review-media"),s.name)}
