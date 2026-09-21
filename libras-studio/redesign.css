@@ -790,10 +790,12 @@ html.native-app main{padding:12px 10px 90px}
 .profile-menu>button.profile-logout:hover{background:#fff0f1}
 
 @media(max-width:820px){
-  .profile-chip{
-    width:42px;
-    height:42px;
-    min-width:42px;
+  .profile-chip,
+  html.native-app .profile-chip{
+    width:42px!important;
+    height:42px!important;
+    min-width:42px!important;
+    flex:0 0 42px!important;
     padding:4px!important;
     justify-content:center;
     border-radius:14px!important;
