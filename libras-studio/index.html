@@ -7,20 +7,20 @@
   <script>if(new URLSearchParams(location.search).get("native")==="android")document.documentElement.classList.add("native-app")</script>
   <title>Libras Studio</title>
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" href="icon.svg?v=0543" type="image/svg+xml">
-  <link rel="stylesheet" href="app.css?v=0543">
-  <link rel="stylesheet" href="redesign.css?v=0543">
+  <link rel="icon" href="icon.svg?v=0544" type="image/svg+xml">
+  <link rel="stylesheet" href="app.css?v=0544">
+  <link rel="stylesheet" href="redesign.css?v=0544">
   <script src="vendor/supabase-js-2.116.0.js?v=0540"></script>
   <script src="config.js"></script>
-  <script src="icons.js?v=0543"></script>
-  <script src="study.js?v=0543"></script>
-  <script src="explore-data.js?v=0543"></script>
-  <script src="phrase-data.js?v=0543"></script>
+  <script src="icons.js?v=0544"></script>
+  <script src="study.js?v=0544"></script>
+  <script src="explore-data.js?v=0544"></script>
+  <script src="phrase-data.js?v=0544"></script>
 </head>
 <body>
 <div id="auth" class="auth">
   <div class="brand" style="justify-content:center;margin-bottom:12px">
-    <span class="brand-mark"><img src="icon.svg?v=0543" alt=""></span>
+    <span class="brand-mark"><img src="icon.svg?v=0544" alt=""></span>
     <div><div class="brand-title">Libras Studio</div><div class="brand-sub">Aprender conecta pessoas</div></div>
   </div>
   <h1>Bem-vindo</h1>
@@ -33,7 +33,7 @@
 <div id="app" class="hidden app-shell">
   <aside class="desktop-sidebar">
     <div class="brand">
-      <div class="brand-mark"><img src="icon.svg?v=0543" alt=""></div>
+      <div class="brand-mark"><img src="icon.svg?v=0544" alt=""></div>
       <div><div class="brand-title">Libras Studio</div><div class="brand-sub">Comunicar aproxima.</div></div>
     </div>
     <div class="side-nav">
@@ -45,7 +45,7 @@
       <button data-view="progress"><span data-icon="tracking"></span><span>Acompanhamento de estudos</span></button>
       <button data-view="settings"><span data-icon="settings"></span><span>Configurações</span></button>
     </div>
-    <div class="sidebar-footer studio-promo"><div class="promo-art" aria-hidden="true">🤟</div><strong>Aprender Libras aproxima.</strong><small>Continue sua trilha e transforme prática em comunicação.</small><button data-go="study">Continuar trilha →</button></div>
+    <div class="sidebar-footer studio-promo"><div class="promo-art" aria-hidden="true"><span data-icon="people"></span></div><strong>Aprender Libras aproxima.</strong><small>Continue sua trilha e transforme prática em comunicação.</small><button data-go="study">Continuar trilha →</button></div>
   </aside>
 
   <div class="app-stage">
@@ -99,7 +99,7 @@
       <section id="home" class="view active">
         <div class="dashboard-grid">
           <div class="dashboard-main">
-            <div class="hero-new studio-hero"><div class="hero-copy"><div class="eyebrow">OLÁ, <span id="home-user-name">estudante</span>! 👋</div><h1>Continue sua jornada em <span>Libras</span></h1><p>Aprenda, pratique e acompanhe sua evolução em um só lugar.</p><div class="hero-actions"><button class="primary" data-go="study">Continuar aprendendo</button><button class="soft" data-go="explore">Explorar sinais</button></div></div><div class="hero-art" aria-hidden="true"><div class="hero-art-orbit"></div><div class="hero-hand">🤟</div><span class="hero-chip chip-one">LIBRAS</span><span class="hero-chip chip-two">APRENDER</span><span class="hero-spark">✦</span></div></div>
+            <div class="hero-new studio-hero"><div class="hero-copy"><div class="eyebrow">OLÁ, <span id="home-user-name">estudante</span>! 👋</div><h1>Continue sua jornada em <span>Libras</span></h1><p>Aprenda, pratique e acompanhe sua evolução em um só lugar.</p><div class="hero-actions"><button class="primary" data-go="study">Continuar aprendendo</button><button class="soft" data-go="explore">Explorar sinais</button></div></div><div class="hero-art" aria-hidden="true"><div class="hero-art-orbit"></div><div class="hero-symbol-stack"><span data-icon="education"></span><span data-icon="library"></span><span data-icon="review"></span></div><span class="hero-chip chip-one">LIBRAS</span><span class="hero-chip chip-two">APRENDER</span><span class="hero-spark">✦</span></div></div>
 
             <div class="home-top-progress">
             <div class="dash-card">
@@ -180,7 +180,7 @@
 
       <section id="study" class="view page-shell">
         <div class="title"><h2>Trilha de aprendizagem</h2><p>Avance em uma sequência estruturada, do fundamento à comunicação mais fluida.</p></div>
-        <div class="surface"><div class="progress"><b id="study-count">0 aulas</b><span id="study-pct">0%</span></div><input id="study-search" placeholder="Buscar aula"><div id="study-modules" class="chips" style="margin-top:10px"></div></div>
+        <div class="surface study-summary"><div class="progress"><b id="study-count">0 aulas</b><span id="study-pct">0%</span></div><input id="study-search" placeholder="Buscar aula"><div id="study-modules" class="chips" style="margin-top:10px"></div></div>
         <div id="study-list"></div>
       </section>
 
@@ -192,6 +192,7 @@
 
       <section id="review" class="view page-shell">
         <div class="title"><h2>Revisão</h2><p>Faça o sinal, revele o vídeo e avalie sua lembrança.</p></div>
+        <div class="review-overview"><div class="review-metric due"><span data-icon="reviewActivity"></span><div><small>Vencidos</small><b id="review-due-metric">0</b></div></div><div class="review-metric fresh"><span data-icon="learned"></span><div><small>Novos</small><b id="review-new-metric">0</b></div></div><div class="review-metric done"><span data-icon="best"></span><div><small>Já revisados</small><b id="review-reviewed-metric">0</b></div></div></div>
         <div id="review-setup" class="surface"><label>Categoria<select id="review-cat"><option value="">Todas</option></select></label><label>Cartões<select id="review-mode"><option value="mixed">Vencidos + novos</option><option value="due">Somente vencidos</option><option value="new">Somente novos</option></select></label><label>Tamanho<select id="review-limit"><option value="10">10</option><option value="20">20</option><option value="30">30</option><option value="50">50</option><option value="100">100</option><option value="200">200</option><option value="all" selected>Todos</option></select></label><button id="review-start" class="primary wide">▶ Começar</button></div>
         <div id="review-card" class="surface review hidden"><small>FAÇA O SINAL DE:</small><h1 id="review-name"></h1><div id="review-media" class="hidden"></div><button id="reveal" class="primary wide">Revelar resposta</button><div id="ratings" class="ratings hidden"><button data-rate="again"><span class="rating-time" data-time="again">10 min</span><b>De novo</b></button><button data-rate="hard"><span class="rating-time" data-time="hard">6 h</span><b>Difícil</b></button><button data-rate="good"><span class="rating-time" data-time="good">1 dia</span><b>Bom</b></button><button data-rate="easy"><span class="rating-time" data-time="easy">4 dias</span><b>Fácil</b></button></div></div>
         <div id="review-done" class="surface hidden center"><h2>🎉 Sessão concluída</h2><button id="again-session" class="primary">Outra sessão</button></div>
@@ -207,7 +208,7 @@
       <section id="settings" class="view page-shell">
         <div class="title"><h2>Configurações</h2></div>
         <div class="surface"><h3>Nuvem</h3><p id="account"></p><button id="sync-now" class="primary wide">Sincronizar agora</button><button id="logout" class="soft wide">Sair deste dispositivo</button></div>
-        <div class="surface" style="margin-top:12px"><h3>Atualizações</h3><p>Versão <b id="app-version">0.5.43</b>. O Studio verifica atualizações automaticamente.</p><button id="update-now" class="soft wide">Verificar atualização</button></div>
+        <div class="surface" style="margin-top:12px"><h3>Atualizações</h3><p>Versão <b id="app-version">0.5.44</b>. O Studio verifica atualizações automaticamente.</p><button id="update-now" class="soft wide">Verificar atualização</button></div>
         <div class="surface" style="margin-top:12px"><h3>Integração com o PC</h3><p>AnkiConnect continua local no computador. Biblioteca e progresso permanecem sincronizados pela nuvem.</p></div>
       </section>
 
@@ -228,6 +229,6 @@
 
 <div id="modal" class="modal hidden"><div class="modalbox"><button id="close-modal">×</button><div id="modal-body"></div></div></div>
 <div id="toast"></div>
-<script src="app.js?v=0543"></script>
+<script src="app.js?v=0544"></script>
 </body>
 </html>
