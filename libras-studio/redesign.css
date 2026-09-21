@@ -1156,3 +1156,56 @@ html.native-app main{padding:12px 10px 90px}
 
   .profile-edit-modal h2{font-size:22px}
 }
+
+/* Padronização PWA com desktop + acompanhamento detalhado v0541 */
+@media(min-width:821px){
+  .home-top-progress{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+}
+.progress-section-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:16px}
+.progress-section-head>div:first-child{display:flex;align-items:center;gap:11px;min-width:0}
+.progress-section-head .ls-icon{width:42px;height:42px}
+.progress-section-head h3{margin:0;color:#211b35;font-size:19px}
+.progress-section-head p{margin:3px 0 0;color:#7a7288;font-size:12px}
+.progress-section-head.compact{margin-bottom:14px}
+.progress-overview{background:linear-gradient(135deg,#fff 0%,#faf7ff 55%,#f3f7ff 100%)!important}
+.progress-overview-badge{padding:8px 12px;border-radius:999px;background:#eee7ff;color:#6134c7;font-size:12px;font-weight:900;white-space:nowrap}
+.progress-kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.progress-kpi{display:flex;align-items:center;gap:10px;min-height:78px;padding:12px;border:1px solid #eee9f5;border-radius:17px;background:#fff}
+.progress-kpi .ls-icon{width:40px;height:40px}
+.progress-kpi small{display:block;color:#7a7288;font-size:11px;margin-bottom:2px}
+.progress-kpi b{display:block;color:#211b35;font-size:20px}
+.progress-kpi em{font-style:normal;color:#8a8197;font-size:11px;font-weight:700}
+.streak-mini{display:flex;align-items:baseline;gap:5px;padding:7px 10px;border-radius:13px;background:#fff3e8;color:#8a4a13}
+.streak-mini b{font-size:20px}.streak-mini small{font-size:10px}
+.progress-week{display:grid;grid-template-columns:repeat(7,1fr);gap:7px}
+.progress-week-day{text-align:center;padding:8px 3px;border:1px solid #eee9f5;border-radius:14px;background:#fbfaff}
+.progress-week-day.active{background:#fff3e8;border-color:#ffd9b8}
+.progress-day-icon{width:34px;height:34px;margin:0 auto 4px;border-radius:11px;display:grid;place-items:center;background:#f1eef7;color:#a59cac}
+.progress-week-day.active .progress-day-icon{background:#fff}
+.progress-week-day b{display:block;font-size:10px;text-transform:capitalize}.progress-week-day small{color:#8a8197;font-size:9px}
+.progress-ring-body{display:flex;align-items:center;gap:16px}
+.progress-big-ring{width:104px;height:104px;flex:0 0 104px}
+.progress-ring-body>div:last-child b{font-size:17px;color:#211b35}.progress-ring-body p{margin:5px 0 0;color:#7a7288;font-size:12px;line-height:1.45}
+.module-progress-list{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.module-progress-row{display:flex;align-items:center;gap:11px;padding:13px;border:1px solid #eee9f5;border-radius:17px;background:#fbfaff}
+.module-progress-icon{width:42px;height:42px;border-radius:14px;background:#f0eaff;display:grid;place-items:center;flex:0 0 42px}
+.module-progress-icon .ls-icon{width:31px;height:31px}
+.module-progress-copy{min-width:0;flex:1}.module-progress-head{display:flex;justify-content:space-between;gap:8px}.module-progress-head b{font-size:13px;color:#211b35}.module-progress-head strong{font-size:12px;color:#7040d7}
+.module-progress-copy small{display:block;color:#8a8197;font-size:10px;margin:2px 0 7px}
+.module-progress-track{height:7px;border-radius:999px;background:#ece7f3;overflow:hidden}.module-progress-track span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#7040d7,#9b78ff)}
+.explore-search-card textarea{width:100%;min-height:48px;height:48px;resize:vertical;line-height:1.35}
+.explore-search-card{align-items:start}.explore-search-card button{margin-top:0}
+.brand-mark{overflow:hidden}.brand-mark img{width:100%;height:100%;display:block}
+@media(max-width:820px){
+  .tracking-page-grid{grid-template-columns:1fr}
+  .tracking-wide{grid-column:auto}
+  .progress-kpi-grid{grid-template-columns:1fr 1fr}
+  .module-progress-list{grid-template-columns:1fr}
+  .progress-week{gap:4px}
+  .progress-week-day{padding:7px 1px}
+  .progress-section-head{align-items:flex-start}
+  .progress-overview-badge{font-size:10px}
+  .explore-search-card{grid-template-columns:1fr 1fr}
+  .explore-search-card .field-wrap{grid-column:1/-1}
+  .explore-search-card textarea{height:48px;min-height:48px}
+}
