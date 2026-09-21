@@ -7,20 +7,20 @@
   <script>if(new URLSearchParams(location.search).get("native")==="android")document.documentElement.classList.add("native-app")</script>
   <title>Libras Studio</title>
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" href="icon.svg?v=0544" type="image/svg+xml">
-  <link rel="stylesheet" href="app.css?v=0544">
-  <link rel="stylesheet" href="redesign.css?v=0544">
+  <link rel="icon" href="icon.svg?v=0545" type="image/svg+xml">
+  <link rel="stylesheet" href="app.css?v=0545">
+  <link rel="stylesheet" href="redesign.css?v=0545">
   <script src="vendor/supabase-js-2.116.0.js?v=0540"></script>
   <script src="config.js"></script>
-  <script src="icons.js?v=0544"></script>
-  <script src="study.js?v=0544"></script>
-  <script src="explore-data.js?v=0544"></script>
-  <script src="phrase-data.js?v=0544"></script>
+  <script src="icons.js?v=0545"></script>
+  <script src="study.js?v=0545"></script>
+  <script src="explore-data.js?v=0545"></script>
+  <script src="phrase-data.js?v=0545"></script>
 </head>
 <body>
 <div id="auth" class="auth">
   <div class="brand" style="justify-content:center;margin-bottom:12px">
-    <span class="brand-mark"><img src="icon.svg?v=0544" alt=""></span>
+    <span class="brand-mark"><img src="icon.svg?v=0545" alt=""></span>
     <div><div class="brand-title">Libras Studio</div><div class="brand-sub">Aprender conecta pessoas</div></div>
   </div>
   <h1>Bem-vindo</h1>
@@ -33,7 +33,7 @@
 <div id="app" class="hidden app-shell">
   <aside class="desktop-sidebar">
     <div class="brand">
-      <div class="brand-mark"><img src="icon.svg?v=0544" alt=""></div>
+      <div class="brand-mark"><img src="icon.svg?v=0545" alt=""></div>
       <div><div class="brand-title">Libras Studio</div><div class="brand-sub">Comunicar aproxima.</div></div>
     </div>
     <div class="side-nav">
@@ -66,11 +66,11 @@
         </div>
         <div class="profile-quick-actions">
           <button id="profile-change-photo" class="profile-quick-action" type="button" role="menuitem">
-            <span class="profile-action-glyph">📷</span>
+            <span class="profile-action-glyph" data-icon="photo"></span>
             <span><b>Foto</b><small>Alterar imagem</small></span>
           </button>
           <button id="profile-edit-name" class="profile-quick-action" type="button" role="menuitem">
-            <span class="profile-action-glyph">✏️</span>
+            <span class="profile-action-glyph" data-icon="edit"></span>
             <span><b>Nome</b><small>Editar exibição</small></span>
           </button>
         </div>
@@ -88,7 +88,7 @@
         </button>
         <div class="profile-menu-sep"></div>
         <button id="profile-logout" class="profile-menu-row profile-logout" type="button" role="menuitem">
-          <span class="profile-logout-glyph">↪</span>
+          <span class="profile-logout-glyph" data-icon="close"></span>
           <span class="profile-row-copy"><b>Sair</b><small>Encerrar sessão neste dispositivo</small></span>
         </button>
       </div>
@@ -208,7 +208,7 @@
       <section id="settings" class="view page-shell">
         <div class="title"><h2>Configurações</h2></div>
         <div class="surface"><h3>Nuvem</h3><p id="account"></p><button id="sync-now" class="primary wide">Sincronizar agora</button><button id="logout" class="soft wide">Sair deste dispositivo</button></div>
-        <div class="surface" style="margin-top:12px"><h3>Atualizações</h3><p>Versão <b id="app-version">0.5.44</b>. O Studio verifica atualizações automaticamente.</p><button id="update-now" class="soft wide">Verificar atualização</button></div>
+        <div class="surface" style="margin-top:12px"><h3>Atualizações</h3><p>Versão <b id="app-version">0.5.45</b>. O Studio verifica atualizações automaticamente.</p><button id="update-now" class="soft wide">Verificar atualização</button></div>
         <div class="surface" style="margin-top:12px"><h3>Integração com o PC</h3><p>AnkiConnect continua local no computador. Biblioteca e progresso permanecem sincronizados pela nuvem.</p></div>
       </section>
 
@@ -229,6 +229,6 @@
 
 <div id="modal" class="modal hidden"><div class="modalbox"><button id="close-modal">×</button><div id="modal-body"></div></div></div>
 <div id="toast"></div>
-<script src="app.js?v=0544"></script>
+<script src="app.js?v=0545"></script>
 </body>
 </html>
