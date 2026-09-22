@@ -73,3 +73,8 @@ html.native-app nav span{font-size:9px;overflow:hidden;text-overflow:ellipsis;wh
 .cat-items{min-height:0;overflow:hidden;padding:0 8px}
 .cat-collapse.open .cat-items{padding-bottom:8px}
 .lib-category .lib-row{margin:7px 0}
+
+/* LibrasLab Bridge 0.5.52: transparência dos itens não reconhecidos */
+.ll-unmatched-wrap{margin-top:14px;padding-top:10px;border-top:1px solid var(--line)}
+.ll-unmatched-title{display:grid;gap:3px;margin:4px 2px 8px}.ll-unmatched-title small{color:var(--muted);line-height:1.35}
+.ll-unmatched{border:1px dashed #e1d4bf;border-radius:15px;padding:11px;margin:7px 0;background:#fffaf2}.ll-unmatched b{display:block}.ll-unmatched small{display:block;color:var(--muted);margin-top:3px;line-height:1.35}
