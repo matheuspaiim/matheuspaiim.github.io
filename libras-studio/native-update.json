@@ -1,8 +1,8 @@
 {
-  "version": "0.5.50",
-  "versionCode": 33,
+  "version": "0.5.51",
+  "versionCode": 34,
   "packageName": "com.matheuspaiim.librasstudio.personal.bridge",
   "apkZipUrl": "https://matheuspaiim.github.io/libras-studio/updates/Libras-Studio-Pessoal-Bridge.zip",
-  "sha256": "835d91a315abd0d18fc0c51a1e25277435a4bfd0318474b30358fa0cdba27d91",
-  "apkSize": 1856119
+  "sha256": "9f052d2eb5ca8efa23a6343f8b3fb10a134dd4ce0937c9bd0f3eecd8521eb440",
+  "apkSize": 1858847
 }
