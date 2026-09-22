@@ -1,4 +1,4 @@
-const APP_VERSION="0.5.52";
+const APP_VERSION="0.5.53";
 const cfg=window.LIBRAS_STUDIO_CONFIG||{},$=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const nativeParams=new URLSearchParams(location.search);
 const IS_NATIVE_ANDROID=nativeParams.get("native")==="android";
@@ -390,7 +390,7 @@ const LL_UI_WORDS=new Set(["continuar","voltar","proximo","pular","sair","menu",
 const LL_MATCH_STOP=new Set(["a","o","as","os","de","da","do","das","dos","e","em","no","na","nos","nas","um","uma","uns","umas","para","por","com","sem","que","se","ao","aos","meu","minha","meus","minhas","seu","sua","seus","suas","este","esta","esse","essa","isso","isto"]);
 function nativeBridgeAvailable(){return !!(window.LibrasNative&&typeof window.LibrasNative.getState==="function")}
 function getNativeState(){if(!nativeBridgeAvailable())return null;try{let raw=window.LibrasNative.getState(),st=JSON.parse(raw||"{}");try{st.detections=JSON.parse(st.detections||"[]")}catch{st.detections=[]}return st}catch(e){console.warn("bridge",e);return null}}
-function personalEditionAvailable(){let st=getNativeState();return !!(st&&st.edition==="personal")}
+function personalEditionAvailable(){return false}
 function applyEditionUI(){let personal=personalEditionAvailable(),section=$("#libraslab"),quick=$("#libraslab-quick"),more=$("#libraslab-more");if(section)section.classList.toggle("hidden",!personal);if(quick)quick.classList.toggle("hidden",!personal);if(more)more.classList.toggle("hidden",!personal);if(!personal&&section?.classList.contains("active"))go("home")}
 function llAddVariant(set,value){let v=String(value||"").trim().replace(/\s+/g," ");if(v)set.add(v)}
 function llTextVariants(text){
