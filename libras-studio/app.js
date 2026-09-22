@@ -1,4 +1,4 @@
-const APP_VERSION="0.5.51";
+const APP_VERSION="0.5.52";
 const cfg=window.LIBRAS_STUDIO_CONFIG||{},$=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const nativeParams=new URLSearchParams(location.search);
 const IS_NATIVE_ANDROID=nativeParams.get("native")==="android";
@@ -7,7 +7,7 @@ if(IS_NATIVE_ANDROID)document.documentElement.classList.add("native-app");
 function importNativeStagedStorage(){if(!IS_NATIVE_ANDROID||location.protocol==="file:"||!window.LibrasUpdater||typeof window.LibrasUpdater.consumeStagedLocalStorage!=="function")return;try{let raw=window.LibrasUpdater.consumeStagedLocalStorage();if(!raw)return;let data=JSON.parse(raw);for(let[k,v]of Object.entries(data||{}))if(typeof v==="string"&&localStorage.getItem(k)===null)localStorage.setItem(k,v)}catch(e){console.warn("migração de dados para atualização",e)}}
 function nativeStorageSnapshot(){let out={};try{for(let i=0;i<localStorage.length;i++){let k=localStorage.key(i);if(k!=null){let v=localStorage.getItem(k);if(v!=null)out[k]=v}}}catch(e){console.warn("snapshot local",e)}return JSON.stringify(out)}
 importNativeStagedStorage();
-let sb,S={session:null,signs:[],cats:[],reviews:[],study:[],catalog:null,catalogStats:null,phraseResults:[],queue:[],i:0,explore:null,librasLabCandidates:[]};
+let sb,S={session:null,signs:[],cats:[],reviews:[],study:[],catalog:null,catalogStats:null,phraseResults:[],queue:[],i:0,explore:null,librasLabCandidates:[],librasLabUnmatched:[]};
 let trackingYear=new Date().getFullYear(),trackingMonth=new Date().getMonth();
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const norm=s=>String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
@@ -387,20 +387,132 @@ async function checkAppUpdate(){if(IS_NATIVE_ANDROID)return false;try{let r=awai
 async function setupServiceWorker(){if(IS_NATIVE_ANDROID&&location.protocol==="file:")return;if(!("serviceWorker"in navigator))return;try{let reg=await navigator.serviceWorker.register("./sw.js?v="+APP_VERSION,{updateViaCache:"none"});await reg.update();navigator.serviceWorker.addEventListener("controllerchange",()=>{if(!window.__lsReloading){window.__lsReloading=true;location.reload()}})}catch(e){console.warn("SW",e)}}
 
 const LL_UI_WORDS=new Set(["continuar","voltar","proximo","pular","sair","menu","inicio","configuracoes","configuracao","concluir","finalizar","tentar novamente","ver resposta","responder","avancar","fechar"]);
+const LL_MATCH_STOP=new Set(["a","o","as","os","de","da","do","das","dos","e","em","no","na","nos","nas","um","uma","uns","umas","para","por","com","sem","que","se","ao","aos","meu","minha","meus","minhas","seu","sua","seus","suas","este","esta","esse","essa","isso","isto"]);
 function nativeBridgeAvailable(){return !!(window.LibrasNative&&typeof window.LibrasNative.getState==="function")}
 function getNativeState(){if(!nativeBridgeAvailable())return null;try{let raw=window.LibrasNative.getState(),st=JSON.parse(raw||"{}");try{st.detections=JSON.parse(st.detections||"[]")}catch{st.detections=[]}return st}catch(e){console.warn("bridge",e);return null}}
 function personalEditionAvailable(){let st=getNativeState();return !!(st&&st.edition==="personal")}
 function applyEditionUI(){let personal=personalEditionAvailable(),section=$("#libraslab"),quick=$("#libraslab-quick"),more=$("#libraslab-more");if(section)section.classList.toggle("hidden",!personal);if(quick)quick.classList.toggle("hidden",!personal);if(more)more.classList.toggle("hidden",!personal);if(!personal&&section?.classList.contains("active"))go("home")}
-function llTextVariants(text){let raw=String(text||"").trim().replace(/\s+/g," "),out=[raw];let cleaned=raw.replace(/^(sinal|palavra|resposta|aprenda|pratique)\s*(de|da|do|:|-)?\s*/i,"").trim();if(cleaned&&cleaned!==raw)out.push(cleaned);if(raw.includes(":")){let tail=raw.split(":").slice(1).join(":").trim();if(tail)out.push(tail)}return[...new Set(out.filter(Boolean))]}
-async function buildLibrasLabCandidates(raw){await catalog();let map=new Map,owned=new Set(S.signs.map(x=>x.norm));for(let d of(raw||[])){let matched=null;for(let variant of llTextVariants(d.text)){let os=opts(variant);if(os.length){matched={variant,options:os};break}}if(!matched)continue;let canonical=matched.options[0].label.replace(/\d+$/,"").trim()||matched.variant,k=norm(canonical),cur=map.get(k);if(!cur){cur={name:title(canonical),norm:k,count:0,existing:owned.has(k),uiLikely:LL_UI_WORDS.has(k),options:matched.options,raw:[]};map.set(k,cur)}cur.count+=Math.max(1,+d.count||1);if(d.text&&!cur.raw.includes(d.text))cur.raw.push(d.text)}return[...map.values()].sort((a,b)=>(a.uiLikely-b.uiLikely)||(b.count-a.count)||a.name.localeCompare(b.name,"pt-BR"))}
+function llAddVariant(set,value){let v=String(value||"").trim().replace(/\s+/g," ");if(v)set.add(v)}
+function llTextVariants(text){
+  let raw=String(text||"").trim().replace(/\s+/g," "),out=new Set;
+  llAddVariant(out,raw);
+  llAddVariant(out,raw.replace(/^(?:sinal|palavra|resposta)\s*(?:de|da|do)?\s*[:\-]?\s*/i,""));
+  llAddVariant(out,raw.replace(/^(?:aprenda|pratique|faça|faca|execute|mostre)\s+(?:o\s+)?(?:sinal\s+)?(?:de\s+)?/i,""));
+  llAddVariant(out,raw.replace(/^(?:como\s+(?:se\s+)?(?:faz|diz)|qual\s+(?:e|é)?\s*(?:o\s+)?sinal)\s*(?:de\s+)?/i,""));
+  if(raw.includes(":"))llAddVariant(out,raw.split(":").slice(1).join(":"));
+  raw.split(/\s*[•·|]\s*|\s+[—–]\s+|\s+-\s+/).forEach(x=>llAddVariant(out,x));
+  for(let v of [...out]){
+    llAddVariant(out,v.replace(/\([^)]*\)|\[[^\]]*\]/g," "));
+    llAddVariant(out,v.replace(/^\d+\s*(?:[.)\-:]\s*)?/,""));
+    llAddVariant(out,v.replace(/\s+(?:em\s+)?libras\s*[?.!]*$/i,""));
+    llAddVariant(out,v.replace(/\s+\d+\s*(?:x|vez(?:es)?|ocorr[eê]ncia(?:s)?)\s*$/i,""));
+  }
+  return[...out].filter(Boolean)
+}
+function llMeaningfulContainedKey(key){
+  let tokens=String(key||"").split(" ").filter(Boolean);
+  if(!tokens.length)return false;
+  if(tokens.length===1){
+    let t=tokens[0];
+    if(t.length<2||LL_MATCH_STOP.has(t)||LL_UI_WORDS.has(t))return false
+  }
+  return !tokens.every(t=>LL_MATCH_STOP.has(t)||LL_UI_WORDS.has(t))
+}
+function llContainedMatch(variant){
+  let tokens=norm(variant).split(" ").filter(Boolean);
+  if(tokens.length<2)return null;
+  for(let size=Math.min(5,tokens.length);size>=1;size--){
+    let found=new Map;
+    for(let i=0;i+size<=tokens.length;i++){
+      let key=tokens.slice(i,i+size).join(" ");
+      if(!llMeaningfulContainedKey(key))continue;
+      let options=opts(key);
+      if(options.length&&!found.has(key))found.set(key,{variant:key,options,matchType:"trecho"})
+    }
+    if(found.size===1)return[...found.values()][0];
+    if(found.size>1)return null
+  }
+  return null
+}
+function llMatchText(text){
+  let variants=llTextVariants(text);
+  for(let variant of variants){let options=opts(variant);if(options.length)return{variant,options,matchType:"exato"}}
+  for(let variant of variants){let matched=llContainedMatch(variant);if(matched)return matched}
+  return null
+}
+async function buildLibrasLabCandidates(raw){
+  await catalog();
+  let map=new Map,unmatched=new Map,owned=new Set(S.signs.map(x=>x.norm));
+  for(let d of(raw||[])){
+    let matched=llMatchText(d.text),count=Math.max(1,+d.count||1);
+    if(!matched){
+      let rawText=String(d.text||"").trim(),k=norm(rawText)||rawText.toLowerCase(),cur=unmatched.get(k);
+      if(!cur){cur={text:rawText||"(texto vazio)",count:0};unmatched.set(k,cur)}
+      cur.count+=count;
+      continue
+    }
+    let canonical=matched.options[0].label.replace(/\d+$/,"").trim()||matched.variant,k=norm(canonical),cur=map.get(k);
+    if(!cur){cur={name:title(canonical),norm:k,count:0,existing:owned.has(k),uiLikely:LL_UI_WORDS.has(k),options:matched.options,raw:[],matchType:matched.matchType};map.set(k,cur)}
+    cur.count+=count;
+    if(d.text&&!cur.raw.includes(d.text))cur.raw.push(d.text)
+  }
+  S.librasLabUnmatched=[...unmatched.values()].sort((a,b)=>b.count-a.count||a.text.localeCompare(b.text,"pt-BR"));
+  return[...map.values()].sort((a,b)=>(a.uiLikely-b.uiLikely)||(b.count-a.count)||a.name.localeCompare(b.name,"pt-BR"))
+}
+async function llFirstPlayable(list,{timeout=4500,max=24,batch=6}={}){
+  let items=dedupeCandidates(list).slice(0,max),known=items.find(x=>x.youtube||knownMediaHealth(x.url)===true);
+  if(known)return known;
+  for(let i=0;i<items.length;i+=batch){
+    let chunk=items.slice(i,i+batch),checks=await Promise.all(chunk.map(async x=>x.youtube?true:probeVideo(x.url,timeout))),hit=chunk.find((x,j)=>checks[j]);
+    if(hit)return hit
+  }
+  return null
+}
 function elapsedText(ts){if(!ts)return"";let sec=Math.max(0,Math.floor((Date.now()-ts)/1000));if(sec<60)return sec+" s";let min=Math.floor(sec/60);if(min<60)return min+" min";let h=Math.floor(min/60),m=min%60;return h+" h"+(m?" "+m+" min":"")}
-async function refreshLibrasLab(){applyEditionUI();let warn=$("#ll-not-native"),statusCard=$("#ll-status-card"),sessionCard=$("#ll-session-card"),detCard=$("#ll-detected-card");if(!warn||!statusCard)return;let native=personalEditionAvailable();warn.classList.toggle("hidden",native);statusCard.classList.toggle("hidden",!native);sessionCard.classList.toggle("hidden",!native);if(!native){detCard.classList.add("hidden");return}let st=getNativeState()||{},enabled=!!st.accessibilityEnabled,live=!!st.captureEnabled;$("#ll-accessibility-status").textContent=enabled?"Conectado ao LibrasLab":"Permissão ainda não ativada";$("#ll-accessibility-dot").className="status-dot "+(live?"live":enabled?"ok":"");$("#ll-enable").classList.toggle("hidden",enabled);$("#ll-start").classList.toggle("hidden",live);$("#ll-start").disabled=!enabled;$("#ll-open").classList.toggle("hidden",!live);$("#ll-stop").classList.toggle("hidden",!live);let raw=Array.isArray(st.detections)?st.detections:[];$("#ll-session-info").textContent=live?"🟣 Captura ativa · "+raw.length+" sinais identificados · "+elapsedText(st.sessionStartedAt):raw.length?"Aula finalizada. Revise os sinais detectados abaixo.":"Inicie a captura antes de abrir o LibrasLab.";if(!raw.length){detCard.classList.add("hidden");S.librasLabCandidates=[];return}detCard.classList.remove("hidden");$("#ll-detected-list").innerHTML='<div class="ll-progress">🔎 Conferindo '+raw.length+' respostas com o catálogo do Studio…</div>';let candidates=await buildLibrasLabCandidates(raw);S.librasLabCandidates=candidates;$("#ll-detected-title").textContent=candidates.length+" "+(candidates.length===1?"sinal":"sinais");$("#ll-detected-meta").textContent=raw.length+" sinais identificados no LibrasLab · "+candidates.length+" reconhecidas como sinais no catálogo.";$("#ll-detected-list").innerHTML=candidates.length?candidates.map((c,i)=>'<label class="ll-candidate '+(c.existing?"existing":"")+'"><input type="checkbox" data-ll-index="'+i+'" '+(c.uiLikely?"":"checked")+'><div><b>'+esc(c.name)+'</b><small>'+c.count+' ocorrência(s) · '+(c.existing?"já está na biblioteca":"novo sinal")+(c.uiLikely?" · pode ser botão da interface":"")+'</small></div>'+(c.existing?'<span class="ll-badge">já salvo</span>':"")+'</label>').join(""):'<div class="ll-empty">Ainda não reconheci nomes de sinais nesta sessão. Continue a aula e toque em ↻ Atualizar.</div>'}
+async function refreshLibrasLab(){applyEditionUI();let warn=$("#ll-not-native"),statusCard=$("#ll-status-card"),sessionCard=$("#ll-session-card"),detCard=$("#ll-detected-card");if(!warn||!statusCard)return;let native=personalEditionAvailable();warn.classList.toggle("hidden",native);statusCard.classList.toggle("hidden",!native);sessionCard.classList.toggle("hidden",!native);if(!native){detCard.classList.add("hidden");return}let st=getNativeState()||{},enabled=!!st.accessibilityEnabled,live=!!st.captureEnabled;$("#ll-accessibility-status").textContent=enabled?"Conectado ao LibrasLab":"Permissão ainda não ativada";$("#ll-accessibility-dot").className="status-dot "+(live?"live":enabled?"ok":"");$("#ll-enable").classList.toggle("hidden",enabled);$("#ll-start").classList.toggle("hidden",live);$("#ll-start").disabled=!enabled;$("#ll-open").classList.toggle("hidden",!live);$("#ll-stop").classList.toggle("hidden",!live);let raw=Array.isArray(st.detections)?st.detections:[];$("#ll-session-info").textContent=live?"🟣 Captura ativa · "+raw.length+" sinais identificados · "+elapsedText(st.sessionStartedAt):raw.length?"Aula finalizada. Revise os sinais detectados abaixo.":"Inicie a captura antes de abrir o LibrasLab.";if(!raw.length){detCard.classList.add("hidden");S.librasLabCandidates=[];S.librasLabUnmatched=[];return}detCard.classList.remove("hidden");$("#ll-detected-list").innerHTML='<div class="ll-progress">🔎 Conferindo '+raw.length+' candidatos capturados com o catálogo do Studio…</div>';let candidates=await buildLibrasLabCandidates(raw),unmatched=S.librasLabUnmatched||[];S.librasLabCandidates=candidates;$("#ll-detected-title").textContent=candidates.length+" "+(candidates.length===1?"sinal":"sinais");$("#ll-detected-meta").textContent=raw.length+" candidatos capturados · "+candidates.length+" sinais reconhecidos"+(unmatched.length?" · "+unmatched.length+" pendente(s) de identificação":"")+".";let recognized=candidates.map((c,i)=>'<label class="ll-candidate '+(c.existing?"existing":"")+'"><input type="checkbox" data-ll-index="'+i+'" '+(c.uiLikely?"":"checked")+'><div><b>'+esc(c.name)+'</b><small>'+c.count+' ocorrência(s) · '+(c.existing?"já está na biblioteca":"novo sinal")+(c.matchType==="trecho"?" · reconhecido dentro do texto capturado":"")+(c.uiLikely?" · pode ser botão da interface":"")+'</small></div>'+(c.existing?'<span class="ll-badge">já salvo</span>':"")+'</label>').join(""),pending=unmatched.length?'<div class="ll-unmatched-wrap"><div class="ll-unmatched-title"><b>Pendentes de identificação</b><small>Estes textos não foram descartados. Confira o que o LibrasLab capturou.</small></div>'+unmatched.map(x=>'<div class="ll-unmatched"><b>'+esc(x.text)+'</b><small>'+x.count+' ocorrência(s) · ainda sem correspondência segura</small></div>').join("")+'</div>':"";$("#ll-detected-list").innerHTML=recognized+pending||('<div class="ll-empty">Ainda não reconheci nomes de sinais nesta sessão. Continue a aula e toque em ↻ Atualizar.</div>')}
 function llOpenAccessibility(){if(nativeBridgeAvailable())window.LibrasNative.openAccessibilitySettings()}
 function llStart(){if(!nativeBridgeAvailable())return;if(!(getNativeState()?.accessibilityEnabled))return llOpenAccessibility();window.LibrasNative.startLibrasLabCapture();refreshLibrasLab();setTimeout(()=>window.LibrasNative.openLibrasLab(),180)}
 function llOpen(){if(nativeBridgeAvailable())window.LibrasNative.openLibrasLab()}
 function llStop(){if(!nativeBridgeAvailable())return;window.LibrasNative.stopLibrasLabCapture();setTimeout(refreshLibrasLab,120)}
-function llClear(){if(!nativeBridgeAvailable())return;window.LibrasNative.stopLibrasLabCapture();window.LibrasNative.clearLibrasLabDetections();S.librasLabCandidates=[];refreshLibrasLab()}
-async function llImport(){if(!S.session)return toast("Entre na sua conta primeiro.");let selected=$$("[data-ll-index]:checked").map(x=>S.librasLabCandidates[+x.dataset.llIndex]).filter(Boolean);if(!selected.length)return toast("Selecione pelo menos um sinal.");$("#ll-import").disabled=true;let added=0,due=0,failed=[];try{for(let c of selected){let existing=S.signs.find(x=>x.norm===c.norm);if(existing){let r=S.reviews.find(x=>x.norm===c.norm);if(r){let now=new Date().toISOString(),patch={due_at:now,updated_at:now};let{error}=await sb.from("review_state").update(patch).eq("user_id",S.session.user.id).eq("norm",c.norm);if(error)throw error;Object.assign(r,patch);due++}continue}let picked=await firstPlayable(c.options,{timeout:3500,max:10});if(!picked){failed.push(c.name);continue}await save(c.name,picked,null,"libraslab_bridge");added++}if(nativeBridgeAvailable()){window.LibrasNative.stopLibrasLabCapture();window.LibrasNative.clearLibrasLabDetections()}cache();render();let msg="✅ "+added+" novo(s) sinal(is) adicionado(s)";if(due)msg+=" · "+due+" revisão(ões) trazidas para agora";if(failed.length)msg+=" · "+failed.length+" sem vídeo disponível";toast(msg);S.librasLabCandidates=[];refreshLibrasLab()}catch(e){console.error(e);toast("Não consegui concluir toda a importação.")}finally{$("#ll-import").disabled=false}}
+function llClear(){if(!nativeBridgeAvailable())return;window.LibrasNative.stopLibrasLabCapture();window.LibrasNative.clearLibrasLabDetections();S.librasLabCandidates=[];S.librasLabUnmatched=[];refreshLibrasLab()}
+async function llImport(){
+  if(!S.session)return toast("Entre na sua conta primeiro.");
+  let selected=$$("[data-ll-index]:checked").map(x=>S.librasLabCandidates[+x.dataset.llIndex]).filter(Boolean);
+  if(!selected.length)return toast("Selecione pelo menos um sinal.");
+  $("#ll-import").disabled=true;
+  let added=0,due=0,failed=[],refreshedCatalog=false;
+  try{
+    for(let c of selected){
+      let existing=S.signs.find(x=>x.norm===c.norm);
+      if(existing){
+        let r=S.reviews.find(x=>x.norm===c.norm);
+        if(r){let now=new Date().toISOString(),patch={due_at:now,updated_at:now};let{error}=await sb.from("review_state").update(patch).eq("user_id",S.session.user.id).eq("norm",c.norm);if(error)throw error;Object.assign(r,patch);due++}
+        continue
+      }
+      let options=dedupeCandidates(c.options||[]),picked=await llFirstPlayable(options,{timeout:4500,max:24,batch:6});
+      if(!picked){
+        if(!refreshedCatalog){S.catalog=null;await catalog();refreshedCatalog=true}
+        options=dedupeCandidates([...options,...opts(c.name),...allMediaCandidates(c.name)]);
+        picked=await llFirstPlayable(options,{timeout:5000,max:30,batch:6})
+      }
+      if(!picked){failed.push(c.name);continue}
+      await save(c.name,picked,null,"libraslab_bridge");added++
+    }
+    if(nativeBridgeAvailable()){
+      window.LibrasNative.stopLibrasLabCapture();
+      if(!failed.length)window.LibrasNative.clearLibrasLabDetections()
+    }
+    cache();render();
+    let msg="✅ "+added+" novo(s) sinal(is) adicionado(s)";
+    if(due)msg+=" · "+due+" revisão(ões) trazidas para agora";
+    if(failed.length)msg+=" · sem vídeo: "+failed.slice(0,3).join(", ")+(failed.length>3?"…":"");
+    toast(msg);
+    S.librasLabCandidates=[];
+    if(!failed.length)S.librasLabUnmatched=[];
+    refreshLibrasLab()
+  }catch(e){console.error(e);toast("Não consegui concluir toda a importação. Os itens da sessão foram preservados.")}
+  finally{$("#ll-import").disabled=false}
+}
 window.addEventListener("librasstudio-native-resume",()=>refreshLibrasLab());
 window.addEventListener("focus",()=>{if($("#libraslab")?.classList.contains("active"))refreshLibrasLab()});
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&$("#libraslab")?.classList.contains("active"))refreshLibrasLab()});
