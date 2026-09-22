@@ -1539,3 +1539,157 @@ body{background:var(--studio-bg)}
     grid-template-columns:1fr 1fr!important;
   }
 }
+
+
+/* =========================================================
+   Identidade cromática pública 0.5.53
+   Paridade com o Desktop: cores muito sutis e funcionais
+   ========================================================= */
+
+/* LibrasLab Bridge descontinuado na edição pública */
+#libraslab,
+#libraslab-more,
+#libraslab-quick{
+  display:none!important;
+}
+
+/* Home: cada bloco ganha uma assinatura pastel discreta */
+.home-top-progress>.dash-card:first-child{
+  background:linear-gradient(145deg,#fff 0%,#fff 62%,#fffaf2 100%)!important;
+  border-color:#f0eadf!important;
+}
+.home-top-progress>.tracking-card{
+  background:linear-gradient(145deg,#fff 0%,#fff 62%,#f4fbff 100%)!important;
+  border-color:#e6eef4!important;
+}
+.sequence-card{
+  background:linear-gradient(145deg,#fff 0%,#fff 62%,#fbf8ff 100%)!important;
+  border-color:#ebe5f4!important;
+}
+.quick-actions-card{
+  background:linear-gradient(145deg,#fff 0%,#fff 64%,#fbf8ff 100%)!important;
+}
+.continue-card{
+  background:linear-gradient(145deg,#fff 0%,#fff 66%,#fdfcff 100%)!important;
+}
+.library-hero{
+  background:linear-gradient(145deg,#fff 0%,#fff 58%,#f0eaff 100%)!important;
+  border-color:#eae2f6!important;
+}
+.review-hero{
+  background:linear-gradient(145deg,#fff 0%,#fff 58%,#fff0f5 100%)!important;
+  border-color:#f2e2e9!important;
+}
+
+/* Categorias da Home: mesma sequência cromática do Desktop */
+.shortcut-cat:nth-child(7n+1){background:#f3efff!important;border-color:#e8e0f7!important}
+.shortcut-cat:nth-child(7n+2){background:#eaf8f0!important;border-color:#dfeee6!important}
+.shortcut-cat:nth-child(7n+3){background:#fff0f3!important;border-color:#f3e1e6!important}
+.shortcut-cat:nth-child(7n+4){background:#edf6ff!important;border-color:#dfeaf4!important}
+.shortcut-cat:nth-child(7n+5){background:#fff3e8!important;border-color:#f2e5d8!important}
+.shortcut-cat:nth-child(7n+6){background:#fff0f7!important;border-color:#f3e2eb!important}
+.shortcut-cat:nth-child(7n+7){background:#edf8ec!important;border-color:#e0eddf!important}
+
+/* Pílulas e métricas internas */
+.progress-pills .progress-pill:first-child{
+  background:#eef9f3!important;
+  border-color:#e2eee7!important;
+}
+.progress-pills .progress-pill:last-child{
+  background:#fff8e9!important;
+  border-color:#f1ead9!important;
+}
+.tracking-stat:nth-child(1){
+  background:#eef7ff!important;
+}
+.tracking-stat:nth-child(2){
+  background:#fff0f5!important;
+}
+.metric-row>div:nth-child(1){background:#f5f0ff!important}
+.metric-row>div:nth-child(2){background:#eef7ff!important}
+.metric-row>div:nth-child(3){background:#eef9f3!important}
+
+/* Bloco "Continue" */
+.lesson-preview{
+  background:linear-gradient(145deg,#edf6ff,#f3edff)!important;
+}
+.continue-next{
+  background:#faf8ff!important;
+  border-color:#ece5f5!important;
+}
+.sequence-card .sequence-summary{
+  background:#f8f6fc!important;
+  border-radius:18px;
+  padding:10px;
+}
+
+/* Explorar: cores sutis também nos cartões de resultado */
+#explore .surface:first-of-type{
+  background:linear-gradient(145deg,#fff,#fdfbff)!important;
+}
+#explore .surface:nth-of-type(2){
+  background:linear-gradient(145deg,#fff,#fbfdff)!important;
+}
+.explore-signal-card:nth-child(5n+1){background:#f8f4ff!important}
+.explore-signal-card:nth-child(5n+2){background:#f2f9ff!important}
+.explore-signal-card:nth-child(5n+3){background:#fff5f8!important}
+.explore-signal-card:nth-child(5n+4){background:#f2faf6!important}
+.explore-signal-card:nth-child(5n+5){background:#fff9ed!important}
+.explore-signal-card{
+  border-color:transparent!important;
+}
+
+/* Biblioteca */
+#library .library-toolbar{
+  background:linear-gradient(145deg,#fff,#fbf9ff)!important;
+}
+.lib-category:nth-child(5n+1){background:#fbf9ff!important}
+.lib-category:nth-child(5n+2){background:#f8fcff!important}
+.lib-category:nth-child(5n+3){background:#fff9fb!important}
+.lib-category:nth-child(5n+4){background:#f8fcfa!important}
+.lib-category:nth-child(5n+5){background:#fffdf7!important}
+
+/* Revisão e trilha */
+#review-setup{
+  background:linear-gradient(145deg,#fff,#fcfaff)!important;
+}
+#review-card{
+  background:linear-gradient(145deg,#fff,#f9f5ff)!important;
+}
+#study .study-summary{
+  background:linear-gradient(145deg,#f3edff 0%,#f9f6ff 52%,#fff 100%)!important;
+}
+
+/* Acompanhamento de estudos */
+#progress .tracking-page-grid>.surface:nth-child(6n+1){background:linear-gradient(145deg,#fff,#fbf8ff)!important}
+#progress .tracking-page-grid>.surface:nth-child(6n+2){background:linear-gradient(145deg,#fff,#f4fbff)!important}
+#progress .tracking-page-grid>.surface:nth-child(6n+3){background:linear-gradient(145deg,#fff,#fffaf2)!important}
+#progress .tracking-page-grid>.surface:nth-child(6n+4){background:linear-gradient(145deg,#fff,#fff5f8)!important}
+#progress .tracking-page-grid>.surface:nth-child(6n+5){background:linear-gradient(145deg,#fff,#f3faf6)!important}
+#progress .tracking-page-grid>.surface:nth-child(6n+6){background:linear-gradient(145deg,#fff,#f8f6fc)!important}
+
+/* Configurações */
+#settings .surface:nth-of-type(1){background:linear-gradient(145deg,#fff,#f4fbff)!important}
+#settings .surface:nth-of-type(2){background:linear-gradient(145deg,#fff,#fbf8ff)!important}
+#settings .surface:nth-of-type(3){background:linear-gradient(145deg,#fff,#f3faf6)!important}
+
+/* Navegação móvel também carrega a identidade sem pesar */
+@media(max-width:820px){
+  .bottom-nav{
+    background:rgba(255,255,255,.96)!important;
+    border-top-color:#ebe6f2!important;
+  }
+  .bottom-nav button.active{
+    background:#f0eaff!important;
+    color:#603dce!important;
+    border-radius:14px;
+  }
+  .home-top-progress>.dash-card:first-child,
+  .home-top-progress>.tracking-card,
+  .sequence-card,
+  .library-hero,
+  .review-hero,
+  .continue-card{
+    box-shadow:0 8px 24px rgba(56,32,92,.045)!important;
+  }
+}
