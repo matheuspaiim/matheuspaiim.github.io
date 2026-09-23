@@ -1,4 +1,4 @@
-const APP_VERSION="0.5.53";
+const APP_VERSION="0.5.54";
 const cfg=window.LIBRAS_STUDIO_CONFIG||{},$=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const nativeParams=new URLSearchParams(location.search);
 const IS_NATIVE_ANDROID=nativeParams.get("native")==="android";
@@ -89,6 +89,23 @@ const LIBRARY_MEDIA_CACHE="libras-studio-library-v1",MEDIA_CACHE_PENDING=new Set
 function nativeMediaAvailable(){return !!(IS_NATIVE_ANDROID&&window.LibrasMedia&&typeof window.LibrasMedia.getCachedVideoUrl==="function")}
 function nativeCachedVideoUrl(studioId){if(!nativeMediaAvailable()||!studioId)return"";try{return window.LibrasMedia.getCachedVideoUrl(String(studioId))||""}catch{return""}}
 function libraryVideoUrl(item){return nativeCachedVideoUrl(item?.studio_id)||vurl(item)}
+function primePreviewVideo(video){
+  if(!video||video.dataset.previewPrimed==="1")return;
+  video.dataset.previewPrimed="1";
+  video.preload="metadata";
+  const seek=()=>{
+    try{
+      const d=Number.isFinite(video.duration)?video.duration:0;
+      const target=d?Math.min(.85,Math.max(.18,d*.12)):.24;
+      if(video.readyState>=1&&Math.abs((video.currentTime||0)-target)>.04)video.currentTime=target;
+    }catch{}
+  };
+  if(video.readyState>=1)seek();else video.addEventListener("loadedmetadata",seek,{once:true});
+  video.addEventListener("loadeddata",seek,{once:true});
+}
+function primePreviewVideos(root=document){
+  root?.querySelectorAll?.("[data-library-preview],.explore-video-frame video").forEach(primePreviewVideo);
+}
 async function cacheWebLibraryVideo(url){if(!url||!("caches"in window))return false;try{let cache=await caches.open(LIBRARY_MEDIA_CACHE),req=new Request(url,{mode:"no-cors",cache:"no-store"});if(await cache.match(req,{ignoreVary:true}))return true;let res=await fetch(req);if(!res||(res.type!=="opaque"&&!res.ok))return false;await cache.put(req,res.clone());return true}catch(e){console.warn("cache web de vídeo",e);return false}}
 async function cacheLibraryVideo(item,{replace=false}={}){let id=item?.studio_id,url=vurl(item);if(!id||!url||!navigator.onLine)return false;if(nativeMediaAvailable()){if(!replace&&nativeCachedVideoUrl(id))return true;if(MEDIA_CACHE_PENDING.has(id))return true;MEDIA_CACHE_PENDING.add(id);try{if(replace&&typeof window.LibrasMedia.replaceCachedVideo==="function")window.LibrasMedia.replaceCachedVideo(String(id),url);else window.LibrasMedia.cacheVideo(String(id),url);return true}catch(e){MEDIA_CACHE_PENDING.delete(id);console.warn("cache nativo de vídeo",e);return false}}if(MEDIA_CACHE_PENDING.has(id))return true;MEDIA_CACHE_PENDING.add(id);try{return await cacheWebLibraryVideo(url)}finally{MEDIA_CACHE_PENDING.delete(id)}}
 function cacheLibraryVideos(){if(!navigator.onLine)return;for(let item of S.signs)if(vurl(item))cacheLibraryVideo(item)}
@@ -278,19 +295,19 @@ async function openCat(c){
     let cards=visible.map(({t,i})=>{
       let has=owned.has(norm(t)),picked=playableMap.get(norm(t)),video=picked?.url||"";
       return '<article class="explore-signal-card">'+
-        '<div class="explore-video-frame">'+(video?'<video muted playsinline preload="metadata" src="'+esc(video)+'"></video>':'<div class="explore-video-loading">'+LSCategoryIcon(c)+'</div>')+'<button class="explore-card-play" data-explore-play="'+i+'" '+(loading?'disabled':'')+'>▶</button></div>'+
+        '<div class="explore-video-frame">'+(video?'<video muted playsinline preload="metadata" src="'+esc(video)+'"></video>':'<div class="explore-video-loading"><span>Carregando prévia…</span></div>')+'<button class="explore-card-play" data-explore-play="'+i+'" '+(loading?'disabled':'')+'>▶</button></div>'+
         '<div class="explore-card-copy"><b>'+esc(title(t))+'</b>'+(has?'<small>✓ na biblioteca</small>':loading?'<small>verificando vídeo…</small>':'<small>vídeo disponível</small>')+'</div>'+
         '<div class="explore-card-actions">'+(loading?'<span class="explore-owned-mark">…</span>':(has?'<span class="explore-owned-mark">✓ Salvo</span>':'<button data-add="'+i+'" aria-label="Adicionar '+esc(title(t))+'">＋ Adicionar</button>')+'<button class="soft" data-explore-variants="'+i+'">Variações</button>')+'</div></article>';
     }).join("");
     let empty=!loading&&!cards?'<div class="surface center"><p>'+(verificationFailed?'Não consegui verificar os vídeos desta categoria agora.':'Nenhum sinal com vídeo disponível nesta categoria agora.')+'</p></div>':'';
-    panel.innerHTML='<div class="card explore-category-head"><h3>'+LSCategoryIcon(c)+' <span>'+esc(c)+'</span></h3><p>'+esc(d.description)+'</p></div><div class="explore-video-grid">'+cards+'</div>'+empty;
+    panel.innerHTML='<div class="card explore-category-head"><h3>'+LSCategoryIcon(c)+' <span>'+esc(c)+'</span></h3><p>'+esc(d.description)+'</p></div><div class="explore-video-grid">'+cards+'</div>'+empty;primePreviewVideos(panel);
     $$("[data-add]").forEach(b=>b.onclick=async()=>{let t=d.terms[+b.dataset.add],picked=playableMap.get(norm(t));if(!picked)return toast("Vídeo indisponível.");try{await save(t,picked,c,"category_explorer");renderCards(false)}catch(e){console.error(e);toast("Falha ao adicionar")}});
     $$("[data-explore-variants]").forEach(b=>b.onclick=()=>openAvailableVariants(d.terms[+b.dataset.exploreVariants],c));
     $$("[data-explore-play]").forEach(b=>b.onclick=async()=>{let t=d.terms[+b.dataset.explorePlay],picked=await preferredSignMedia(t);if(!picked){playableMap.delete(norm(t));renderCards(false);return toast("Vídeo indisponível. O sinal foi ocultado do Explorar.");}let id="explore-"+Date.now();modal('<h2>'+esc(title(t))+'</h2><video data-video-id="'+id+'" controls autoplay loop playsinline preload="metadata" src="'+esc(picked.url)+'"></video>'+speedTools(id));bindSpeeds($("#modal-body"));bindVideoFallbacks($("#modal-body"),t)});
   };
-  renderCards(true);requestAnimationFrame(()=>panel.scrollIntoView({behavior:"smooth",block:"start"}));
+  panel.innerHTML='<div class="card explore-category-head"><h3>'+LSCategoryIcon(c)+' <span>'+esc(c)+'</span></h3><p>'+esc(d.description)+'</p></div><div class="explore-preview-loading">Carregando prévias dos vídeos…</div>';requestAnimationFrame(()=>panel.scrollIntoView({behavior:"smooth",block:"start"}));
   try{
-    await catalog();d.terms.forEach(t=>optionMap.set(norm(t),opts(t)));let cursor=0,workers=Math.min(6,d.terms.length);
+    await catalog();d.terms.forEach(t=>{let list=opts(t);optionMap.set(norm(t),list);if(list[0])playableMap.set(norm(t),list[0])});renderCards(true);let cursor=0,workers=Math.min(6,d.terms.length);
     await Promise.all(Array.from({length:workers},async()=>{while(cursor<d.terms.length){let t=d.terms[cursor++],o=optionMap.get(norm(t))||[];if(!o.length)continue;try{let picked=await firstPlayable(o,{timeout:3200,max:10});if(picked)playableMap.set(norm(t),picked)}catch(e){console.warn("verificação explorar",t,e)}}}));
   }catch(e){console.error(e);verificationFailed=true}
   renderCards(false);requestAnimationFrame(()=>panel.scrollIntoView({behavior:"smooth",block:"start"}));
@@ -312,7 +329,7 @@ function saveLibraryOpenSet(set){try{localStorage.setItem(LIBRARY_OPEN_KEY,JSON.
 function bindLibraryCategories(){document.querySelectorAll("[data-cat-toggle]").forEach(btn=>btn.onclick=()=>{let section=btn.closest(".lib-category"),body=section?.querySelector(".cat-collapse"),name=btn.dataset.catToggle;if(!body||!name)return;let next=btn.getAttribute("aria-expanded")!=="true";btn.setAttribute("aria-expanded",String(next));body.classList.toggle("open",next);section.classList.toggle("open",next);let open=libraryOpenSet();next?open.add(name):open.delete(name);saveLibraryOpenSet(open)})}
 function library(){
   let q=norm($("#library-search")?.value||""),cat=$("#library-cat")?.value||"",g={},open=libraryOpenSet();
-  let filtered=S.signs.filter(s=>(!cat||s.category_name===cat)&&(!q||norm(s.name+" "+s.category_name).includes(q)));
+  let filtered=S.signs.filter(s=>(!cat||s.category_name===cat)&&(!q||norm(s.name+" "+s.category_name).includes(q))&&!!libraryVideoUrl(s));
   filtered.forEach(s=>(g[s.category_name||"Outros"]??=[]).push(s));
   let total=$("#library-total-signs"),cats=$("#library-total-cats");if(total)total.textContent=new Set(S.signs.map(x=>x.norm)).size;if(cats)cats.textContent=new Set(S.signs.map(x=>x.category_name).filter(Boolean)).size;
   let categories=[...new Set([...S.cats.map(x=>x.name),...S.signs.map(x=>x.category_name)].filter(Boolean))].sort((a,b)=>a.localeCompare(b,"pt-BR"));
@@ -321,14 +338,14 @@ function library(){
     let rows=it.map((x,i)=>{
       let media=libraryVideoUrl(x),tone=(groupIndex+i)%5,moveOptions=categories.filter(z=>z!==c).map(z=>'<option value="'+esc(z)+'">'+esc(z)+'</option>').join("");
       return '<article class="library-sign-card tone-'+tone+'" draggable="true" data-library-card="'+esc(x.studio_id)+'" data-current-category="'+esc(c)+'">'+
-        '<div class="library-media">'+(media?'<video data-library-preview="'+esc(x.studio_id)+'" muted playsinline preload="metadata" src="'+esc(media)+'"></video>':'<div class="library-media-empty">'+LSCategoryIcon(c)+'</div>')+'<button class="library-media-play" data-library-play="'+esc(x.studio_id)+'" data-library-play-name="'+esc(x.name)+'" aria-label="Reproduzir '+esc(x.name)+'">▶</button></div>'+
+        '<div class="library-media">'+(media?'<video data-library-preview="'+esc(x.studio_id)+'" muted playsinline preload="metadata" src="'+esc(media)+'"></video>':'<div class="library-media-empty"><span>Prévia indisponível</span></div>')+'<button class="library-media-play" data-library-play="'+esc(x.studio_id)+'" data-library-play-name="'+esc(x.name)+'" aria-label="Reproduzir '+esc(x.name)+'">▶</button></div>'+
         '<div class="library-card-copy"><b>'+esc(x.name)+'</b><small>'+esc(c)+'</small></div>'+
         '<div class="library-card-actions"><select data-library-move="'+esc(x.studio_id)+'" aria-label="Mover '+esc(x.name)+'"><option value="">Mover…</option>'+moveOptions+'</select><button class="soft" data-library-variants="'+esc(x.norm||norm(x.name))+'">Variações</button><button class="danger" data-library-delete="'+esc(x.studio_id)+'">Excluir</button></div>'+
       '</article>';
     }).join("");
     return '<section class="lib-category '+(expanded?"open":"")+'" data-drop-category="'+esc(c)+'"><button type="button" class="cat-head cat-toggle" data-cat-toggle="'+esc(c)+'" aria-expanded="'+String(expanded)+'"><span class="cat-head-main"><span>'+LSCategoryIcon(c)+esc(c)+'</span></span><span class="cat-head-right"><span class="cat-count">'+count+'</span></span></button><div class="cat-collapse '+(expanded?"open":"")+'"><div class="cat-items library-card-grid">'+rows+"</div></div></section>";
   }).join("")||'<div class="card center"><p>Nenhum sinal nesta categoria.</p></div>';
-  bindLibraryCategories();bindLibraryRows();
+  bindLibraryCategories();bindLibraryRows();primePreviewVideos($("#library-list"));
   if(window.LSHydrateIcons)LSHydrateIcons($("#library"));
 }
 async function openAvailableVariants(name,categoryName){modal('<h2>Variações de '+esc(title(name))+'</h2><p>🔎 Verificando quais vídeos estão disponíveis…</p>');try{let candidates=await signOptions(name),all=await validateCandidates(candidates,{timeout:4200,max:30,keep:20});if(!all.length){candidates=await signOptions(name,{refresh:true});all=await validateCandidates(candidates,{timeout:4200,max:30,keep:20})}if(!all.length)return modal('<h2>Variações de '+esc(title(name))+'</h2><p>Nenhum vídeo disponível foi encontrado agora.</p>');let savedUrls=new Set(S.signs.filter(x=>(x.norm||norm(x.name))===norm(name)).map(vurl).filter(Boolean));modal('<h2>Variações de '+esc(title(name))+'</h2><div class="library-variants">'+all.map((x,i)=>'<div class="library-variant"><video controls loop playsinline preload="metadata" src="'+esc(x.url)+'"></video><button type="button" class="soft wide" data-save-available-variant="'+i+'" '+(savedUrls.has(x.url)?'disabled':'')+'>'+(savedUrls.has(x.url)?'✓ Já salva':'＋ Salvar esta variação')+'</button></div>').join("")+'</div>');$$("[data-save-available-variant]").forEach(b=>b.onclick=async()=>{let candidate=all[+b.dataset.saveAvailableVariant];if(!candidate)return;b.disabled=true;try{await save(name,candidate,categoryName||catFor(name),"catalog");b.textContent="✓ Salva";toast("Variação adicionada à biblioteca")}catch(e){console.error(e);b.disabled=false;toast("Não consegui salvar esta variação.")}})}catch(e){console.error(e);modal('<h2>Variações de '+esc(title(name))+'</h2><p>Não consegui consultar as variações agora.</p>')}}
