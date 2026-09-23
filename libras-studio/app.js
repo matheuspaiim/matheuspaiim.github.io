@@ -1,4 +1,4 @@
-const APP_VERSION="0.5.61";
+const APP_VERSION="0.5.62";
 const cfg=window.LIBRAS_STUDIO_CONFIG||{},$=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const nativeParams=new URLSearchParams(location.search);
 const IS_NATIVE_ANDROID=nativeParams.get("native")==="android";
@@ -410,11 +410,39 @@ async function savePhraseResult(i){let x=S.phraseResults[i];if(!x?.url)return;tr
 async function ensureVLibras(){if(window.vlibras?.translateAndPlay)return true;if(!window.VLibras?.Widget){await new Promise((resolve,reject)=>{let old=document.querySelector('script[data-vlibras]');if(old){old.addEventListener("load",resolve,{once:true});setTimeout(resolve,1200);return}let sc=document.createElement("script");sc.src="https://vlibras.gov.br/app/vlibras-plugin.js";sc.dataset.vlibras="1";sc.onload=resolve;sc.onerror=reject;document.body.appendChild(sc)});if(window.VLibras?.Widget)new window.VLibras.Widget({rootPath:"https://vlibras.gov.br/app",showButton:false,position:"R"})}window.VLibrasWidget?.open?.();for(let i=0;i<60;i++){if(window.vlibras?.translateAndPlay)return true;await new Promise(r=>setTimeout(r,250))}return false}
 async function previewVLibras(text){if(!text)return;toast("Abrindo tradução automática do VLibras…");try{if(await ensureVLibras())await window.vlibras.translateAndPlay(text);else toast("VLibras não carregou agora.")}catch(e){console.error(e);toast("Não consegui abrir o VLibras.")}}
 async function phrase(){let n=$("#phrase-name").value.trim();if(!n)return toast("Digite uma frase.");$("#phrase-result").innerHTML='<div class="result">🔎 Procurando e testando gravações reais…</div>';await catalog();let rawExact=[...phraseCuratedExact(n),...phraseCatalogExact(n)],seen=new Set;rawExact=rawExact.filter(x=>{let k=(x.url||x.youtube||"")+"|"+norm(x.name);if(seen.has(k))return false;seen.add(k);return true});let exact=await validateCandidates(rawExact,{timeout:3800,max:14,keep:8}),similar=[];if(!exact.length){$("#phrase-result").innerHTML='<div class="result">🔎 A frase exata não carregou. Testando produções próximas…</div>';similar=await validateCandidates(phraseSimilar(n),{timeout:3300,max:8,keep:5})}let gloss=await translateGloss(n);S.phraseResults=[...exact,...similar];let html='<div class="phrase-meta">🩺 O Studio testou os arquivos antes de mostrá-los · '+(S.catalogStats?.sources||6)+' bases conectadas</div>';if(exact.length){html+='<div class="result phrase-ok"><b>✅ '+exact.length+' gravação(ões) funcionando</b><p>São produções contínuas reais. Links que falharam foram descartados automaticamente.</p></div>'+exact.map((x,i)=>phraseRow(x,i,false)).join("")}else{html+='<div class="result"><b>🔎 Nenhuma gravação exata funcional apareceu agora.</b><p>Links quebrados ou servidores fora do ar foram escondidos. O Studio não monta sinais isolados para fingir uma frase.</p></div>';if(similar.length)html+=similar.map((x,i)=>phraseRow(x,i,true)).join("");else html+='<p class="empty-note">Também não encontrei uma produção semelhante com vídeo funcionando neste momento.</p>'}html+='<div class="auto-translation"><b>🤖 Tradução automática oficial do VLibras</b><p>É um fallback com avatar, separado das gravações humanas.'+(gloss?' Glosa sugerida: <code>'+esc(gloss)+'</code>.':'')+'</p><button id="vlibras-phrase" class="soft wide">▶ Ver esta frase no VLibras</button></div>';$("#phrase-result").innerHTML=html;bindPhraseResults()}
+let PHRASE_LIBRARY_STATE={offset:0,category:"",query:""};
+function phraseLibraryGeneratedRows(items){
+  return(items||[]).map(p=>'<button type="button" class="phrase-generated-card" data-phrase-generated="'+p.index+'"><b>'+esc(p.text)+'</b><small>'+esc(p.category)+' · VLibras automático</small></button>').join("")
+}
+function renderExpandedPhraseLibrary(reset=false){
+  let lib=window.LIBRAS_PHRASE_LIBRARY;if(!lib)return;
+  if(reset)PHRASE_LIBRARY_STATE.offset=0;
+  let q=String($("#phrase-library-filter")?.value||PHRASE_LIBRARY_STATE.query||"").trim(),cat=$("#phrase-library-category")?.value||PHRASE_LIBRARY_STATE.category||"";
+  PHRASE_LIBRARY_STATE.query=q;PHRASE_LIBRARY_STATE.category=cat;
+  let items;
+  if(q){
+    items=lib.search(q,120).filter(x=>!cat||x.category===cat).slice(0,60);
+  }else{
+    items=lib.page(PHRASE_LIBRARY_STATE.offset,60,cat);
+  }
+  let grid=$("#phrase-generated-grid");if(grid)grid.innerHTML=phraseLibraryGeneratedRows(items)||'<div class="empty-note">Nenhuma frase encontrada neste filtro.</div>';
+  let more=$("#phrase-load-more");if(more){more.classList.toggle("hidden",!!q||!items.length);more.textContent="Carregar mais frases"}
+  $("[data-phrase-generated]").forEach(b=>b.onclick=()=>{let p=lib.get(+b.dataset.phraseGenerated);if(!p)return;$("#phrase-name").value=p.text;previewVLibras(p.text)});
+}
 function showAvailablePhrases(){
-  let data=window.LIBRAS_PHRASE_DATA||[],badge=$("#phrase-count-badge");if(badge)badge.textContent=data.length+" frases disponíveis";
-  if(!data.length){$("#phrase-result").innerHTML='<div class="result"><b>Nenhuma frase curada carregada.</b></div>';return}
-  $("#phrase-result").innerHTML='<div class="phrase-library-grid">'+data.map((p,i)=>'<button type="button" data-phrase-pick="'+i+'"><b>'+esc(p.text)+'</b><small>Buscar gravação</small></button>').join("")+'</div>';
-  $("[data-phrase-pick]").forEach(b=>b.onclick=()=>{let p=data[+b.dataset.phrasePick];if(!p)return;$("#phrase-name").value=p.text;phrase()});
+  let real=window.LIBRAS_PHRASE_DATA||[],lib=window.LIBRAS_PHRASE_LIBRARY,badge=$("#phrase-count-badge"),total=lib?.total||real.length;
+  if(badge)badge.textContent=total.toLocaleString("pt-BR")+" frases";
+  let cats=(lib?.categories||[]).map(c=>'<option value="'+esc(c)+'">'+esc(c)+'</option>').join("");
+  $("#phrase-result").innerHTML=
+    '<div class="phrase-library-summary"><div><b>'+total.toLocaleString("pt-BR")+' frases pesquisáveis</b><small>'+real.length+' gravações humanas priorizadas · demais frases via VLibras</small></div><span>Biblioteca experimental</span></div>'+
+    '<div class="phrase-library-toolbar"><input id="phrase-library-filter" placeholder="Filtrar entre 50 mil frases"><select id="phrase-library-category"><option value="">Todos os temas</option>'+cats+'</select></div>'+
+    '<div class="phrase-human-section"><div class="phrase-section-title"><b>Gravações humanas</b><small>'+real.length+' disponíveis</small></div><div class="phrase-library-grid">'+real.map((p,i)=>'<button type="button" data-phrase-pick="'+i+'"><b>'+esc(p.text)+'</b><small>Gravação real · buscar</small></button>').join("")+'</div></div>'+
+    '<div class="phrase-generated-section"><div class="phrase-section-title"><b>Biblioteca ampliada</b><small>Tradução automática do VLibras</small></div><div id="phrase-generated-grid" class="phrase-library-grid"></div><button id="phrase-load-more" class="soft wide" style="margin-top:10px">Carregar mais frases</button></div>';
+  PHRASE_LIBRARY_STATE={offset:0,category:"",query:""};renderExpandedPhraseLibrary(true);
+  $("[data-phrase-pick]").forEach(b=>b.onclick=()=>{let p=real[+b.dataset.phrasePick];if(!p)return;$("#phrase-name").value=p.text;phrase()});
+  $("#phrase-library-filter").oninput=()=>renderExpandedPhraseLibrary(true);
+  $("#phrase-library-category").onchange=()=>renderExpandedPhraseLibrary(true);
+  $("#phrase-load-more").onclick=()=>{PHRASE_LIBRARY_STATE.offset+=60;let lib=window.LIBRAS_PHRASE_LIBRARY,cat=PHRASE_LIBRARY_STATE.category||"";let items=lib.page(PHRASE_LIBRARY_STATE.offset,60,cat),grid=$("#phrase-generated-grid");if(grid)grid.insertAdjacentHTML("beforeend",phraseLibraryGeneratedRows(items));$("[data-phrase-generated]").forEach(b=>b.onclick=()=>{let p=lib.get(+b.dataset.phraseGenerated);if(!p)return;$("#phrase-name").value=p.text;previewVLibras(p.text)});if(!items.length)$("#phrase-load-more").classList.add("hidden")}
 }
 async function batch(){let ns=$("#batch-text").value.split(/\n|,/).map(x=>x.trim()).filter(Boolean),ok=0,fail=[];await catalog();for(let n of ns){let o=opts(n);if(!o.length){fail.push(n);continue}try{await save(n,o[0],null,"batch");ok++}catch{fail.push(n)}}$("#batch-result").innerHTML='<div class="result"><b>✅ '+ok+' salvos</b>'+(fail.length?'<p>Não encontrados: '+esc(fail.join(", "))+'</p>':"")+"</div>"}
 function exploreCats(){let q=norm($("#explore-search")?.value),D=window.LIBRAS_EXPLORE_DATA||{};$("#explore-cats").innerHTML=Object.entries(D).filter(([c,d])=>!q||norm(c+" "+d.description).includes(q)).map(([c,d])=>'<button data-cat="'+esc(c)+'" class="'+(S.explore===c?"active":"")+'">'+LSCategoryIcon(c)+" "+esc(c)+"</button>").join("");$$("[data-cat]").forEach(b=>b.onclick=()=>openCat(b.dataset.cat))}
@@ -791,7 +819,7 @@ async function init(){
     localStatus(navigator.onLine?"☁️ dados locais":"📴 offline · dados locais");
   }
   sb=supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:!IS_NATIVE_ANDROID,storage:window.localStorage}});
-  wire();let phraseBadge=$("#phrase-count-badge");if(phraseBadge)phraseBadge.textContent=((window.LIBRAS_PHRASE_DATA||[]).length||0)+" frases disponíveis";installDelegatedNavigation();if(window.LSHydrateIcons)LSHydrateIcons(document);installNativeTouchNavigation();applyEditionUI();
+  wire();let phraseBadge=$("#phrase-count-badge"),phraseTotal=window.LIBRAS_PHRASE_LIBRARY?.total||((window.LIBRAS_PHRASE_DATA||[]).length||0);if(phraseBadge)phraseBadge.textContent=phraseTotal.toLocaleString("pt-BR")+" frases";installDelegatedNavigation();if(window.LSHydrateIcons)LSHydrateIcons(document);installNativeTouchNavigation();applyEditionUI();
   sb.auth.onAuthStateChange((event,session)=>{
     if(session){
       S.session=session;rememberSession(session);cached(session.user.id);authUI();
