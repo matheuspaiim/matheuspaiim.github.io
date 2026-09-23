@@ -1,0 +1,79 @@
+/* Libras Studio · acabamento pastel dissolvido
+   Arquivo estável. Cache é controlado pela query ?v= da página. */
+
+#home .shortcut-cat,
+#explore .explore-signal-card,
+#study-list .lesson{
+  position:relative!important;
+  isolation:isolate;
+  border:0!important;
+  box-shadow:none!important;
+  overflow:visible!important;
+}
+
+/* As regras abaixo repetem o :nth-child de propósito.
+   Isso garante precedência sobre os fundos antigos com !important. */
+#home .shortcut-cat:nth-child(7n+1){--ls-wash:#e8dcff;background:transparent!important}
+#home .shortcut-cat:nth-child(7n+2){--ls-wash:#dcf4e6;background:transparent!important}
+#home .shortcut-cat:nth-child(7n+3){--ls-wash:#ffe1e9;background:transparent!important}
+#home .shortcut-cat:nth-child(7n+4){--ls-wash:#dfefff;background:transparent!important}
+#home .shortcut-cat:nth-child(7n+5){--ls-wash:#ffe8cf;background:transparent!important}
+#home .shortcut-cat:nth-child(7n+6){--ls-wash:#ffe0ef;background:transparent!important}
+#home .shortcut-cat:nth-child(7n+7){--ls-wash:#e0f2df;background:transparent!important}
+
+#explore .explore-signal-card:nth-child(5n+1){--ls-wash:#e9e0ff;background:transparent!important}
+#explore .explore-signal-card:nth-child(5n+2){--ls-wash:#deefff;background:transparent!important}
+#explore .explore-signal-card:nth-child(5n+3){--ls-wash:#ffe2e9;background:transparent!important}
+#explore .explore-signal-card:nth-child(5n+4){--ls-wash:#e0f3e8;background:transparent!important}
+#explore .explore-signal-card:nth-child(5n+5){--ls-wash:#ffe9d1;background:transparent!important}
+
+#study-list .lesson:nth-child(4n+1){--ls-wash:#e9e0ff;background:transparent!important}
+#study-list .lesson:nth-child(4n+2){--ls-wash:#e0efff;background:transparent!important}
+#study-list .lesson:nth-child(4n+3){--ls-wash:#ffe3ea;background:transparent!important}
+#study-list .lesson:nth-child(4n+4){--ls-wash:#e2f3e8;background:transparent!important}
+
+/* A mancha colorida vive atrás do conteúdo e perde opacidade antes da borda. */
+#home .shortcut-cat::before,
+#explore .explore-signal-card::before,
+#study-list .lesson::before{
+  content:"";
+  position:absolute;
+  inset:3px;
+  border-radius:inherit;
+  background:radial-gradient(ellipse at center,
+    var(--ls-wash) 0%,
+    var(--ls-wash) 55%,
+    transparent 100%);
+  filter:blur(8px);
+  opacity:.96;
+  z-index:0;
+  pointer-events:none;
+}
+
+#home .shortcut-cat > *,
+#explore .explore-signal-card > *,
+#study-list .lesson > *{
+  position:relative;
+  z-index:1;
+}
+
+/* Cards maiores: só retiramos a linha dura. */
+#home .home-top-progress>.dash-card:first-child,
+#home .tracking-card,
+#home .quick-actions-card,
+#home .library-hero,
+#home .review-hero,
+#home .continue-card,
+#home .sequence-card{
+  border-color:transparent!important;
+  box-shadow:0 8px 24px rgba(55,36,92,.025)!important;
+}
+
+@media(max-width:820px){
+  #home .shortcut-cat::before,
+  #explore .explore-signal-card::before,
+  #study-list .lesson::before{
+    inset:2px;
+    filter:blur(7px);
+  }
+}
