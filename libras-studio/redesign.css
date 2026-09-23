@@ -1693,3 +1693,111 @@ body{background:var(--studio-bg)}
     box-shadow:0 8px 24px rgba(56,32,92,.045)!important;
   }
 }
+
+
+/* =========================================================
+   Paridade cromática móvel 0.5.54
+   Pastéis do Desktop com contraste suficiente no celular
+   ========================================================= */
+#home .studio-hero{
+  background:linear-gradient(135deg,#eee5ff 0%,#f5efff 48%,#eaf5ff 100%)!important;
+}
+#home .home-top-progress>.dash-card:first-child{
+  background:linear-gradient(145deg,#fffdf8 0%,#fff5df 100%)!important;
+}
+#home .tracking-card{
+  background:linear-gradient(145deg,#fbfdff 0%,#eaf6ff 100%)!important;
+}
+#home .quick-actions-card{
+  background:linear-gradient(145deg,#fdfbff 0%,#f2ebff 100%)!important;
+}
+#home .quick-actions-card + .dash-card{
+  background:linear-gradient(145deg,#fcfdff 0%,#edf7ff 100%)!important;
+}
+#home .library-hero{
+  background:linear-gradient(145deg,#fcfaff 0%,#eee5ff 100%)!important;
+}
+#home .review-hero{
+  background:linear-gradient(145deg,#fffafb 0%,#ffeaf1 100%)!important;
+}
+#home .continue-card{
+  background:linear-gradient(145deg,#fff 0%,#f3edff 100%)!important;
+}
+#home .sequence-card{
+  background:linear-gradient(145deg,#fff 0%,#eee8ff 100%)!important;
+}
+#home .shortcut-cat:nth-child(7n+1){background:#eee7ff!important}
+#home .shortcut-cat:nth-child(7n+2){background:#e5f7ed!important}
+#home .shortcut-cat:nth-child(7n+3){background:#ffe9ef!important}
+#home .shortcut-cat:nth-child(7n+4){background:#e8f4ff!important}
+#home .shortcut-cat:nth-child(7n+5){background:#ffefdf!important}
+#home .shortcut-cat:nth-child(7n+6){background:#ffe9f4!important}
+#home .shortcut-cat:nth-child(7n+7){background:#e8f6e7!important}
+
+#study .title{
+  padding:14px 16px;border-radius:20px;
+  background:linear-gradient(135deg,#f0e9ff,#faf8ff)!important;
+}
+#study .study-summary{
+  background:linear-gradient(135deg,#ebe2ff 0%,#f5f0ff 54%,#fff 100%)!important;
+  border-color:#ded2f4!important;
+}
+#study-list .lesson:nth-child(4n+1){background:#f1eaff!important}
+#study-list .lesson:nth-child(4n+2){background:#eaf5ff!important}
+#study-list .lesson:nth-child(4n+3){background:#ffeaf0!important}
+#study-list .lesson:nth-child(4n+4){background:#eaf7ef!important}
+#study-list .practice{background:rgba(255,255,255,.7)!important}
+
+#explore>.title{
+  padding:14px 16px;border-radius:20px;
+  background:linear-gradient(135deg,#eaf5ff,#f6f2ff)!important;
+}
+#explore .page-grid>.surface:nth-child(1){
+  background:linear-gradient(145deg,#fff 0%,#f0eaff 100%)!important;
+}
+#explore .page-grid>.surface:nth-child(2){
+  background:linear-gradient(145deg,#fff 0%,#eaf6ff 100%)!important;
+}
+#explore .page-grid>.surface:nth-child(3){
+  background:linear-gradient(145deg,#fff 0%,#ffeef4 100%)!important;
+}
+#explore .explore-signal-card:nth-child(5n+1){background:#eee8ff!important}
+#explore .explore-signal-card:nth-child(5n+2){background:#e7f4ff!important}
+#explore .explore-signal-card:nth-child(5n+3){background:#ffe9ef!important}
+#explore .explore-signal-card:nth-child(5n+4){background:#e8f6ee!important}
+#explore .explore-signal-card:nth-child(5n+5){background:#fff0df!important}
+#explore .explore-category-head{
+  background:linear-gradient(135deg,#fff5df,#fff)!important;
+  border-color:#f0e2c4!important;
+}
+
+.library-media,
+.explore-video-frame{
+  background:#eeeaf4!important;
+}
+.library-media video,
+.explore-video-frame video{
+  background:#eeeaf4!important;
+  object-fit:cover!important;
+  object-position:center 35%!important;
+}
+.library-media-empty,
+.explore-video-loading{
+  color:#7e7590!important;
+  font-size:11px!important;
+  font-weight:800!important;
+  background:linear-gradient(135deg,#f4efff,#edf6ff)!important;
+}
+.explore-preview-loading{
+  margin-top:12px;padding:26px 14px;border-radius:16px;text-align:center;
+  color:#746b86;font-weight:800;
+  background:linear-gradient(135deg,#f4efff,#edf7ff);
+}
+
+@media(max-width:820px){
+  #home .dash-card,
+  #study .surface,#study .lesson,
+  #explore .surface,#explore .explore-signal-card{
+    box-shadow:0 8px 22px rgba(55,36,92,.055)!important;
+  }
+}
