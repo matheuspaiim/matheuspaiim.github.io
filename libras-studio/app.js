@@ -1,4 +1,4 @@
-const APP_VERSION="0.5.60";
+const APP_VERSION="0.5.61";
 const cfg=window.LIBRAS_STUDIO_CONFIG||{},$=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const nativeParams=new URLSearchParams(location.search);
 const IS_NATIVE_ANDROID=nativeParams.get("native")==="android";
@@ -338,8 +338,35 @@ function mediaHealth(){try{return JSON.parse(localStorage.getItem(MEDIA_HEALTH_K
 function setMediaHealth(url,ok){if(!url)return;let h=mediaHealth();h[url]={ok:!!ok,at:Date.now()};let entries=Object.entries(h).sort((a,b)=>(b[1]?.at||0)-(a[1]?.at||0)).slice(0,600);try{localStorage.setItem(MEDIA_HEALTH_KEY,JSON.stringify(Object.fromEntries(entries)))}catch{}}
 function knownMediaHealth(url){let x=mediaHealth()[url];if(!x)return null;let ttl=x.ok?MEDIA_OK_TTL:MEDIA_FAIL_TTL;if(Date.now()-(x.at||0)>ttl)return null;return!!x.ok}
 function probeVideo(url,timeout=4500){if(!url)return Promise.resolve(false);let known=knownMediaHealth(url);if(known!==null)return Promise.resolve(known);return new Promise(resolve=>{let v=document.createElement("video"),done=false,timer;const finish=ok=>{if(done)return;done=true;clearTimeout(timer);v.onloadedmetadata=v.oncanplay=v.onerror=null;try{v.pause();v.removeAttribute("src");v.load()}catch{}setMediaHealth(url,ok);resolve(ok)};v.preload="metadata";v.muted=true;v.playsInline=true;v.onloadedmetadata=()=>finish(true);v.oncanplay=()=>finish(true);v.onerror=()=>finish(false);timer=setTimeout(()=>finish(false),timeout);try{v.src=url;v.load()}catch{finish(false)}})}
-function mediaCandidateKey(x){if(x?.youtube)return"yt:"+x.youtube;let u=String(x?.url||"");if(!u)return"";if(x?.source_id==="ines"||x?.source_id==="goiasnacional"){let m=u.match(/\/palavras\/videos\/([^?#]+)/i);if(m)return"ines:"+m[1].toLowerCase()}return u}function dedupeCandidates(list){let seen=new Set;return(list||[]).filter(x=>{let k=mediaCandidateKey(x);if(!k||seen.has(k))return false;seen.add(k);return true})}
-async function validateCandidates(list,{timeout=4000,max=12,keep=8}={}){let items=dedupeCandidates(list).slice(0,max);let checks=await Promise.all(items.map(async x=>x.youtube?true:probeVideo(x.url,timeout)));return items.filter((x,i)=>checks[i]).slice(0,keep)}
+function mediaCandidateKey(x){if(x?.youtube)return"yt:"+x.youtube;let u=String(x?.url||"");if(!u)return"";if(x?.source_id==="ines"||x?.source_id==="goiasnacional"){let m=u.match(/\/palavras\/videos\/([^?#]+)/i);if(m)return"ines:"+m[1].toLowerCase()}return u}
+function canonicalMediaUrl(url){try{let u=new URL(String(url||""),location.href);u.hash="";["utm_source","utm_medium","utm_campaign","token","expires","signature","sig"].forEach(k=>u.searchParams.delete(k));u.searchParams.sort();return u.toString().replace(/^http:/,"https:")}catch{return String(url||"").split("#")[0].replace(/^http:/,"https:")}}
+function mediaBasename(url){try{let u=new URL(String(url||""),location.href),name=decodeURIComponent(u.pathname.split("/").pop()||"").toLowerCase();return name}catch{return""}}
+function usefulMediaBasename(name){let b=String(name||"").replace(/\.(mp4|webm|mov|m4v)$/i,"");return b.length>=6&&!/^(video|download|file|media|clip|movie|index|\d+)$/i.test(b)}
+const VARIANT_META_CACHE=new Map,VARIANT_SIZE_CACHE=new Map;
+function mediaMetadataSignature(url,timeout=2600){
+  let key=canonicalMediaUrl(url);if(VARIANT_META_CACHE.has(key))return VARIANT_META_CACHE.get(key);
+  let p=new Promise(resolve=>{let v=document.createElement("video"),done=false,timer;const finish=value=>{if(done)return;done=true;clearTimeout(timer);v.onloadedmetadata=v.onerror=null;try{v.pause();v.removeAttribute("src");v.load()}catch{}resolve(value)};v.preload="metadata";v.muted=true;v.playsInline=true;v.onloadedmetadata=()=>{let d=Number.isFinite(v.duration)?Math.round(v.duration*20)/20:0,w=v.videoWidth||0,h=v.videoHeight||0;finish(d&&w&&h?{duration:d,width:w,height:h}:null)};v.onerror=()=>finish(null);timer=setTimeout(()=>finish(null),timeout);try{v.src=url;v.load()}catch{finish(null)}});VARIANT_META_CACHE.set(key,p);return p
+}
+async function mediaRemoteSize(url,timeout=1800){
+  let key=canonicalMediaUrl(url);if(VARIANT_SIZE_CACHE.has(key))return VARIANT_SIZE_CACHE.get(key);
+  let p=(async()=>{let ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),timeout);try{let r=await fetch(url,{method:"HEAD",cache:"force-cache",signal:ctl.signal});if(!r.ok)return 0;let n=Number(r.headers.get("content-length")||0);return Number.isFinite(n)&&n>0?n:0}catch{return 0}finally{clearTimeout(timer)}})();
+  VARIANT_SIZE_CACHE.set(key,p);return p
+}
+async function mediaVariantSignature(candidate){
+  if(candidate?.youtube)return"yt:"+candidate.youtube;
+  let url=String(candidate?.url||"");if(!url)return"";
+  let canonical=canonicalMediaUrl(url),meta=await mediaMetadataSignature(url),size=await mediaRemoteSize(url),base=mediaBasename(url);
+  if(size&&meta)return"strong:"+size+"|"+meta.duration+"|"+meta.width+"x"+meta.height;
+  if(meta&&usefulMediaBasename(base))return"filemeta:"+base+"|"+meta.duration+"|"+meta.width+"x"+meta.height;
+  return"url:"+canonical
+}
+async function dedupeVariantCandidates(list){
+  let input=dedupeCandidates(list),rows=await Promise.all(input.map(async x=>({x,sig:await mediaVariantSignature(x)}))),seen=new Set,out=[];
+  for(let row of rows){let k=row.sig||mediaCandidateKey(row.x);if(!k||seen.has(k))continue;seen.add(k);out.push(row.x)}
+  return out
+}
+function dedupeCandidates(list){let seen=new Set;return(list||[]).filter(x=>{let k=mediaCandidateKey(x);if(!k||seen.has(k))return false;seen.add(k);return true})}
+async function validateCandidates(list,{timeout=4000,max=12,keep=8}={}){let items=dedupeCandidates(list).slice(0,max);let checks=await Promise.all(items.map(async x=>x.youtube?true:probeVideo(x.url,timeout)));let playable=items.filter((x,i)=>checks[i]);return(await dedupeVariantCandidates(playable)).slice(0,keep)}
 async function firstPlayable(list,{timeout=4000,max=12}={}){let items=dedupeCandidates(list).slice(0,max),knownGood=items.find(x=>x.youtube||knownMediaHealth(x.url)===true);if(knownGood)return knownGood;for(let x of items){if(x.youtube)return x;if(await probeVideo(x.url,timeout))return x}return null}
 function allMediaCandidates(name){let list=[];try{list.push(...phraseCuratedExact(name))}catch{}list.push(...opts(name));return dedupeCandidates(list)}
 async function preferredSignMedia(name,fallbackStudioId=""){let saved=fallbackStudioId?S.signs.find(x=>x.studio_id===fallbackStudioId):null,local=saved?nativeCachedVideoUrl(saved.studio_id):"";if(local)return{url:local,source_id:saved.source_id||"saved",source_name:(saved.source_name||"Biblioteca")+" · offline"};if(!navigator.onLine){if(saved&&!IS_NATIVE_ANDROID&&vurl(saved))return{url:vurl(saved),source_id:saved.source_id||"saved",source_name:saved.source_name||"Biblioteca"};return null}try{let list=await signOptions(name),picked=await firstPlayable(list,{timeout:2400,max:8});if(!picked){list=await signOptions(name,{refresh:true});picked=await firstPlayable(list,{timeout:2400,max:8})}if(picked)return picked}catch(e){console.warn("mídia principal",e)}if(saved){let url=vurl(saved);if(url&&await probeVideo(url,2200))return{url,source_id:saved.source_id||"saved",source_name:saved.source_name||"Biblioteca"}}return null}
@@ -350,9 +377,20 @@ function catFor(n){let k=norm(n);for(let[c,d]of Object.entries(window.LIBRAS_EXP
 function uuid(){return crypto.randomUUID?crypto.randomUUID():Date.now()+"-"+Math.random()}
 async function save(name,o,cat=null,origin="catalog"){
   let n=norm(name),url=String(o?.url||"").replace(/^http:/,"https:"),variantKey="mobile|"+n+"|"+norm(url);
-  let existing=S.signs.find(x=>signNormKey(x)===n&&(String(x.variant_key||"")===variantKey||(url&&String(x.source_url||"").replace(/^http:/,"https:")===url)));
+  let sameNorm=S.signs.filter(x=>signNormKey(x)===n),existing=sameNorm.find(x=>String(x.variant_key||"")===variantKey||(url&&String(x.source_url||"").replace(/^http:/,"https:")===url));
   if(existing)return existing;
-  let now=new Date().toISOString(),row={user_id:S.session.user.id,studio_id:uuid(),name:title(name),norm:n,variant_no:S.signs.filter(x=>signNormKey(x)===n).length+1,variant_key:variantKey,category_name:cat||catFor(name),category_source:cat?"explore":"auto",category_tags:"[]",source_id:o.source_id,source_name:o.source_name,source_url:o.url,source_label:o.label,origin,media_url:o.url,created_at:now,updated_at:now,deleted_at:null};
+  if(url&&sameNorm.length){
+    let incomingSig=await mediaVariantSignature({...o,url});
+    if(incomingSig){
+      for(let item of sameNorm){
+        let oldUrl=vurl(item)||item.source_url||"";
+        if(!oldUrl)continue;
+        let oldSig=await mediaVariantSignature({url:oldUrl,source_id:item.source_id});
+        if(oldSig&&oldSig===incomingSig)return item
+      }
+    }
+  }
+  let now=new Date().toISOString(),row={user_id:S.session.user.id,studio_id:uuid(),name:title(name),norm:n,variant_no:sameNorm.length+1,variant_key:variantKey,category_name:cat||catFor(name),category_source:cat?"explore":"auto",category_tags:"[]",source_id:o.source_id,source_name:o.source_name,source_url:o.url,source_label:o.label,origin,media_url:o.url,created_at:now,updated_at:now,deleted_at:null};
   S.signs.push(row);cache();render();localStatus("📱 alterações locais · sincronize quando quiser");return row
 }
 async function createSign(){let names=$("#create-name").value.split(/\n/).map(x=>x.trim()).filter(Boolean);if(!names.length)return toast("Digite o nome do sinal.");$("#create-name").value="";if(names.length===1){let n=names[0];$("#create-result").innerHTML='<div class="result">🔎 Buscando e verificando os vídeos…</div>';await catalog();let options=opts(n);if(!options.length)return $("#create-result").innerHTML='<div class="result">🔎 Não encontrei correspondência exata.</div>';let picked=await firstPlayable(options,{timeout:3800,max:10});if(!picked)return $("#create-result").innerHTML='<div class="result"><b>⚠️ Encontrei '+options.length+' gravação(ões), mas nenhuma carregou agora.</b><p>O Studio não vai salvar um vídeo quebrado. Tente novamente mais tarde ou veja as variações.</p></div>';try{let r=await save(n,picked);$("#create-result").innerHTML='<div class="result phrase-ok"><b>✅ '+esc(r.name)+'</b><video controls loop playsinline src="'+esc(r.media_url)+'"></video></div>';toast("Salvo com vídeo verificado ☁️")}catch(e){console.error(e);toast("Não consegui salvar.")}return}$("#create-result").innerHTML='<div class="result">🔎 Processando '+names.length+' sinais…</div>';await catalog();let ok=[],fail=[];for(let n of names){try{let options=opts(n),picked=options.length?await firstPlayable(options,{timeout:3200,max:10}):null;if(!picked){fail.push(n);continue}await save(n,picked,null,"batch");ok.push(n)}catch(e){console.error("lote",n,e);fail.push(n)}}$("#create-result").innerHTML='<div class="result"><b>✅ '+ok.length+' de '+names.length+' sinais salvos</b>'+(fail.length?'<p>Não encontrados: '+esc(fail.join(", "))+'</p>':'')+'</div>';toast(ok.length+" sinal(is) adicionado(s) ☁️")}
@@ -508,7 +546,21 @@ function library(){
   bindLibraryCategories();bindLibraryRows();primeLibraryPreviews($("#library-list"));
   if(window.LSHydrateIcons)LSHydrateIcons($("#library"));
 }
-async function openAvailableVariants(name,categoryName){modal('<h2>Variações de '+esc(title(name))+'</h2><p>🔎 Verificando quais vídeos estão disponíveis…</p>');try{let candidates=await signOptions(name),all=await validateCandidates(candidates,{timeout:4200,max:30,keep:20});if(!all.length){candidates=await signOptions(name,{refresh:true});all=await validateCandidates(candidates,{timeout:4200,max:30,keep:20})}if(!all.length)return modal('<h2>Variações de '+esc(title(name))+'</h2><p>Nenhum vídeo disponível foi encontrado agora.</p>');let savedUrls=new Set(S.signs.filter(x=>(x.norm||norm(x.name))===norm(name)).map(vurl).filter(Boolean));modal('<h2>Variações de '+esc(title(name))+'</h2><div class="library-variants">'+all.map((x,i)=>'<div class="library-variant"><video controls loop playsinline preload="metadata" src="'+esc(x.url)+'"></video><button type="button" class="soft wide" data-save-available-variant="'+i+'" '+(savedUrls.has(x.url)?'disabled':'')+'>'+(savedUrls.has(x.url)?'✓ Já salva':'＋ Salvar esta variação')+'</button></div>').join("")+'</div>');$$("[data-save-available-variant]").forEach(b=>b.onclick=async()=>{let candidate=all[+b.dataset.saveAvailableVariant];if(!candidate)return;b.disabled=true;try{await save(name,candidate,categoryName||catFor(name),"catalog");b.textContent="✓ Salva";toast("Variação adicionada à biblioteca")}catch(e){console.error(e);b.disabled=false;toast("Não consegui salvar esta variação.")}})}catch(e){console.error(e);modal('<h2>Variações de '+esc(title(name))+'</h2><p>Não consegui consultar as variações agora.</p>')}}
+async function openAvailableVariants(name,categoryName){
+  modal('<h2>Variações de '+esc(title(name))+'</h2><p>🔎 Verificando e removendo vídeos repetidos…</p>');
+  try{
+    let candidates=await signOptions(name),all=await validateCandidates(candidates,{timeout:4200,max:30,keep:20});
+    if(!all.length){candidates=await signOptions(name,{refresh:true});all=await validateCandidates(candidates,{timeout:4200,max:30,keep:20})}
+    if(!all.length)return modal('<h2>Variações de '+esc(title(name))+'</h2><p>Nenhum vídeo disponível foi encontrado agora.</p>');
+    all=await dedupeVariantCandidates(all);
+    let saved=S.signs.filter(x=>signNormKey(x)===norm(name)),savedUrls=new Set(saved.map(vurl).filter(Boolean)),savedSigs=new Set;
+    for(let item of saved){let u=vurl(item)||item.source_url||"";if(u){let sig=await mediaVariantSignature({url:u,source_id:item.source_id});if(sig)savedSigs.add(sig)}}
+    let rows=[];
+    for(let x of all){let sig=await mediaVariantSignature(x);rows.push({x,sig,saved:savedUrls.has(x.url)||(sig&&savedSigs.has(sig))})}
+    modal('<h2>Variações de '+esc(title(name))+'</h2><div class="library-variants">'+rows.map((r,i)=>'<div class="library-variant"><video controls loop playsinline preload="metadata" src="'+esc(r.x.url)+'"></video><button type="button" class="soft wide" data-save-available-variant="'+i+'" '+(r.saved?'disabled':'')+'>'+(r.saved?'✓ Já salva':'＋ Salvar esta variação')+'</button></div>').join("")+'</div>');
+    $("[data-save-available-variant]").forEach(b=>b.onclick=async()=>{let row=rows[+b.dataset.saveAvailableVariant],candidate=row?.x;if(!candidate)return;b.disabled=true;try{let before=S.signs.length;await save(name,candidate,categoryName||catFor(name),"catalog");b.textContent=S.signs.length===before?"✓ Já existia":"✓ Salva";toast(S.signs.length===before?"Essa gravação já estava salva.":"Variação adicionada à biblioteca")}catch(e){console.error(e);b.disabled=false;toast("Não consegui salvar esta variação.")}})
+  }catch(e){console.error(e);modal('<h2>Variações de '+esc(title(name))+'</h2><p>Não consegui consultar as variações agora.</p>')}
+}
 async function openLibraryVariants(signNorm){let first=S.signs.find(x=>(x.norm||norm(x.name))===signNorm);if(first)await openAvailableVariants(first.name,first.category_name)}
 async function openOrRepairLibrarySign(studioId){
   let item=S.signs.find(x=>x.studio_id===studioId);if(!item)return;
