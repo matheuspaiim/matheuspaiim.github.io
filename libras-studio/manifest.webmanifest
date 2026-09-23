@@ -8,9 +8,9 @@
   "theme_color": "#7650e8",
   "icons": [
     {
-      "src": "./icon.svg?v=0551",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "./libras_studio.png?v=0554",
+      "sizes": "512x512",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ],
