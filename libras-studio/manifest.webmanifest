@@ -8,7 +8,7 @@
   "theme_color": "#7650e8",
   "icons": [
     {
-      "src": "./libras_studio.png?v=0558",
+      "src": "./libras_studio.png?v=0559",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
