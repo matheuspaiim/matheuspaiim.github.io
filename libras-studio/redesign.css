@@ -1801,3 +1801,39 @@ body{background:var(--studio-bg)}
     box-shadow:0 8px 22px rgba(55,36,92,.055)!important;
   }
 }
+
+
+/* =========================================================
+   Prévia de vídeo rápida 0.5.55
+   Carregamento sob demanda, sem ícones substitutos
+   ========================================================= */
+.library-media,
+.explore-video-frame{
+  position:relative;
+  overflow:hidden;
+  background:
+    linear-gradient(110deg,rgba(255,255,255,.24) 8%,rgba(255,255,255,.72) 18%,rgba(255,255,255,.24) 33%) 0 0/220% 100%,
+    #ece8f3!important;
+  animation:ls-preview-shimmer 1.35s linear infinite;
+}
+.library-media:has(video.preview-ready),
+.explore-video-frame:has(video.preview-ready){
+  animation:none;
+  background:#ece8f3!important;
+}
+.library-media video,
+.explore-video-frame video{
+  opacity:0;
+  transition:opacity .16s ease;
+}
+.library-media video.preview-ready,
+.explore-video-frame video.preview-ready{
+  opacity:1;
+}
+.explore-card-play,
+.library-media-play{
+  z-index:3;
+}
+@keyframes ls-preview-shimmer{
+  to{background-position:-220% 0,0 0}
+}
