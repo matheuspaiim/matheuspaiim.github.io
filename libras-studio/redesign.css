@@ -1875,3 +1875,71 @@ body{background:var(--studio-bg)}
   .phrase-library-toolbar{grid-template-columns:1fr}
   .phrase-library-grid{grid-template-columns:1fr 1fr}
 }
+
+
+/* =========================================================
+   Bordas dissolvidas 0.5.63
+   Mantém os pastéis, mas faz o contorno se fundir ao fundo.
+   ========================================================= */
+.shortcut-cat,
+.explore-signal-card,
+.library-sign-card,
+.lib-category,
+.lesson,
+.study-summary,
+.dash-card,
+.tracking-card,
+.sequence-card,
+.continue-card,
+.library-hero,
+.review-hero,
+.review-metric,
+#explore .surface,
+#progress .surface,
+#settings .surface{
+  border-color:rgba(86,68,126,.035)!important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.34),
+    0 7px 20px rgba(49,36,78,.028)!important;
+}
+
+.shortcut-cat,
+.explore-signal-card,
+.library-sign-card,
+.lesson{
+  background-clip:padding-box;
+}
+
+.shortcut-cat:hover,
+.explore-signal-card:hover,
+.library-sign-card:hover,
+.lesson:hover{
+  border-color:rgba(86,68,126,.055)!important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.42),
+    0 8px 22px rgba(49,36,78,.04)!important;
+}
+
+@media(max-width:820px){
+  .shortcut-cat,
+  .explore-signal-card,
+  .library-sign-card,
+  .lib-category,
+  .lesson,
+  .study-summary,
+  .dash-card,
+  .tracking-card,
+  .sequence-card,
+  .continue-card,
+  .library-hero,
+  .review-hero,
+  .review-metric,
+  #explore .surface,
+  #progress .surface,
+  #settings .surface{
+    border-color:rgba(86,68,126,.028)!important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.30),
+      0 6px 18px rgba(49,36,78,.024)!important;
+  }
+}
