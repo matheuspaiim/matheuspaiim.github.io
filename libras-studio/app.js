@@ -1,4 +1,4 @@
-const APP_VERSION="0.5.55";
+const APP_VERSION="0.5.56";
 const cfg=window.LIBRAS_STUDIO_CONFIG||{},$=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const nativeParams=new URLSearchParams(location.search);
 const IS_NATIVE_ANDROID=nativeParams.get("native")==="android";
@@ -126,7 +126,33 @@ function primePreviewVideo(video){
   PREVIEW_OBSERVER.observe(video);
 }
 function primePreviewVideos(root=document){
-  root?.querySelectorAll?.("[data-library-preview],.explore-video-frame video").forEach(primePreviewVideo);
+  root?.querySelectorAll?.(".explore-video-frame video").forEach(primePreviewVideo);
+}
+function primeLibraryPreview(video){
+  if(!video||video.dataset.previewLoaded==="1")return;
+  let raw=video.dataset.previewSrc||"";if(!raw)return;
+  video.dataset.previewLoaded="1";video.preload="auto";video.muted=true;video.playsInline=true;
+  const show=()=>video.classList.add("preview-ready");
+  const decode=async()=>{
+    try{
+      const d=Number.isFinite(video.duration)?video.duration:0,target=d?Math.min(.65,Math.max(.16,d*.08)):.18;
+      if(video.readyState>=1&&Math.abs((video.currentTime||0)-target)>.03)video.currentTime=target;
+      let p=video.play();if(p&&typeof p.then==="function")await p.catch(()=>{});
+      setTimeout(()=>{try{video.pause()}catch{}show()},90);
+    }catch{show()}
+  };
+  video.addEventListener("loadeddata",decode,{once:true});
+  video.addEventListener("canplay",show,{once:true});
+  video.addEventListener("seeked",show,{once:true});
+  try{video.src=previewMediaUrl(raw);video.load()}catch{}
+}
+function primeLibraryPreviews(root=document){
+  let videos=[...(root?.querySelectorAll?.("[data-library-preview]")||[])];
+  videos.slice(0,8).forEach(primeLibraryPreview);
+  if(videos.length>8&&"IntersectionObserver"in window){
+    let ob=new IntersectionObserver(entries=>{for(let e of entries)if(e.isIntersecting){ob.unobserve(e.target);primeLibraryPreview(e.target)}},{rootMargin:"220px 0px",threshold:.01});
+    videos.slice(8).forEach(v=>ob.observe(v));
+  }else videos.slice(8).forEach(primeLibraryPreview);
 }
 async function cacheWebLibraryVideo(url){if(!url||!("caches"in window))return false;try{let cache=await caches.open(LIBRARY_MEDIA_CACHE),req=new Request(url,{mode:"no-cors",cache:"no-store"});if(await cache.match(req,{ignoreVary:true}))return true;let res=await fetch(req);if(!res||(res.type!=="opaque"&&!res.ok))return false;await cache.put(req,res.clone());return true}catch(e){console.warn("cache web de vídeo",e);return false}}
 async function cacheLibraryVideo(item,{replace=false}={}){let id=item?.studio_id,url=vurl(item);if(!id||!url||!navigator.onLine)return false;if(nativeMediaAvailable()){if(!replace&&nativeCachedVideoUrl(id))return true;if(MEDIA_CACHE_PENDING.has(id))return true;MEDIA_CACHE_PENDING.add(id);try{if(replace&&typeof window.LibrasMedia.replaceCachedVideo==="function")window.LibrasMedia.replaceCachedVideo(String(id),url);else window.LibrasMedia.cacheVideo(String(id),url);return true}catch(e){MEDIA_CACHE_PENDING.delete(id);console.warn("cache nativo de vídeo",e);return false}}if(MEDIA_CACHE_PENDING.has(id))return true;MEDIA_CACHE_PENDING.add(id);try{return await cacheWebLibraryVideo(url)}finally{MEDIA_CACHE_PENDING.delete(id)}}
@@ -390,26 +416,31 @@ async function bindVideoFallbacks(root,name){let videos=[...root.querySelectorAl
 const LIBRARY_OPEN_KEY="ls-library-open-v1";
 function libraryOpenSet(){try{return new Set(JSON.parse(localStorage.getItem(LIBRARY_OPEN_KEY)||"[]"))}catch{return new Set}}
 function saveLibraryOpenSet(set){try{localStorage.setItem(LIBRARY_OPEN_KEY,JSON.stringify([...set]))}catch{}}
-function bindLibraryCategories(){document.querySelectorAll("[data-cat-toggle]").forEach(btn=>btn.onclick=()=>{let section=btn.closest(".lib-category"),body=section?.querySelector(".cat-collapse"),name=btn.dataset.catToggle;if(!body||!name)return;let next=btn.getAttribute("aria-expanded")!=="true";btn.setAttribute("aria-expanded",String(next));body.classList.toggle("open",next);section.classList.toggle("open",next);let open=libraryOpenSet();next?open.add(name):open.delete(name);saveLibraryOpenSet(open)})}
+function bindLibraryCategories(){document.querySelectorAll("[data-cat-toggle]").forEach(btn=>btn.onclick=()=>{let name=btn.dataset.catToggle;if(!name)return;let next=btn.getAttribute("aria-expanded")!=="true",open=new Set;if(next)open.add(name);saveLibraryOpenSet(open);library();if(next)requestAnimationFrame(()=>document.querySelector('[data-drop-category="'+CSS.escape(name)+'"]')?.scrollIntoView({behavior:"smooth",block:"start"}))})}
 function library(){
   let q=norm($("#library-search")?.value||""),cat=$("#library-cat")?.value||"",g={},open=libraryOpenSet();
   let filtered=S.signs.filter(s=>(!cat||s.category_name===cat)&&(!q||norm(s.name+" "+s.category_name).includes(q))&&!!libraryVideoUrl(s));
   filtered.forEach(s=>(g[s.category_name||"Outros"]??=[]).push(s));
-  let total=$("#library-total-signs"),cats=$("#library-total-cats");if(total)total.textContent=new Set(S.signs.map(x=>x.norm)).size;if(cats)cats.textContent=new Set(S.signs.map(x=>x.category_name).filter(Boolean)).size;
+  let total=$("#library-total-signs"),cats=$("#library-total-cats");
+  if(total)total.textContent=new Set(S.signs.map(x=>x.norm)).size;
+  if(cats)cats.textContent=new Set(S.signs.map(x=>x.category_name).filter(Boolean)).size;
   let categories=[...new Set([...S.cats.map(x=>x.name),...S.signs.map(x=>x.category_name)].filter(Boolean))].sort((a,b)=>a.localeCompare(b,"pt-BR"));
-  $("#library-list").innerHTML=Object.entries(g).sort((a,b)=>a[0].localeCompare(b[0],"pt-BR")).map(([c,it],groupIndex)=>{
-    let expanded=!!q||!!cat||open.has(c),count=new Set(it.map(x=>x.norm)).size;
-    let rows=it.map((x,i)=>{
-      let media=libraryVideoUrl(x),tone=(groupIndex+i)%5,moveOptions=categories.filter(z=>z!==c).map(z=>'<option value="'+esc(z)+'">'+esc(z)+'</option>').join("");
-      return '<article class="library-sign-card tone-'+tone+'" draggable="true" data-library-card="'+esc(x.studio_id)+'" data-current-category="'+esc(c)+'">'+
-        '<div class="library-media">'+(media?'<video data-library-preview="'+esc(x.studio_id)+'" data-preview-src="'+esc(media)+'" muted playsinline preload="none"></video>':'')+'<button class="library-media-play" data-library-play="'+esc(x.studio_id)+'" data-library-play-name="'+esc(x.name)+'" aria-label="Reproduzir '+esc(x.name)+'">▶</button></div>'+
-        '<div class="library-card-copy"><b>'+esc(x.name)+'</b><small>'+esc(c)+'</small></div>'+
-        '<div class="library-card-actions"><select data-library-move="'+esc(x.studio_id)+'" aria-label="Mover '+esc(x.name)+'"><option value="">Mover…</option>'+moveOptions+'</select><button class="soft" data-library-variants="'+esc(x.norm||norm(x.name))+'">Variações</button><button class="danger" data-library-delete="'+esc(x.studio_id)+'">Excluir</button></div>'+
-      '</article>';
-    }).join("");
-    return '<section class="lib-category '+(expanded?"open":"")+'" data-drop-category="'+esc(c)+'"><button type="button" class="cat-head cat-toggle" data-cat-toggle="'+esc(c)+'" aria-expanded="'+String(expanded)+'"><span class="cat-head-main"><span>'+LSCategoryIcon(c)+esc(c)+'</span></span><span class="cat-head-right"><span class="cat-count">'+count+'</span></span></button><div class="cat-collapse '+(expanded?"open":"")+'"><div class="cat-items library-card-grid">'+rows+"</div></div></section>";
+  let groups=Object.entries(g).sort((a,b)=>a[0].localeCompare(b[0],"pt-BR"));
+  $("#library-list").innerHTML=groups.map(([c,it],groupIndex)=>{
+    let expanded=!!q||!!cat||open.has(c),count=new Set(it.map(x=>x.norm)).size,rows="";
+    if(expanded){
+      rows=it.map((x,i)=>{
+        let media=libraryVideoUrl(x),tone=(groupIndex+i)%5,moveOptions=categories.filter(z=>z!==c).map(z=>'<option value="'+esc(z)+'">'+esc(z)+'</option>').join("");
+        return '<article class="library-sign-card tone-'+tone+'" draggable="true" data-library-card="'+esc(x.studio_id)+'" data-current-category="'+esc(c)+'">'+
+          '<div class="library-media">'+(media?'<video data-library-preview="'+esc(x.studio_id)+'" data-preview-src="'+esc(media)+'" muted playsinline preload="none"></video>':'')+'<button class="library-media-play" data-library-play="'+esc(x.studio_id)+'" aria-label="Reproduzir '+esc(x.name)+'">▶</button></div>'+
+          '<div class="library-card-copy"><b>'+esc(x.name)+'</b><small>'+esc(c)+'</small></div>'+
+          '<div class="library-card-actions"><select data-library-move="'+esc(x.studio_id)+'" aria-label="Mover '+esc(x.name)+'"><option value="">Mover…</option>'+moveOptions+'</select><button class="soft" data-library-variants="'+esc(x.norm||norm(x.name))+'">Variações</button><button class="danger" data-library-delete="'+esc(x.studio_id)+'">Excluir</button></div>'+
+        '</article>';
+      }).join("");
+    }
+    return '<section class="lib-category '+(expanded?"open":"")+'" data-drop-category="'+esc(c)+'"><button type="button" class="cat-head cat-toggle" data-cat-toggle="'+esc(c)+'" aria-expanded="'+String(expanded)+'"><span class="cat-head-main"><span>'+LSCategoryIcon(c)+esc(c)+'</span></span><span class="cat-head-right"><span class="cat-count">'+count+'</span></span></button><div class="cat-collapse '+(expanded?"open":"")+'">'+(expanded?'<div class="cat-items library-card-grid">'+rows+'</div>':'')+'</div></section>';
   }).join("")||'<div class="card center"><p>Nenhum sinal nesta categoria.</p></div>';
-  bindLibraryCategories();bindLibraryRows();primePreviewVideos($("#library-list"));
+  bindLibraryCategories();bindLibraryRows();primeLibraryPreviews($("#library-list"));
   if(window.LSHydrateIcons)LSHydrateIcons($("#library"));
 }
 async function openAvailableVariants(name,categoryName){modal('<h2>Variações de '+esc(title(name))+'</h2><p>🔎 Verificando quais vídeos estão disponíveis…</p>');try{let candidates=await signOptions(name),all=await validateCandidates(candidates,{timeout:4200,max:30,keep:20});if(!all.length){candidates=await signOptions(name,{refresh:true});all=await validateCandidates(candidates,{timeout:4200,max:30,keep:20})}if(!all.length)return modal('<h2>Variações de '+esc(title(name))+'</h2><p>Nenhum vídeo disponível foi encontrado agora.</p>');let savedUrls=new Set(S.signs.filter(x=>(x.norm||norm(x.name))===norm(name)).map(vurl).filter(Boolean));modal('<h2>Variações de '+esc(title(name))+'</h2><div class="library-variants">'+all.map((x,i)=>'<div class="library-variant"><video controls loop playsinline preload="metadata" src="'+esc(x.url)+'"></video><button type="button" class="soft wide" data-save-available-variant="'+i+'" '+(savedUrls.has(x.url)?'disabled':'')+'>'+(savedUrls.has(x.url)?'✓ Já salva':'＋ Salvar esta variação')+'</button></div>').join("")+'</div>');$$("[data-save-available-variant]").forEach(b=>b.onclick=async()=>{let candidate=all[+b.dataset.saveAvailableVariant];if(!candidate)return;b.disabled=true;try{await save(name,candidate,categoryName||catFor(name),"catalog");b.textContent="✓ Salva";toast("Variação adicionada à biblioteca")}catch(e){console.error(e);b.disabled=false;toast("Não consegui salvar esta variação.")}})}catch(e){console.error(e);modal('<h2>Variações de '+esc(title(name))+'</h2><p>Não consegui consultar as variações agora.</p>')}}
@@ -420,7 +451,7 @@ async function openOrRepairLibrarySign(studioId){
   if(IS_NATIVE_ANDROID&&!navigator.onLine&&!local)return toast("Este vídeo ainda não foi baixado neste aparelho. Conecte-se uma vez para o Studio salvá-lo offline.");
   if(!url){
     toast("Procurando um vídeo para "+item.name+"…");
-    try{await catalog();let picked=await firstPlayable(allMediaCandidates(item.name),{timeout:3500,max:12});if(picked){await repairMedia(item.studio_id,picked);url=picked.url;library()}else return toast("Ainda não encontrei um vídeo funcionando para "+item.name+".")}catch(e){console.error(e);return toast("Não consegui consultar as fontes agora.")}
+    try{await catalog();let picked=await firstPlayable(allMediaCandidates(item.name),{timeout:2200,max:6});if(picked){await repairMedia(item.studio_id,picked);url=picked.url;library()}else return toast("Ainda não encontrei um vídeo funcionando para "+item.name+".")}catch(e){console.error(e);return toast("Não consegui consultar as fontes agora.")}
   }
   let id="lib-"+item.studio_id;modal("<h2>"+esc(item.name)+'</h2><video data-video-id="'+id+'" data-studio-id="'+esc(item.studio_id)+'" controls autoplay loop playsinline preload="metadata" src="'+esc(url)+'"></video>'+speedTools(id)+'<p>'+esc(item.source_name||"Libras Studio")+"</p>");bindSpeeds($("#modal-body"));bindVideoFallbacks($("#modal-body"),item.name);
 }
@@ -437,7 +468,7 @@ function bindLibraryRows(){
   });
   document.querySelectorAll("[data-library-move]").forEach(sel=>sel.onchange=()=>{let c=sel.value;if(c)moveLibraryItem(sel.dataset.libraryMove,c)});
   document.querySelectorAll("[data-library-delete]").forEach(b=>b.onclick=()=>deleteLibraryItem(b.dataset.libraryDelete));
-  document.querySelectorAll("[data-library-play]").forEach(b=>b.onclick=()=>playPreferredSign(b.dataset.libraryPlayName||"",b.dataset.libraryPlay));document.querySelectorAll("[data-library-preview]").forEach(v=>{v.onerror=async()=>{if(v.dataset.fallbackBusy==="1")return;v.dataset.fallbackBusy="1";let id=v.dataset.libraryPreview,item=S.signs.find(x=>x.studio_id===id),bad=v.dataset.previewSrc||"";if(!item){v.closest("[data-library-card]")?.remove();return}try{await catalog();let candidates=allMediaCandidates(item.name).filter(x=>x.url&&x.url!==bad&&knownMediaHealth(x.url)!==false),picked=await firstPlayable(candidates,{timeout:1800,max:5});if(!picked){v.closest("[data-library-card]")?.remove();return}await repairMedia(id,picked);v.dataset.previewLoaded="0";v.dataset.previewObserved="0";v.dataset.previewSrc=picked.url;v.removeAttribute("src");v.classList.remove("preview-ready");primePreviewVideo(v)}catch(e){console.warn("prévia biblioteca",e);v.closest("[data-library-card]")?.remove()}finally{v.dataset.fallbackBusy="0"}}});
+  document.querySelectorAll("[data-library-play]").forEach(b=>b.onclick=()=>openOrRepairLibrarySign(b.dataset.libraryPlay));document.querySelectorAll("[data-library-preview]").forEach(v=>{v.onerror=async()=>{if(v.dataset.fallbackBusy==="1")return;v.dataset.fallbackBusy="1";let id=v.dataset.libraryPreview,item=S.signs.find(x=>x.studio_id===id),bad=v.dataset.previewSrc||"";if(!item){v.closest("[data-library-card]")?.remove();return}try{await catalog();let candidates=allMediaCandidates(item.name).filter(x=>x.url&&x.url!==bad&&knownMediaHealth(x.url)!==false),picked=await firstPlayable(candidates,{timeout:1800,max:5});if(!picked){v.closest("[data-library-card]")?.remove();return}await repairMedia(id,picked);v.dataset.previewLoaded="0";v.dataset.previewObserved="0";v.dataset.previewSrc=picked.url;v.removeAttribute("src");v.classList.remove("preview-ready");primeLibraryPreview(v)}catch(e){console.warn("prévia biblioteca",e);v.closest("[data-library-card]")?.remove()}finally{v.dataset.fallbackBusy="0"}}});
   document.querySelectorAll("[data-library-variants]").forEach(b=>b.onclick=()=>openLibraryVariants(b.dataset.libraryVariants));
 }
 async function moveLibraryItem(studioId,category){
