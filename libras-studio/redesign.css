@@ -1837,3 +1837,14 @@ body{background:var(--studio-bg)}
 @keyframes ls-preview-shimmer{
   to{background-position:-220% 0,0 0}
 }
+
+
+/* Sincronização direcional 0.5.58 */
+.sync-choice{display:grid;gap:12px}
+.sync-choice>p{margin:0;color:var(--muted);line-height:1.5}
+.sync-choice-btn{display:grid;gap:5px;text-align:left;padding:16px;border-radius:18px;border:1px solid var(--line);background:#fff;box-shadow:0 8px 24px rgba(55,36,92,.06)}
+.sync-choice-btn b{font-size:16px}
+.sync-choice-btn small{color:var(--muted);line-height:1.4}
+.sync-choice-btn.phone{background:linear-gradient(145deg,#fff,#eaf7ef);border-color:#dceee3}
+.sync-choice-btn.desktop{background:linear-gradient(145deg,#fff,#eee8ff);border-color:#e2d8f5}
+.sync-choice-note{font-size:12px;padding:10px 12px;border-radius:14px;background:#fff8e9}
