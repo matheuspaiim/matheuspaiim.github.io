@@ -1,4 +1,4 @@
-const APP_VERSION="0.5.54";
+const APP_VERSION="0.5.55";
 const cfg=window.LIBRAS_STUDIO_CONFIG||{},$=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const nativeParams=new URLSearchParams(location.search);
 const IS_NATIVE_ANDROID=nativeParams.get("native")==="android";
@@ -89,19 +89,41 @@ const LIBRARY_MEDIA_CACHE="libras-studio-library-v1",MEDIA_CACHE_PENDING=new Set
 function nativeMediaAvailable(){return !!(IS_NATIVE_ANDROID&&window.LibrasMedia&&typeof window.LibrasMedia.getCachedVideoUrl==="function")}
 function nativeCachedVideoUrl(studioId){if(!nativeMediaAvailable()||!studioId)return"";try{return window.LibrasMedia.getCachedVideoUrl(String(studioId))||""}catch{return""}}
 function libraryVideoUrl(item){return nativeCachedVideoUrl(item?.studio_id)||vurl(item)}
-function primePreviewVideo(video){
-  if(!video||video.dataset.previewPrimed==="1")return;
-  video.dataset.previewPrimed="1";
-  video.preload="metadata";
-  const seek=()=>{
+let PREVIEW_OBSERVER=null;
+function previewMediaUrl(url){
+  let raw=String(url||"");if(!raw)return"";
+  return raw.split("#")[0]+"#t=0.22";
+}
+function loadPreviewVideo(video){
+  if(!video||video.dataset.previewLoaded==="1")return;
+  const raw=video.dataset.previewSrc||video.getAttribute("src")||"";
+  if(!raw)return;
+  video.dataset.previewLoaded="1";
+  video.preload="metadata";video.muted=true;video.playsInline=true;
+  const ready=()=>{
     try{
       const d=Number.isFinite(video.duration)?video.duration:0;
-      const target=d?Math.min(.85,Math.max(.18,d*.12)):.24;
-      if(video.readyState>=1&&Math.abs((video.currentTime||0)-target)>.04)video.currentTime=target;
+      const target=d?Math.min(.7,Math.max(.18,d*.10)):.22;
+      if(video.readyState>=1&&Math.abs((video.currentTime||0)-target)>.03)video.currentTime=target;
     }catch{}
+    video.classList.add("preview-ready");
   };
-  if(video.readyState>=1)seek();else video.addEventListener("loadedmetadata",seek,{once:true});
-  video.addEventListener("loadeddata",seek,{once:true});
+  video.addEventListener("loadeddata",ready,{once:true});
+  video.addEventListener("canplay",ready,{once:true});
+  video.addEventListener("seeked",()=>video.classList.add("preview-ready"),{once:true});
+  try{video.src=previewMediaUrl(raw);video.load()}catch{}
+}
+function primePreviewVideo(video){
+  if(!video||video.dataset.previewObserved==="1")return;
+  video.dataset.previewObserved="1";
+  if(!("IntersectionObserver"in window)){loadPreviewVideo(video);return}
+  if(!PREVIEW_OBSERVER)PREVIEW_OBSERVER=new IntersectionObserver(entries=>{
+    for(const entry of entries)if(entry.isIntersecting){
+      PREVIEW_OBSERVER.unobserve(entry.target);
+      loadPreviewVideo(entry.target);
+    }
+  },{root:null,rootMargin:"320px 0px",threshold:.01});
+  PREVIEW_OBSERVER.observe(video);
 }
 function primePreviewVideos(root=document){
   root?.querySelectorAll?.("[data-library-preview],.explore-video-frame video").forEach(primePreviewVideo);
@@ -252,7 +274,7 @@ function mediaCandidateKey(x){if(x?.youtube)return"yt:"+x.youtube;let u=String(x
 async function validateCandidates(list,{timeout=4000,max=12,keep=8}={}){let items=dedupeCandidates(list).slice(0,max);let checks=await Promise.all(items.map(async x=>x.youtube?true:probeVideo(x.url,timeout)));return items.filter((x,i)=>checks[i]).slice(0,keep)}
 async function firstPlayable(list,{timeout=4000,max=12}={}){let items=dedupeCandidates(list).slice(0,max),knownGood=items.find(x=>x.youtube||knownMediaHealth(x.url)===true);if(knownGood)return knownGood;for(let x of items){if(x.youtube)return x;if(await probeVideo(x.url,timeout))return x}return null}
 function allMediaCandidates(name){let list=[];try{list.push(...phraseCuratedExact(name))}catch{}list.push(...opts(name));return dedupeCandidates(list)}
-async function preferredSignMedia(name,fallbackStudioId=""){let saved=fallbackStudioId?S.signs.find(x=>x.studio_id===fallbackStudioId):null,local=saved?nativeCachedVideoUrl(saved.studio_id):"";if(local)return{url:local,source_id:saved.source_id||"saved",source_name:(saved.source_name||"Biblioteca")+" · offline"};if(!navigator.onLine){if(saved&&!IS_NATIVE_ANDROID&&vurl(saved))return{url:vurl(saved),source_id:saved.source_id||"saved",source_name:saved.source_name||"Biblioteca"};return null}try{let list=await signOptions(name),picked=await firstPlayable(list,{timeout:4000,max:20});if(!picked){list=await signOptions(name,{refresh:true});picked=await firstPlayable(list,{timeout:4000,max:20})}if(picked)return picked}catch(e){console.warn("mídia principal",e)}if(saved){let url=vurl(saved);if(url&&await probeVideo(url,3500))return{url,source_id:saved.source_id||"saved",source_name:saved.source_name||"Biblioteca"}}return null}
+async function preferredSignMedia(name,fallbackStudioId=""){let saved=fallbackStudioId?S.signs.find(x=>x.studio_id===fallbackStudioId):null,local=saved?nativeCachedVideoUrl(saved.studio_id):"";if(local)return{url:local,source_id:saved.source_id||"saved",source_name:(saved.source_name||"Biblioteca")+" · offline"};if(!navigator.onLine){if(saved&&!IS_NATIVE_ANDROID&&vurl(saved))return{url:vurl(saved),source_id:saved.source_id||"saved",source_name:saved.source_name||"Biblioteca"};return null}try{let list=await signOptions(name),picked=await firstPlayable(list,{timeout:2400,max:8});if(!picked){list=await signOptions(name,{refresh:true});picked=await firstPlayable(list,{timeout:2400,max:8})}if(picked)return picked}catch(e){console.warn("mídia principal",e)}if(saved){let url=vurl(saved);if(url&&await probeVideo(url,2200))return{url,source_id:saved.source_id||"saved",source_name:saved.source_name||"Biblioteca"}}return null}
 async function playPreferredSign(name,fallbackStudioId=""){modal('<h2>'+esc(title(name))+'</h2><p>🔎 Abrindo o sinal principal…</p>');let picked=await preferredSignMedia(name,fallbackStudioId);if(!picked)return modal('<h2>'+esc(title(name))+'</h2><p>Nenhum vídeo disponível foi encontrado agora.</p>');let id="preferred-"+Date.now(),sid=fallbackStudioId||"";modal('<h2>'+esc(title(name))+'</h2><video data-video-id="'+id+'" '+(sid?'data-studio-id="'+esc(sid)+'" ':'')+'controls autoplay loop playsinline preload="metadata" src="'+esc(picked.url)+'"></video>'+speedTools(id));bindSpeeds($("#modal-body"));bindVideoFallbacks($("#modal-body"),name)}
 
 async function repairMedia(studioId,candidate){if(!studioId||!candidate?.url||!S.session)return;let patch={source_id:candidate.source_id||"fallback",source_name:candidate.source_name||"Fonte alternativa",source_url:candidate.url,media_url:candidate.url,updated_at:new Date().toISOString()};try{let{error}=await sb.from("signs").update(patch).eq("studio_id",studioId);if(error)throw error;let item=S.signs.find(x=>x.studio_id===studioId);if(item){Object.assign(item,patch);cacheLibraryVideo(item,{replace:true})}cache()}catch(e){console.warn("reparo de mídia",e)}}
@@ -288,29 +310,71 @@ async function signOptions(name,{refresh=false}={}){if(refresh)S.catalog=null;aw
 async function openCat(c){
   S.explore=c;exploreCats();
   let panel=$("#explore-panel"),d=(window.LIBRAS_EXPLORE_DATA||{})[c];if(!d)return;
-  let optionMap=new Map,playableMap=new Map,verificationFailed=false;
-  const renderCards=(loading=false)=>{
+  let optionMap=new Map,playableMap=new Map;
+  const renderCards=()=>{
     let owned=new Set(S.signs.map(x=>x.norm));
-    let visible=d.terms.map((t,i)=>({t,i})).filter(x=>loading||playableMap.has(norm(x.t)));
+    let visible=d.terms.map((t,i)=>({t,i})).filter(x=>playableMap.has(norm(x.t)));
     let cards=visible.map(({t,i})=>{
       let has=owned.has(norm(t)),picked=playableMap.get(norm(t)),video=picked?.url||"";
-      return '<article class="explore-signal-card">'+
-        '<div class="explore-video-frame">'+(video?'<video muted playsinline preload="metadata" src="'+esc(video)+'"></video>':'<div class="explore-video-loading"><span>Carregando prévia…</span></div>')+'<button class="explore-card-play" data-explore-play="'+i+'" '+(loading?'disabled':'')+'>▶</button></div>'+
-        '<div class="explore-card-copy"><b>'+esc(title(t))+'</b>'+(has?'<small>✓ na biblioteca</small>':loading?'<small>verificando vídeo…</small>':'<small>vídeo disponível</small>')+'</div>'+
-        '<div class="explore-card-actions">'+(loading?'<span class="explore-owned-mark">…</span>':(has?'<span class="explore-owned-mark">✓ Salvo</span>':'<button data-add="'+i+'" aria-label="Adicionar '+esc(title(t))+'">＋ Adicionar</button>')+'<button class="soft" data-explore-variants="'+i+'">Variações</button>')+'</div></article>';
+      return '<article class="explore-signal-card" data-explore-card="'+i+'">'+
+        '<div class="explore-video-frame">'+(video?'<video data-explore-preview="'+i+'" data-preview-src="'+esc(video)+'" muted playsinline preload="none"></video>':'')+'<button class="explore-card-play" data-explore-play="'+i+'">▶</button></div>'+
+        '<div class="explore-card-copy"><b>'+esc(title(t))+'</b>'+(has?'<small>✓ na biblioteca</small>':'<small>' + esc(picked?.source_name||"vídeo disponível") + '</small>')+'</div>'+
+        '<div class="explore-card-actions">'+(has?'<span class="explore-owned-mark">✓ Salvo</span>':'<button data-add="'+i+'" aria-label="Adicionar '+esc(title(t))+'">＋ Adicionar</button><button class="soft" data-explore-variants="'+i+'">Variações</button>')+'</div></article>';
     }).join("");
-    let empty=!loading&&!cards?'<div class="surface center"><p>'+(verificationFailed?'Não consegui verificar os vídeos desta categoria agora.':'Nenhum sinal com vídeo disponível nesta categoria agora.')+'</p></div>':'';
-    panel.innerHTML='<div class="card explore-category-head"><h3>'+LSCategoryIcon(c)+' <span>'+esc(c)+'</span></h3><p>'+esc(d.description)+'</p></div><div class="explore-video-grid">'+cards+'</div>'+empty;primePreviewVideos(panel);
-    $$("[data-add]").forEach(b=>b.onclick=async()=>{let t=d.terms[+b.dataset.add],picked=playableMap.get(norm(t));if(!picked)return toast("Vídeo indisponível.");try{await save(t,picked,c,"category_explorer");renderCards(false)}catch(e){console.error(e);toast("Falha ao adicionar")}});
+    panel.innerHTML='<div class="card explore-category-head"><h3>'+LSCategoryIcon(c)+' <span>'+esc(c)+'</span></h3><p>'+esc(d.description)+'</p></div><div class="explore-video-grid">'+cards+'</div>'+(cards?'':'<div class="surface center"><p>Nenhum sinal com vídeo cadastrado nesta categoria.</p></div>');
+    primePreviewVideos(panel);
+    $$("[data-explore-preview]").forEach(v=>{
+      v.onerror=async()=>{
+        if(v.dataset.fallbackBusy==="1")return;
+        v.dataset.fallbackBusy="1";
+        let i=+v.dataset.explorePreview,t=d.terms[i],bad=(playableMap.get(norm(t))||{}).url||"";
+        let candidates=(optionMap.get(norm(t))||[]).filter(x=>x.url&&x.url!==bad&&knownMediaHealth(x.url)!==false);
+        try{
+          let picked=await firstPlayable(candidates,{timeout:1800,max:4});
+          if(picked){
+            playableMap.set(norm(t),picked);
+            v.dataset.previewLoaded="0";v.dataset.previewObserved="0";v.dataset.previewSrc=picked.url;
+            v.removeAttribute("src");v.classList.remove("preview-ready");primePreviewVideo(v);
+          }else{
+            playableMap.delete(norm(t));
+            v.closest("[data-explore-card]")?.remove();
+          }
+        }catch{playableMap.delete(norm(t));v.closest("[data-explore-card]")?.remove()}
+        finally{v.dataset.fallbackBusy="0"}
+      };
+    });
+    $$("[data-add]").forEach(b=>b.onclick=async()=>{
+      let i=+b.dataset.add,t=d.terms[i],list=optionMap.get(norm(t))||[],picked=playableMap.get(norm(t));
+      b.disabled=true;
+      try{
+        if(!picked||knownMediaHealth(picked.url)!==true)picked=await firstPlayable(list,{timeout:2200,max:5});
+        if(!picked){playableMap.delete(norm(t));b.closest("[data-explore-card]")?.remove();return toast("Não encontrei um vídeo funcionando para este sinal.")}
+        playableMap.set(norm(t),picked);await save(t,picked,c,"category_explorer");renderCards();
+      }catch(e){console.error(e);toast("Falha ao adicionar")}finally{b.disabled=false}
+    });
     $$("[data-explore-variants]").forEach(b=>b.onclick=()=>openAvailableVariants(d.terms[+b.dataset.exploreVariants],c));
-    $$("[data-explore-play]").forEach(b=>b.onclick=async()=>{let t=d.terms[+b.dataset.explorePlay],picked=await preferredSignMedia(t);if(!picked){playableMap.delete(norm(t));renderCards(false);return toast("Vídeo indisponível. O sinal foi ocultado do Explorar.");}let id="explore-"+Date.now();modal('<h2>'+esc(title(t))+'</h2><video data-video-id="'+id+'" controls autoplay loop playsinline preload="metadata" src="'+esc(picked.url)+'"></video>'+speedTools(id));bindSpeeds($("#modal-body"));bindVideoFallbacks($("#modal-body"),t)});
+    $$("[data-explore-play]").forEach(b=>b.onclick=async()=>{
+      let t=d.terms[+b.dataset.explorePlay],picked=playableMap.get(norm(t));
+      if(!picked||knownMediaHealth(picked.url)===false)picked=await preferredSignMedia(t);
+      if(!picked){playableMap.delete(norm(t));b.closest("[data-explore-card]")?.remove();return toast("Vídeo indisponível.")}
+      let id="explore-"+Date.now();modal('<h2>'+esc(title(t))+'</h2><video data-video-id="'+id+'" controls autoplay loop playsinline preload="metadata" src="'+esc(picked.url)+'"></video>'+speedTools(id));bindSpeeds($("#modal-body"));bindVideoFallbacks($("#modal-body"),t);
+    });
   };
-  panel.innerHTML='<div class="card explore-category-head"><h3>'+LSCategoryIcon(c)+' <span>'+esc(c)+'</span></h3><p>'+esc(d.description)+'</p></div><div class="explore-preview-loading">Carregando prévias dos vídeos…</div>';requestAnimationFrame(()=>panel.scrollIntoView({behavior:"smooth",block:"start"}));
+  panel.innerHTML='<div class="card explore-category-head"><h3>'+LSCategoryIcon(c)+' <span>'+esc(c)+'</span></h3><p>'+esc(d.description)+'</p></div><div class="explore-preview-loading">Preparando as prévias…</div>';
+  requestAnimationFrame(()=>panel.scrollIntoView({behavior:"smooth",block:"start"}));
   try{
-    await catalog();d.terms.forEach(t=>{let list=opts(t);optionMap.set(norm(t),list);if(list[0])playableMap.set(norm(t),list[0])});renderCards(true);let cursor=0,workers=Math.min(6,d.terms.length);
-    await Promise.all(Array.from({length:workers},async()=>{while(cursor<d.terms.length){let t=d.terms[cursor++],o=optionMap.get(norm(t))||[];if(!o.length)continue;try{let picked=await firstPlayable(o,{timeout:3200,max:10});if(picked)playableMap.set(norm(t),picked)}catch(e){console.warn("verificação explorar",t,e)}}}));
-  }catch(e){console.error(e);verificationFailed=true}
-  renderCards(false);requestAnimationFrame(()=>panel.scrollIntoView({behavior:"smooth",block:"start"}));
+    await catalog();
+    d.terms.forEach(t=>{
+      let list=dedupeCandidates(opts(t)).filter(x=>x.url&&knownMediaHealth(x.url)!==false);
+      optionMap.set(norm(t),list);
+      let first=list.find(x=>knownMediaHealth(x.url)===true)||list[0];
+      if(first)playableMap.set(norm(t),first);
+    });
+    renderCards();
+  }catch(e){
+    console.error(e);
+    panel.innerHTML='<div class="card explore-category-head"><h3>'+LSCategoryIcon(c)+' <span>'+esc(c)+'</span></h3><p>'+esc(d.description)+'</p></div><div class="surface center"><p>Não consegui carregar o catálogo agora.</p></div>';
+  }
 }
 function smap(){return Object.fromEntries(S.study.map(x=>[x.lesson_id,x]))}
 function study(){let L=window.LIBRAS_STUDY_CONTENT||[],m=smap(),done=L.filter(x=>m[x.id]?.completed).length;$("#study-count").textContent=done+" de "+L.length+" aulas";$("#study-pct").textContent=Math.round(done/Math.max(1,L.length)*100)+"%";let mods=[...new Set(L.map(x=>x.module))],a=$("#study-modules").dataset.active||"";$("#study-modules").innerHTML='<button data-mod="" class="'+(!a?"active":"")+'">Todas</button>'+mods.map(x=>'<button data-mod="'+esc(x)+'" class="'+(a===x?"active":"")+'">'+esc(moduleLabel(x))+"</button>").join("");$$("[data-mod]").forEach(b=>b.onclick=()=>{$("#study-modules").dataset.active=b.dataset.mod;study()});let q=norm($("#study-search").value),F=L.filter(x=>(!a||x.module===a)&&(!q||norm(x.title+" "+x.summary).includes(q)));$("#study-list").innerHTML=F.map(x=>'<article class="lesson" id="lesson-'+x.id+'"><small>'+LSIcon("lesson","icon-sm")+" "+esc(moduleLabel(x.module))+" · "+esc(x.level)+'</small><h3>'+esc(x.title)+'</h3><p>'+esc(x.summary)+'</p>'+x.sections.map(sec=>'<h4>'+esc(sec[0])+'</h4><p>'+esc(sec[1])+"</p>").join("")+'<div class="practice"><b>Prática</b><p>'+esc(x.practice)+'</p></div><ul>'+x.take.map(t=>"<li>"+esc(t)+"</li>").join("")+"</ul>"+(x.resources||[]).map(r=>'<a class="resource" href="'+esc(r[1])+'" target="_blank">↗ '+esc(r[0])+"</a>").join("")+'<div class="continue-actions"><button class="soft" data-focus-lesson="'+x.id+'">Continuar desta aula</button><label class="complete"><input type="checkbox" data-lesson="'+x.id+'" '+(m[x.id]?.completed?"checked":"")+'> Aula concluída</label></div></article>').join("");$$("[data-focus-lesson]").forEach(b=>b.onclick=()=>{localStorage.setItem("ls-last-lesson",b.dataset.focusLesson);toast("Aula marcada para continuar depois.")});$$("[data-lesson]").forEach(c=>c.onchange=()=>saveLesson(c.dataset.lesson,c.checked));if(window.LSHydrateIcons)LSHydrateIcons($("#study"))}
@@ -338,7 +402,7 @@ function library(){
     let rows=it.map((x,i)=>{
       let media=libraryVideoUrl(x),tone=(groupIndex+i)%5,moveOptions=categories.filter(z=>z!==c).map(z=>'<option value="'+esc(z)+'">'+esc(z)+'</option>').join("");
       return '<article class="library-sign-card tone-'+tone+'" draggable="true" data-library-card="'+esc(x.studio_id)+'" data-current-category="'+esc(c)+'">'+
-        '<div class="library-media">'+(media?'<video data-library-preview="'+esc(x.studio_id)+'" muted playsinline preload="metadata" src="'+esc(media)+'"></video>':'<div class="library-media-empty"><span>Prévia indisponível</span></div>')+'<button class="library-media-play" data-library-play="'+esc(x.studio_id)+'" data-library-play-name="'+esc(x.name)+'" aria-label="Reproduzir '+esc(x.name)+'">▶</button></div>'+
+        '<div class="library-media">'+(media?'<video data-library-preview="'+esc(x.studio_id)+'" data-preview-src="'+esc(media)+'" muted playsinline preload="none"></video>':'')+'<button class="library-media-play" data-library-play="'+esc(x.studio_id)+'" data-library-play-name="'+esc(x.name)+'" aria-label="Reproduzir '+esc(x.name)+'">▶</button></div>'+
         '<div class="library-card-copy"><b>'+esc(x.name)+'</b><small>'+esc(c)+'</small></div>'+
         '<div class="library-card-actions"><select data-library-move="'+esc(x.studio_id)+'" aria-label="Mover '+esc(x.name)+'"><option value="">Mover…</option>'+moveOptions+'</select><button class="soft" data-library-variants="'+esc(x.norm||norm(x.name))+'">Variações</button><button class="danger" data-library-delete="'+esc(x.studio_id)+'">Excluir</button></div>'+
       '</article>';
@@ -373,7 +437,7 @@ function bindLibraryRows(){
   });
   document.querySelectorAll("[data-library-move]").forEach(sel=>sel.onchange=()=>{let c=sel.value;if(c)moveLibraryItem(sel.dataset.libraryMove,c)});
   document.querySelectorAll("[data-library-delete]").forEach(b=>b.onclick=()=>deleteLibraryItem(b.dataset.libraryDelete));
-  document.querySelectorAll("[data-library-play]").forEach(b=>b.onclick=()=>playPreferredSign(b.dataset.libraryPlayName||"",b.dataset.libraryPlay));document.querySelectorAll("[data-library-preview]").forEach(v=>{v.onerror=()=>v.closest("[data-library-card]")?.remove()});
+  document.querySelectorAll("[data-library-play]").forEach(b=>b.onclick=()=>playPreferredSign(b.dataset.libraryPlayName||"",b.dataset.libraryPlay));document.querySelectorAll("[data-library-preview]").forEach(v=>{v.onerror=async()=>{if(v.dataset.fallbackBusy==="1")return;v.dataset.fallbackBusy="1";let id=v.dataset.libraryPreview,item=S.signs.find(x=>x.studio_id===id),bad=v.dataset.previewSrc||"";if(!item){v.closest("[data-library-card]")?.remove();return}try{await catalog();let candidates=allMediaCandidates(item.name).filter(x=>x.url&&x.url!==bad&&knownMediaHealth(x.url)!==false),picked=await firstPlayable(candidates,{timeout:1800,max:5});if(!picked){v.closest("[data-library-card]")?.remove();return}await repairMedia(id,picked);v.dataset.previewLoaded="0";v.dataset.previewObserved="0";v.dataset.previewSrc=picked.url;v.removeAttribute("src");v.classList.remove("preview-ready");primePreviewVideo(v)}catch(e){console.warn("prévia biblioteca",e);v.closest("[data-library-card]")?.remove()}finally{v.dataset.fallbackBusy="0"}}});
   document.querySelectorAll("[data-library-variants]").forEach(b=>b.onclick=()=>openLibraryVariants(b.dataset.libraryVariants));
 }
 async function moveLibraryItem(studioId,category){
