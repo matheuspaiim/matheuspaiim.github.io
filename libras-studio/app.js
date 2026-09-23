@@ -1,4 +1,4 @@
-const APP_VERSION="0.5.59";
+const APP_VERSION="0.5.60";
 const cfg=window.LIBRAS_STUDIO_CONFIG||{},$=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const nativeParams=new URLSearchParams(location.search);
 const IS_NATIVE_ANDROID=nativeParams.get("native")==="android";
@@ -54,7 +54,28 @@ function openProfileNameEditor(){
 }
 function authUI(){let on=!!S.session;$("#auth").classList.toggle("hidden",on);$("#app").classList.toggle("hidden",!on);if(on){$("#account").textContent="☁️ "+(S.session.user.email||"Conta");renderProfileIdentity()}else closeProfileMenu()}
 function cache(){let key=userCacheKey();if(!key)return;try{localStorage.setItem(key,JSON.stringify({signs:S.signs,cats:S.cats,reviews:S.reviews,study:S.study,updated_at:new Date().toISOString()}))}catch(e){console.warn("cache local",e)}}
-function cached(userId=activeUserId()){try{let key=userCacheKey(userId),raw=key?localStorage.getItem(key):null;if(!raw&&userId){raw=localStorage.getItem("ls-full");if(raw){localStorage.setItem(key,raw);localStorage.removeItem("ls-full")}}let x=JSON.parse(raw||"{}");S.signs=x.signs||[];S.cats=x.cats||[];S.reviews=x.reviews||[];S.study=x.study||[];return !!raw}catch{return false}}
+function signNormKey(x){return String(x?.norm||norm(x?.name||"")).trim()}
+function stableVariantIdentity(x){
+  let n=signNormKey(x),vk=String(x?.variant_key||"").trim(),path=String(x?.media_path||"").trim(),url=String(x?.source_url||"").trim().replace(/^http:/,"https:");
+  if(vk)return n+"|variant|"+vk;
+  if(path)return n+"|path|"+path;
+  if(url)return n+"|url|"+url;
+  return n+"|id|"+String(x?.studio_id||"")
+}
+function compactExactDuplicateVariants(){
+  let seen=new Map,out=[],removed=[];
+  for(let item of(S.signs||[])){
+    let key=stableVariantIdentity(item),kept=seen.get(key);
+    if(!kept){seen.set(key,item);out.push(item);continue}
+    for(let field of["media_url","media_path","media_sha1","source_url","source_id","source_name","source_label","category_name","category_source","category_tags"]){
+      if(!kept[field]&&item[field])kept[field]=item[field]
+    }
+    removed.push(item)
+  }
+  if(removed.length)S.signs=out;
+  return removed
+}
+function cached(userId=activeUserId()){try{let key=userCacheKey(userId),raw=key?localStorage.getItem(key):null;if(!raw&&userId){raw=localStorage.getItem("ls-full");if(raw){localStorage.setItem(key,raw);localStorage.removeItem("ls-full")}}let x=JSON.parse(raw||"{}");S.signs=x.signs||[];S.cats=x.cats||[];S.reviews=x.reviews||[];S.study=x.study||[];let removed=compactExactDuplicateVariants();if(removed.length&&key)localStorage.setItem(key,JSON.stringify({signs:S.signs,cats:S.cats,reviews:S.reviews,study:S.study,updated_at:new Date().toISOString()}));return !!raw}catch{return false}}
 function pendingOps(){let key=pendingKey();if(!key)return[];try{return JSON.parse(localStorage.getItem(key)||"[]")}catch{return[]}}
 function setPendingOps(ops){let key=pendingKey();if(!key)return;try{if(ops.length)localStorage.setItem(key,JSON.stringify(ops));else localStorage.removeItem(key)}catch(e){console.warn("fila offline",e)}}
 function queuePending(type,key,row){let ops=pendingOps(),id=type+":"+key,next={type,key,row,queued_at:new Date().toISOString()},i=ops.findIndex(x=>x.type+":"+x.key===id);if(i>=0)ops[i]=next;else ops.push(next);setPendingOps(ops)}
@@ -80,6 +101,7 @@ async function pushPhoneSnapshot(){
   if(!S.session||S.session.offline)throw new Error("Entre na conta antes de sincronizar.");
   if(!navigator.onLine)throw new Error("Conecte-se à internet para sincronizar.");
   localStatus("📱 Enviando o celular para a nuvem…");
+  compactExactDuplicateVariants();cache();
   const remote=await cloudSnapshot({includeDeleted:true}),now=new Date().toISOString();
   const cats=(S.cats||[]).map(x=>phoneCategoryRow(x,now)),signs=(S.signs||[]).map(x=>phoneSignRow(x,now)),reviews=(S.reviews||[]).filter(x=>x.norm).map(x=>phoneReviewRow(x,now)),study=phoneStudyRows(remote.study,now);
   const catNames=new Set(cats.map(x=>x.name)),signIds=new Set(signs.map(x=>x.studio_id)),reviewNorms=new Set(reviews.map(x=>x.norm));
@@ -99,7 +121,7 @@ async function pullDesktopSnapshot(){
   localStatus("🖥️ Baixando a versão do Desktop…");
   const remote=await cloudSnapshot();
   S.cats=remote.cats;S.signs=remote.signs;S.reviews=remote.reviews;S.study=remote.study;
-  setPendingOps([]);cache();render();await signMedia();cache();render();localStatus("☁️ versão do Desktop aplicada");
+  compactExactDuplicateVariants();setPendingOps([]);cache();render();await signMedia();cache();render();localStatus("☁️ versão do Desktop aplicada");
   return{categories:S.cats.length,signs:S.signs.length,reviews:S.reviews.length,study:S.study.filter(x=>x.completed).length}
 }
 function closeSyncChoice(){$("#modal").classList.add("hidden")}
@@ -326,7 +348,13 @@ async function playPreferredSign(name,fallbackStudioId=""){modal('<h2>'+esc(titl
 async function repairMedia(studioId,candidate){if(!studioId||!candidate?.url||!S.session)return;let patch={source_id:candidate.source_id||"fallback",source_name:candidate.source_name||"Fonte alternativa",source_url:candidate.url,media_url:candidate.url,updated_at:new Date().toISOString()},item=S.signs.find(x=>x.studio_id===studioId);if(item){deleteCachedLibraryVideo(item);Object.assign(item,patch);cache();render()}}
 function catFor(n){let k=norm(n);for(let[c,d]of Object.entries(window.LIBRAS_EXPLORE_DATA||{}))if(d.terms.some(x=>norm(x)===k))return c;return"Outros"}
 function uuid(){return crypto.randomUUID?crypto.randomUUID():Date.now()+"-"+Math.random()}
-async function save(name,o,cat=null,origin="catalog"){let n=norm(name),now=new Date().toISOString(),row={user_id:S.session.user.id,studio_id:uuid(),name:title(name),norm:n,variant_no:S.signs.filter(x=>x.norm===n).length+1,variant_key:"mobile|"+n+"|"+norm(o.url),category_name:cat||catFor(name),category_source:cat?"explore":"auto",category_tags:"[]",source_id:o.source_id,source_name:o.source_name,source_url:o.url,source_label:o.label,origin,media_url:o.url,created_at:now,updated_at:now,deleted_at:null};S.signs.push(row);cache();render();localStatus("📱 alterações locais · sincronize quando quiser");return row}
+async function save(name,o,cat=null,origin="catalog"){
+  let n=norm(name),url=String(o?.url||"").replace(/^http:/,"https:"),variantKey="mobile|"+n+"|"+norm(url);
+  let existing=S.signs.find(x=>signNormKey(x)===n&&(String(x.variant_key||"")===variantKey||(url&&String(x.source_url||"").replace(/^http:/,"https:")===url)));
+  if(existing)return existing;
+  let now=new Date().toISOString(),row={user_id:S.session.user.id,studio_id:uuid(),name:title(name),norm:n,variant_no:S.signs.filter(x=>signNormKey(x)===n).length+1,variant_key:variantKey,category_name:cat||catFor(name),category_source:cat?"explore":"auto",category_tags:"[]",source_id:o.source_id,source_name:o.source_name,source_url:o.url,source_label:o.label,origin,media_url:o.url,created_at:now,updated_at:now,deleted_at:null};
+  S.signs.push(row);cache();render();localStatus("📱 alterações locais · sincronize quando quiser");return row
+}
 async function createSign(){let names=$("#create-name").value.split(/\n/).map(x=>x.trim()).filter(Boolean);if(!names.length)return toast("Digite o nome do sinal.");$("#create-name").value="";if(names.length===1){let n=names[0];$("#create-result").innerHTML='<div class="result">🔎 Buscando e verificando os vídeos…</div>';await catalog();let options=opts(n);if(!options.length)return $("#create-result").innerHTML='<div class="result">🔎 Não encontrei correspondência exata.</div>';let picked=await firstPlayable(options,{timeout:3800,max:10});if(!picked)return $("#create-result").innerHTML='<div class="result"><b>⚠️ Encontrei '+options.length+' gravação(ões), mas nenhuma carregou agora.</b><p>O Studio não vai salvar um vídeo quebrado. Tente novamente mais tarde ou veja as variações.</p></div>';try{let r=await save(n,picked);$("#create-result").innerHTML='<div class="result phrase-ok"><b>✅ '+esc(r.name)+'</b><video controls loop playsinline src="'+esc(r.media_url)+'"></video></div>';toast("Salvo com vídeo verificado ☁️")}catch(e){console.error(e);toast("Não consegui salvar.")}return}$("#create-result").innerHTML='<div class="result">🔎 Processando '+names.length+' sinais…</div>';await catalog();let ok=[],fail=[];for(let n of names){try{let options=opts(n),picked=options.length?await firstPlayable(options,{timeout:3200,max:10}):null;if(!picked){fail.push(n);continue}await save(n,picked,null,"batch");ok.push(n)}catch(e){console.error("lote",n,e);fail.push(n)}}$("#create-result").innerHTML='<div class="result"><b>✅ '+ok.length+' de '+names.length+' sinais salvos</b>'+(fail.length?'<p>Não encontrados: '+esc(fail.join(", "))+'</p>':'')+'</div>';toast(ok.length+" sinal(is) adicionado(s) ☁️")}
 async function variants(){let names=$("#create-name").value.split(/\n/).map(x=>x.trim()).filter(Boolean);if(!names.length)return toast("Digite um sinal primeiro.");if(names.length>1)return toast("Para ver variações, deixe apenas um sinal no campo.");let n=names[0];await openAvailableVariants(n,catFor(n))}
 async function uploadVideo(f){if(!f)return;let names=$("#create-name").value.split(/\n/).map(x=>x.trim()).filter(Boolean);if(!names.length)return toast("Digite o nome antes.");if(names.length>1)return toast("Para enviar um vídeo, deixe apenas um sinal no campo.");let n=names[0],path=S.session.user.id+"/"+Date.now()+"_"+f.name.replace(/[^a-zA-Z0-9._-]/g,"_"),up=await sb.storage.from("sign-videos").upload(path,f);if(up.error)return toast("Falha no upload.");let now=new Date().toISOString(),row={user_id:S.session.user.id,studio_id:uuid(),name:title(n),norm:norm(n),variant_no:S.signs.filter(x=>x.norm===norm(n)).length+1,variant_key:"upload|"+path,category_name:catFor(n),category_source:"auto",category_tags:"[]",source_id:"mobile_upload",source_name:"Vídeo meu",origin:"mobile_upload",media_path:path,created_at:now,updated_at:now,deleted_at:null};let z=await sb.storage.from("sign-videos").createSignedUrl(path,86400);row.media_url=z.data?.signedUrl||"";S.signs.push(row);cache();render();localStatus("📱 alterações locais · sincronize quando quiser");toast("Vídeo salvo no celular. Sincronize quando quiser.")}
@@ -437,24 +465,41 @@ const LIBRARY_OPEN_KEY="ls-library-open-v1";
 function libraryOpenSet(){try{return new Set(JSON.parse(localStorage.getItem(LIBRARY_OPEN_KEY)||"[]"))}catch{return new Set}}
 function saveLibraryOpenSet(set){try{localStorage.setItem(LIBRARY_OPEN_KEY,JSON.stringify([...set]))}catch{}}
 function bindLibraryCategories(){document.querySelectorAll("[data-cat-toggle]").forEach(btn=>btn.onclick=()=>{let name=btn.dataset.catToggle;if(!name)return;let next=btn.getAttribute("aria-expanded")!=="true",open=new Set;if(next)open.add(name);saveLibraryOpenSet(open);library();if(next)requestAnimationFrame(()=>document.querySelector('[data-drop-category="'+CSS.escape(name)+'"]')?.scrollIntoView({behavior:"smooth",block:"start"}))})}
+function libraryRepresentative(items){
+  let list=[...(items||[])].sort((a,b)=>Number(a.variant_no||999)-Number(b.variant_no||999));
+  return list.find(x=>nativeCachedVideoUrl(x.studio_id))||list.find(x=>libraryVideoUrl(x))||list[0]
+}
+function libraryGroupCategory(items){
+  let counts=new Map;
+  for(let x of items||[]){let c=x.category_name||"Outros";counts.set(c,(counts.get(c)||0)+1)}
+  return[...counts.entries()].sort((a,b)=>b[1]-a[1])[0]?.[0]||"Outros"
+}
 function library(){
-  let q=norm($("#library-search")?.value||""),cat=$("#library-cat")?.value||"",g={},open=libraryOpenSet();
-  let filtered=S.signs.filter(s=>(!cat||s.category_name===cat)&&(!q||norm(s.name+" "+s.category_name).includes(q))&&!!libraryVideoUrl(s));
-  filtered.forEach(s=>(g[s.category_name||"Outros"]??=[]).push(s));
+  compactExactDuplicateVariants();
+  let q=norm($("#library-search")?.value||""),cat=$("#library-cat")?.value||"",open=libraryOpenSet(),byNorm=new Map;
+  for(let item of S.signs){
+    if(!libraryVideoUrl(item))continue;
+    let key=signNormKey(item);
+    if(!key||q&&!norm((item.name||"")+" "+(item.category_name||"")).includes(q))continue;
+    if(!byNorm.has(key))byNorm.set(key,[]);
+    byNorm.get(key).push(item)
+  }
+  let grouped=[...byNorm.entries()].map(([key,variants])=>({key,variants,rep:libraryRepresentative(variants),category:libraryGroupCategory(variants)})).filter(x=>!cat||x.category===cat);
+  let g={};for(let row of grouped)(g[row.category]??=[]).push(row);
   let total=$("#library-total-signs"),cats=$("#library-total-cats");
-  if(total)total.textContent=new Set(S.signs.map(x=>x.norm)).size;
+  if(total)total.textContent=new Set(S.signs.map(signNormKey).filter(Boolean)).size;
   if(cats)cats.textContent=new Set(S.signs.map(x=>x.category_name).filter(Boolean)).size;
   let categories=[...new Set([...S.cats.map(x=>x.name),...S.signs.map(x=>x.category_name)].filter(Boolean))].sort((a,b)=>a.localeCompare(b,"pt-BR"));
   let groups=Object.entries(g).sort((a,b)=>a[0].localeCompare(b[0],"pt-BR"));
   $("#library-list").innerHTML=groups.map(([c,it],groupIndex)=>{
-    let expanded=!!q||!!cat||open.has(c),count=new Set(it.map(x=>x.norm)).size,rows="";
+    let expanded=!!q||!!cat||open.has(c),count=it.length,rows="";
     if(expanded){
-      rows=it.map((x,i)=>{
-        let media=libraryVideoUrl(x),tone=(groupIndex+i)%5,moveOptions=categories.filter(z=>z!==c).map(z=>'<option value="'+esc(z)+'">'+esc(z)+'</option>').join("");
-        return '<article class="library-sign-card tone-'+tone+'" draggable="true" data-library-card="'+esc(x.studio_id)+'" data-current-category="'+esc(c)+'">'+
+      rows=it.map((entry,i)=>{
+        let x=entry.rep,media=libraryVideoUrl(x),tone=(groupIndex+i)%5,moveOptions=categories.filter(z=>z!==c).map(z=>'<option value="'+esc(z)+'">'+esc(z)+'</option>').join("");
+        return '<article class="library-sign-card tone-'+tone+'" draggable="true" data-library-card="'+esc(entry.key)+'" data-current-category="'+esc(c)+'">'+
           '<div class="library-media">'+(media?'<video data-library-preview="'+esc(x.studio_id)+'" data-preview-src="'+esc(media)+'" muted playsinline preload="none"></video>':'')+'<button class="library-media-play" data-library-play="'+esc(x.studio_id)+'" aria-label="Reproduzir '+esc(x.name)+'">▶</button></div>'+
           '<div class="library-card-copy"><b>'+esc(x.name)+'</b><small>'+esc(c)+'</small></div>'+
-          '<div class="library-card-actions"><select data-library-move="'+esc(x.studio_id)+'" aria-label="Mover '+esc(x.name)+'"><option value="">Mover…</option>'+moveOptions+'</select><button class="soft" data-library-variants="'+esc(x.norm||norm(x.name))+'">Variações</button><button class="danger" data-library-delete="'+esc(x.studio_id)+'">Excluir</button></div>'+
+          '<div class="library-card-actions"><select data-library-move="'+esc(entry.key)+'" aria-label="Mover '+esc(x.name)+'"><option value="">Mover…</option>'+moveOptions+'</select><button class="soft" data-library-variants="'+esc(entry.key)+'">Variações</button><button class="danger" data-library-delete="'+esc(entry.key)+'">Excluir</button></div>'+
         '</article>';
       }).join("");
     }
@@ -491,8 +536,20 @@ function bindLibraryRows(){
   document.querySelectorAll("[data-library-play]").forEach(b=>b.onclick=()=>openOrRepairLibrarySign(b.dataset.libraryPlay));document.querySelectorAll("[data-library-preview]").forEach(v=>{v.onerror=async()=>{if(v.dataset.fallbackBusy==="1")return;v.dataset.fallbackBusy="1";let id=v.dataset.libraryPreview,item=S.signs.find(x=>x.studio_id===id),bad=v.dataset.previewSrc||"";if(!item){v.closest("[data-library-card]")?.remove();return}try{await catalog();let candidates=allMediaCandidates(item.name).filter(x=>x.url&&x.url!==bad&&knownMediaHealth(x.url)!==false),picked=await firstPlayable(candidates,{timeout:1800,max:5});if(!picked){v.closest("[data-library-card]")?.remove();return}await repairMedia(id,picked);v.dataset.previewLoaded="0";v.dataset.previewObserved="0";v.dataset.previewSrc=picked.url;v.removeAttribute("src");v.classList.remove("preview-ready");primeLibraryPreview(v)}catch(e){console.warn("prévia biblioteca",e);v.closest("[data-library-card]")?.remove()}finally{v.dataset.fallbackBusy="0"}}});
   document.querySelectorAll("[data-library-variants]").forEach(b=>b.onclick=()=>openLibraryVariants(b.dataset.libraryVariants));
 }
-async function moveLibraryItem(studioId,category){let item=S.signs.find(x=>x.studio_id===studioId);if(!item||!category||item.category_name===category)return;Object.assign(item,{category_name:category,category_source:"manual",updated_at:new Date().toISOString()});cache();library();localStatus("📱 alterações locais · sincronize quando quiser");toast("Movido para "+category)}
-async function deleteLibraryItem(studioId){let item=S.signs.find(x=>x.studio_id===studioId);if(!item||!confirm("Excluir "+item.name+" da biblioteca?"))return;S.signs=S.signs.filter(x=>x.studio_id!==studioId);deleteCachedLibraryVideo(item);cache();render();localStatus("📱 alterações locais · sincronize quando quiser");toast("Sinal removido do celular.")}
+async function moveLibraryItem(signNorm,category){
+  let variants=S.signs.filter(x=>signNormKey(x)===signNorm),first=variants[0];
+  if(!first||!category||variants.every(x=>x.category_name===category))return;
+  let now=new Date().toISOString();
+  variants.forEach(x=>Object.assign(x,{category_name:category,category_source:"manual",updated_at:now}));
+  cache();library();localStatus("📱 alterações locais · sincronize quando quiser");toast("Movido para "+category)
+}
+async function deleteLibraryItem(signNorm){
+  let variants=S.signs.filter(x=>signNormKey(x)===signNorm),first=variants[0];
+  if(!first||!confirm("Excluir "+first.name+" da biblioteca?"))return;
+  variants.forEach(deleteCachedLibraryVideo);
+  S.signs=S.signs.filter(x=>signNormKey(x)!==signNorm);
+  cache();render();localStatus("📱 alterações locais · sincronize quando quiser");toast("Sinal removido do celular.")
+}
 async function newCat(){let n=prompt("Nome da categoria:");if(!n)return;let e=prompt("Emoji:","🧩")||"🧩",now=new Date().toISOString(),row={user_id:S.session.user.id,name:title(n),emoji:e,description:"",sort_order:999,is_custom:true,is_hidden:false,created_at:now,updated_at:now,deleted_at:null};S.cats.push(row);cache();render();localStatus("📱 alterações locais · sincronize quando quiser")}
 function reviewCats(){let s=$("#review-cat");if(!s)return;let v=s.value,cs=[...new Set(S.signs.map(x=>x.category_name).filter(Boolean))].sort();s.innerHTML='<option value="">Todas</option>'+cs.map(x=>'<option>'+esc(x)+"</option>").join("");s.value=v;let m=rmap(),now=Date.now(),u=unique(),due=0,fresh=0,reviewed=0;u.forEach(x=>{let r=m[x.norm];if(!r)fresh++;else{if(r.last_reviewed_at)reviewed++;if(r.due_at&&new Date(r.due_at).getTime()<=now)due++}});let d=$("#review-due-metric"),n=$("#review-new-metric"),rv=$("#review-reviewed-metric");if(d)d.textContent=due;if(n)n.textContent=fresh;if(rv)rv.textContent=reviewed}
 function next(rate,c){let reps=c?.reps||0,e=c?.ease||2.5,iv=+c?.interval_days||0,d=0,l=c?.lapses||0,n=reps;if(rate==="again"){d=10/1440;e=Math.max(1.3,e-.2);l++}if(rate==="hard"){d=reps?Math.max(1,iv*1.2):.25;e=Math.max(1.3,e-.15);n++}if(rate==="good"){d=reps===0?1:reps===1?3:Math.max(1,iv*e);n++}if(rate==="easy"){e=Math.min(3.5,e+.15);d=reps?Math.max(2,iv*(e+.3)):4;n++}return{interval_days:d,ease:e,reps:n,lapses:l,due_at:new Date(Date.now()+d*864e5).toISOString()}}
