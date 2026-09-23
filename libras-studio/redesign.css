@@ -1943,3 +1943,71 @@ body{background:var(--studio-bg)}
       0 6px 18px rgba(49,36,78,.024)!important;
   }
 }
+
+
+/* =========================================================
+   Pastéis dissolvidos de verdade 0.5.64
+   A cor do próprio card perde intensidade nas extremidades.
+   ========================================================= */
+
+/* Home: categorias da captura */
+#home .shortcut-cat{
+  border:0!important;
+  box-shadow:none!important;
+  position:relative;
+  overflow:hidden;
+}
+#home .shortcut-cat:nth-child(7n+1){
+  background:radial-gradient(125% 118% at 50% 46%,#eee7ff 0 56%,rgba(238,231,255,.90) 68%,rgba(238,231,255,.55) 82%,rgba(238,231,255,.16) 94%,rgba(238,231,255,0) 100%)!important;
+}
+#home .shortcut-cat:nth-child(7n+2){
+  background:radial-gradient(125% 118% at 50% 46%,#e5f7ed 0 56%,rgba(229,247,237,.90) 68%,rgba(229,247,237,.55) 82%,rgba(229,247,237,.16) 94%,rgba(229,247,237,0) 100%)!important;
+}
+#home .shortcut-cat:nth-child(7n+3){
+  background:radial-gradient(125% 118% at 50% 46%,#ffe9ef 0 56%,rgba(255,233,239,.90) 68%,rgba(255,233,239,.55) 82%,rgba(255,233,239,.16) 94%,rgba(255,233,239,0) 100%)!important;
+}
+#home .shortcut-cat:nth-child(7n+4){
+  background:radial-gradient(125% 118% at 50% 46%,#e8f4ff 0 56%,rgba(232,244,255,.90) 68%,rgba(232,244,255,.55) 82%,rgba(232,244,255,.16) 94%,rgba(232,244,255,0) 100%)!important;
+}
+#home .shortcut-cat:nth-child(7n+5){
+  background:radial-gradient(125% 118% at 50% 46%,#ffefdf 0 56%,rgba(255,239,223,.90) 68%,rgba(255,239,223,.55) 82%,rgba(255,239,223,.16) 94%,rgba(255,239,223,0) 100%)!important;
+}
+#home .shortcut-cat:nth-child(7n+6){
+  background:radial-gradient(125% 118% at 50% 46%,#ffe9f4 0 56%,rgba(255,233,244,.90) 68%,rgba(255,233,244,.55) 82%,rgba(255,233,244,.16) 94%,rgba(255,233,244,0) 100%)!important;
+}
+#home .shortcut-cat:nth-child(7n+7){
+  background:radial-gradient(125% 118% at 50% 46%,#e8f6e7 0 56%,rgba(232,246,231,.90) 68%,rgba(232,246,231,.55) 82%,rgba(232,246,231,.16) 94%,rgba(232,246,231,0) 100%)!important;
+}
+
+/* Explorar */
+#explore .explore-signal-card{
+  border:0!important;
+  box-shadow:none!important;
+}
+#explore .explore-signal-card:nth-child(5n+1){background:radial-gradient(125% 118% at 50% 46%,#eee8ff 0 58%,rgba(238,232,255,.72) 80%,rgba(238,232,255,0) 100%)!important}
+#explore .explore-signal-card:nth-child(5n+2){background:radial-gradient(125% 118% at 50% 46%,#e7f4ff 0 58%,rgba(231,244,255,.72) 80%,rgba(231,244,255,0) 100%)!important}
+#explore .explore-signal-card:nth-child(5n+3){background:radial-gradient(125% 118% at 50% 46%,#ffe9ef 0 58%,rgba(255,233,239,.72) 80%,rgba(255,233,239,0) 100%)!important}
+#explore .explore-signal-card:nth-child(5n+4){background:radial-gradient(125% 118% at 50% 46%,#e8f6ee 0 58%,rgba(232,246,238,.72) 80%,rgba(232,246,238,0) 100%)!important}
+#explore .explore-signal-card:nth-child(5n+5){background:radial-gradient(125% 118% at 50% 46%,#fff0df 0 58%,rgba(255,240,223,.72) 80%,rgba(255,240,223,0) 100%)!important}
+
+/* Trilha */
+#study-list .lesson{
+  border:0!important;
+  box-shadow:none!important;
+}
+#study-list .lesson:nth-child(4n+1){background:radial-gradient(130% 120% at 50% 46%,#f1eaff 0 60%,rgba(241,234,255,.68) 82%,rgba(241,234,255,0) 100%)!important}
+#study-list .lesson:nth-child(4n+2){background:radial-gradient(130% 120% at 50% 46%,#eaf5ff 0 60%,rgba(234,245,255,.68) 82%,rgba(234,245,255,0) 100%)!important}
+#study-list .lesson:nth-child(4n+3){background:radial-gradient(130% 120% at 50% 46%,#ffeaf0 0 60%,rgba(255,234,240,.68) 82%,rgba(255,234,240,0) 100%)!important}
+#study-list .lesson:nth-child(4n+4){background:radial-gradient(130% 120% at 50% 46%,#eaf7ef 0 60%,rgba(234,247,239,.68) 82%,rgba(234,247,239,0) 100%)!important}
+
+/* Cards grandes: transição suave sem apagar o conteúdo */
+#home .home-top-progress>.dash-card:first-child,
+#home .tracking-card,
+#home .quick-actions-card,
+#home .library-hero,
+#home .review-hero,
+#home .continue-card,
+#home .sequence-card{
+  border-color:transparent!important;
+  box-shadow:0 8px 24px rgba(55,36,92,.025)!important;
+}
