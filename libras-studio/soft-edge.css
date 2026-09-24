@@ -38,14 +38,11 @@
 #study-list .lesson::before{
   content:"";
   position:absolute;
-  inset:3px;
+  inset:1px;
   border-radius:inherit;
-  background:radial-gradient(ellipse at center,
-    var(--ls-wash) 0%,
-    var(--ls-wash) 55%,
-    transparent 100%);
-  filter:blur(8px);
-  opacity:.96;
+  background:var(--ls-wash);
+  filter:blur(2.2px);
+  opacity:.78;
   z-index:0;
   pointer-events:none;
 }
@@ -73,7 +70,7 @@
   #home .shortcut-cat::before,
   #explore .explore-signal-card::before,
   #study-list .lesson::before{
-    inset:2px;
-    filter:blur(7px);
+    inset:1px;
+    filter:blur(2px);
   }
 }
