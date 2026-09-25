@@ -32,17 +32,28 @@
 #study-list .lesson:nth-child(4n+3){--ls-wash:#ffe3ea;background:transparent!important}
 #study-list .lesson:nth-child(4n+4){--ls-wash:#e2f3e8;background:transparent!important}
 
-/* A mancha colorida vive atrás do conteúdo e perde opacidade antes da borda. */
+/* Quase todo o card fica com o pastel original.
+   Só os últimos poucos pixels da extremidade perdem opacidade.
+   Sem blur: a borda se dissolve sem criar halo/glow. */
 #home .shortcut-cat::before,
 #explore .explore-signal-card::before,
 #study-list .lesson::before{
   content:"";
   position:absolute;
-  inset:1px;
+  inset:0;
+  --ls-edge-fade:4px;
   border-radius:inherit;
   background:var(--ls-wash);
-  filter:blur(2.2px);
-  opacity:.78;
+  filter:none;
+  opacity:1;
+  -webkit-mask-image:
+    linear-gradient(to right,transparent 0,#000 var(--ls-edge-fade),#000 calc(100% - var(--ls-edge-fade)),transparent 100%),
+    linear-gradient(to bottom,transparent 0,#000 var(--ls-edge-fade),#000 calc(100% - var(--ls-edge-fade)),transparent 100%);
+  -webkit-mask-composite:source-in;
+  mask-image:
+    linear-gradient(to right,transparent 0,#000 var(--ls-edge-fade),#000 calc(100% - var(--ls-edge-fade)),transparent 100%),
+    linear-gradient(to bottom,transparent 0,#000 var(--ls-edge-fade),#000 calc(100% - var(--ls-edge-fade)),transparent 100%);
+  mask-composite:intersect;
   z-index:0;
   pointer-events:none;
 }
@@ -70,7 +81,6 @@
   #home .shortcut-cat::before,
   #explore .explore-signal-card::before,
   #study-list .lesson::before{
-    inset:1px;
-    filter:blur(2px);
+    --ls-edge-fade:3px;
   }
 }
