@@ -41,7 +41,7 @@
   content:"";
   position:absolute;
   inset:0;
-  --ls-edge-fade:4px;
+  --ls-edge-fade:1.5px;
   border-radius:inherit;
   background:var(--ls-wash);
   filter:none;
@@ -81,6 +81,6 @@
   #home .shortcut-cat::before,
   #explore .explore-signal-card::before,
   #study-list .lesson::before{
-    --ls-edge-fade:3px;
+    --ls-edge-fade:1px;
   }
 }
