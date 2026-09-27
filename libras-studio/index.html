@@ -7,22 +7,22 @@
   <script>if(new URLSearchParams(location.search).get("native")==="android")document.documentElement.classList.add("native-app")</script>
   <title>Libras Studio</title>
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" href="libras_studio.png?v=0569" type="image/png">
-  <link rel="stylesheet" href="app.css?v=0569">
-  <link rel="stylesheet" href="redesign.css?v=0569">
-  <link rel="stylesheet" href="soft-edge.css?v=0569">
+  <link rel="icon" href="libras_studio.png?v=0570" type="image/png">
+  <link rel="stylesheet" href="app.css?v=0570">
+  <link rel="stylesheet" href="redesign.css?v=0570">
+  <link rel="stylesheet" href="soft-edge.css?v=0570">
   <script src="vendor/supabase-js-2.116.0.js?v=0540"></script>
   <script src="config.js"></script>
-  <script src="icons.js?v=0569"></script>
-  <script src="study.js?v=0569"></script>
-  <script src="explore-data.js?v=0569"></script>
-  <script src="phrase-data.js?v=0569"></script>
-  <script src="phrase-library.js?v=0569"></script>
+  <script src="icons.js?v=0570"></script>
+  <script src="study.js?v=0570"></script>
+  <script src="explore-data.js?v=0570"></script>
+  <script src="phrase-data.js?v=0570"></script>
+  <script src="phrase-library.js?v=0570"></script>
 </head>
 <body>
 <div id="auth" class="auth">
   <div class="brand" style="justify-content:center;margin-bottom:12px">
-    <span class="brand-mark"><img src="libras_studio.png?v=0569" alt=""></span>
+    <span class="brand-mark"><img src="libras_studio.png?v=0570" alt=""></span>
     <div><div class="brand-title">Libras Studio</div><div class="brand-sub">Aprender conecta pessoas</div></div>
   </div>
   <h1>Bem-vindo</h1>
@@ -35,7 +35,7 @@
 <div id="app" class="hidden app-shell">
   <aside class="desktop-sidebar">
     <div class="brand">
-      <div class="brand-mark"><img src="libras_studio.png?v=0569" alt=""></div>
+      <div class="brand-mark"><img src="libras_studio.png?v=0570" alt=""></div>
       <div><div class="brand-title">Libras Studio</div><div class="brand-sub">Comunicar aproxima.</div></div>
     </div>
     <div class="side-nav">
@@ -145,17 +145,17 @@
               <div class="dash-card-head"><div class="dash-card-title"><span data-icon="continue"></span><h3>Continue de onde parou</h3></div><button class="dash-link" data-go="study">Ver toda a trilha →</button></div>
               <div class="continue-body">
                 <div class="lesson-preview"><span data-icon="education"></span></div>
-                <div class="continue-copy"><small id="home-current-module">Módulo atual</small><h3 id="home-current-title">Comece sua trilha</h3><p id="home-current-summary">Escolha uma aula para iniciar.</p><div class="progress-track"><span id="home-current-progress" style="width:0%"></span></div><small id="home-current-progress-label">0% concluído</small></div>
+                <div class="continue-copy"><small id="home-current-module">Unidade atual</small><h3 id="home-current-title">Comece sua trilha</h3><p id="home-current-summary">Escolha uma aula para iniciar.</p><div class="progress-track"><span id="home-current-progress" style="width:0%"></span></div><small id="home-current-progress-label">0% concluído</small></div>
                 <div class="continue-next"><small>Próxima aula</small><b id="home-next-title">Aguardando progresso</b><span id="home-next-meta"></span></div>
               </div>
-              <div class="continue-actions"><button id="home-continue" class="primary">▶ Continuar aprendendo</button><button class="soft" data-go="study">Ver módulo completo</button></div>
+              <div class="continue-actions"><button id="home-continue" class="primary">▶ Continuar aprendendo</button><button class="soft" data-go="study">Ver unidade completa</button></div>
             </div>
           </div>
 
           <aside class="dashboard-side">
             <div class="dash-card sequence-card">
               <div class="dash-card-head"><div class="dash-card-title"><span data-icon="sequence"></span><h3>Sequência de estudos</h3></div><button class="dash-link" data-go="study">Ver tudo →</button></div>
-              <div class="sequence-summary"><div class="ring" id="home-module-ring" style="--pct:0"><span id="home-module-pct">0%</span></div><div><b id="home-module-count">0 de 0</b><small>módulos concluídos</small></div></div>
+              <div class="sequence-summary"><div class="ring" id="home-module-ring" style="--pct:0"><span id="home-module-pct">0%</span></div><div><b id="home-module-count">0 de 0</b><small>unidades concluídas</small></div></div>
               <div id="home-sequence-list" class="sequence-list"></div>
             </div>
 
@@ -181,8 +181,8 @@
       </section>
 
       <section id="study" class="view page-shell">
-        <div class="title"><h2>Trilha de aprendizagem</h2><p>Avance em uma sequência estruturada, do fundamento à comunicação mais fluida.</p></div>
-        <div class="surface study-summary"><div class="progress"><b id="study-count">0 aulas</b><span id="study-pct">0%</span></div><input id="study-search" placeholder="Buscar aula"><div id="study-modules" class="chips" style="margin-top:10px"></div></div>
+        <div class="title"><h2>Trilha de aprendizagem</h2><p>Siga uma ordem de unidades e aulas, aprendendo sinais antes de avançar para gramática e fluência.</p></div>
+        <div class="surface study-summary"><div class="progress"><b id="study-count">0 aulas</b><span id="study-pct">0%</span></div><input id="study-search" placeholder="Buscar aula ou sinal"><div id="study-modules" class="chips" style="margin-top:10px"></div></div>
         <div id="study-list"></div>
       </section>
 
@@ -210,7 +210,7 @@
       <section id="settings" class="view page-shell">
         <div class="title"><h2>Configurações</h2></div>
         <div class="surface"><h3>Nuvem</h3><p id="account"></p><p class="muted">A sincronização é manual: você escolhe se o celular ou o Desktop deve vencer.</p><button id="sync-now" class="primary wide">Sincronizar dados…</button><button id="logout" class="soft wide">Sair deste dispositivo</button></div>
-        <div class="surface" style="margin-top:12px"><h3>Atualizações</h3><p>Versão <b id="app-version">0.5.67</b>. O Studio usa a mesma versão pública no navegador e no aplicativo, mantendo interface e dados sempre alinhados.</p><button id="update-now" class="soft wide">Verificar atualização</button></div>
+        <div class="surface" style="margin-top:12px"><h3>Atualizações</h3><p>Versão <b id="app-version">0.5.70</b>. O Studio usa a mesma versão pública no navegador e no aplicativo, mantendo interface e dados sempre alinhados.</p><button id="update-now" class="soft wide">Verificar atualização</button></div>
         <div class="surface" style="margin-top:12px"><h3>Integração com o PC</h3><p>AnkiConnect continua local no computador. Biblioteca e progresso permanecem sincronizados pela nuvem.</p></div>
       </section>
 
@@ -231,6 +231,6 @@
 
 <div id="modal" class="modal hidden"><div class="modalbox"><button id="close-modal">×</button><div id="modal-body"></div></div></div>
 <div id="toast"></div>
-<script src="app.js?v=0569"></script>
+<script src="app.js?v=0570"></script>
 </body>
 </html>
