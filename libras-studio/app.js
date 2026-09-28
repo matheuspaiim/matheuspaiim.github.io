@@ -1,4 +1,4 @@
-const APP_VERSION="0.5.73";
+const APP_VERSION="0.5.74";
 const cfg=window.LIBRAS_STUDIO_CONFIG||{},$=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const nativeParams=new URLSearchParams(location.search);
 const IS_NATIVE_ANDROID=nativeParams.get("native")==="android";
@@ -584,6 +584,107 @@ function studyBuildSteps(lesson){
   steps.push({type:"recap",title:lesson.kind==="checkpoint"?"Desafio finalizado":"Fechando a aula",text:lesson.practice||detail.mission,take:lesson.take||[],signs:core});
   return steps;
 }
+const STUDY_WARM_MEDIA=new Map(),STUDY_WARM_ORDER=[],STUDY_WARM_LIMIT=18;
+function studyRememberWarm(key,entry){
+  if(!key||!entry)return entry;
+  STUDY_WARM_MEDIA.set(key,entry);
+  let i=STUDY_WARM_ORDER.indexOf(key);if(i>=0)STUDY_WARM_ORDER.splice(i,1);
+  STUDY_WARM_ORDER.push(key);
+  while(STUDY_WARM_ORDER.length>STUDY_WARM_LIMIT){
+    let old=STUDY_WARM_ORDER.shift(),row=STUDY_WARM_MEDIA.get(old);
+    try{if(row?.video&&!row.video.isConnected){row.video.removeAttribute("src");row.video.load()}}catch{}
+    STUDY_WARM_MEDIA.delete(old);
+  }
+  return entry;
+}
+async function studyWarmUrl(url){
+  if(!url||!navigator.onLine||String(url).startsWith("file:")||String(url).startsWith("blob:"))return;
+  try{await fetch(url,{mode:"no-cors",cache:"force-cache",credentials:"omit"})}catch{}
+}
+function studyCreateWarmVideo(name,media){
+  let key=norm(name),existing=STUDY_WARM_MEDIA.get(key);
+  if(existing?.media?.url===media?.url&&existing.video)return existing;
+  let video=document.createElement("video");
+  video.preload="auto";video.muted=true;video.playsInline=true;video.loop=true;
+  video.setAttribute("playsinline","");video.src=media.url;
+  let ready=new Promise(resolve=>{
+    let done=false,finish=()=>{if(done)return;done=true;resolve(video.readyState>=2&&!video.error)};
+    if(video.readyState>=3)return finish();
+    video.addEventListener("canplaythrough",finish,{once:true});
+    video.addEventListener("canplay",finish,{once:true});
+    video.addEventListener("error",finish,{once:true});
+    setTimeout(finish,6500);
+  });
+  try{video.load()}catch{}
+  studyWarmUrl(media.url);
+  return studyRememberWarm(key,{name,media,video,ready,createdAt:Date.now()});
+}
+async function studyWarmSign(name){
+  let key=norm(name);if(!key)return null;
+  let cached=STUDY_WARM_MEDIA.get(key);
+  if(cached?.media?.url){
+    try{await cached.ready}catch{}
+    return cached;
+  }
+  let media=await preferredStudySignMedia(name).catch(()=>null);
+  if(!media?.url)return null;
+  let row=studyCreateWarmVideo(name,media);
+  try{await row.ready}catch{}
+  return row;
+}
+async function studyWarmNames(names,{limit=8,concurrency=3}={}){
+  let list=[...new Set((names||[]).filter(Boolean).map(x=>String(x).trim()))].slice(0,limit),cursor=0;
+  const worker=async()=>{while(cursor<list.length){let i=cursor++;await studyWarmSign(list[i]).catch(()=>null)}};
+  await Promise.all(Array.from({length:Math.min(concurrency,list.length||1)},worker));
+}
+function studyLessonWarmNames(lesson){
+  return [...new Set([...(lesson?.signs||[]),...(lesson?.expansion||[]),...studyLessonPool(lesson)].filter(Boolean))].slice(0,10);
+}
+function studyWarmLesson(lesson){if(!lesson)return Promise.resolve();return studyWarmNames(studyLessonWarmNames(lesson),{limit:10,concurrency:3})}
+function studyWarmUpcomingSteps(){
+  let p=STUDY_PLAY;if(!p)return;
+  let names=[];
+  for(let i=p.index+1;i<Math.min(p.steps.length,p.index+5);i++){
+    let st=p.steps[i];if(["learn","recognize","produce"].includes(st.type)&&st.target)names.push(st.target);
+  }
+  studyWarmNames(names,{limit:4,concurrency:2}).catch(()=>{});
+}
+function studyMountWarmVideo(root,name,media,vid){
+  let holder=root?.querySelector("[data-study-video-slot]");
+  if(!holder)return null;
+  let key=norm(name),row=STUDY_WARM_MEDIA.get(key),video=row?.media?.url===media?.url?row.video:null;
+  if(!video){
+    row=studyCreateWarmVideo(name,media);video=row.video;
+  }
+  video.className="study-task-video";video.dataset.videoId=vid;video.controls=true;video.autoplay=true;video.loop=true;video.muted=true;video.playsInline=true;
+  video.setAttribute("playsinline","");holder.replaceChildren(video);
+  try{video.currentTime=0}catch{}
+  let play=video.play();if(play?.catch)play.catch(()=>{});
+  return video;
+}
+function studyLibraryButton(name){
+  let saved=S.signs.some(x=>signNormKey(x)===norm(name));
+  return '<button type="button" class="study-library-btn '+(saved?"saved":"")+'" data-study-library="'+esc(name)+'" '+(saved?"disabled":"")+'>'+(saved?"✓ Na biblioteca":"＋ Adicionar à biblioteca")+'</button>';
+}
+function bindStudyLibraryButtons(root){
+  root?.querySelectorAll?.("[data-study-library]").forEach(b=>b.onclick=async()=>{
+    let name=b.dataset.studyLibrary;if(!name||b.disabled)return;
+    b.disabled=true;b.textContent="Adicionando…";
+    try{
+      let media=(await studyWarmSign(name))?.media||await studyGetMedia(name);
+      if(!media?.url)throw new Error("media unavailable");
+      let row=await save(name,media,null,"study_path");
+      studyWarmUrl(media.url);
+      if(!IS_NATIVE_ANDROID)cacheWebLibraryVideo(media.url).catch(()=>{});
+      b.classList.add("saved");b.textContent="✓ Na biblioteca";
+      toast(title(name)+" adicionado à biblioteca.");
+    }catch(e){
+      console.error("trilha: adicionar à biblioteca",e);
+      b.disabled=false;b.textContent="＋ Adicionar à biblioteca";
+      toast("Não consegui adicionar este sinal agora.");
+    }
+  });
+}
 let STUDY_PLAY=null;
 function studySessionSaved(){
   try{return JSON.parse(localStorage.getItem("ls-study-session")||"null")}catch{return null}
@@ -598,6 +699,7 @@ async function openInteractiveLesson(id,{fresh=false}={}){
   localStorage.setItem("ls-last-lesson",id);
   let steps=studyBuildSteps(lesson),saved=fresh?null:studySessionSaved(),index=saved?.lessonId===id?Math.min(Math.max(0,Number(saved.index||0)),Math.max(0,steps.length-1)):0;
   STUDY_PLAY={lesson,steps,index,answer:null,score:0,errors:0,token:0,media:new Map,failed:new Set};
+  studyWarmLesson(lesson).catch(()=>{});
   modal('<div id="study-player" class="study-player"></div>');$("#modal").classList.add("study-session-open");
   await renderStudyPlayer();
 }
@@ -625,8 +727,12 @@ async function preferredStudySignMedia(name){
 }
 async function studyGetMedia(name){
   if(!STUDY_PLAY)return null;
-  let key=norm(name);if(STUDY_PLAY.media.has(key))return STUDY_PLAY.media.get(key);
-  let p=preferredStudySignMedia(name).catch(()=>null);STUDY_PLAY.media.set(key,p);return p;
+  let key=norm(name),warm=STUDY_WARM_MEDIA.get(key);
+  if(warm?.media?.url){try{await warm.ready}catch{}return warm.media;}
+  if(STUDY_PLAY.media.has(key))return STUDY_PLAY.media.get(key);
+  let p=preferredStudySignMedia(name).catch(()=>null);STUDY_PLAY.media.set(key,p);
+  p.then(media=>{if(media?.url)studyCreateWarmVideo(name,media)}).catch(()=>{});
+  return p;
 }
 async function studyResolveTarget(step){
   if(!STUDY_PLAY)return null;
@@ -670,7 +776,7 @@ function bindStudyVideoFallbacks(root,name){
       v.dataset.fallbackBusy="1";
       let bad=current();setMediaHealth(bad,false);
       try{
-        if(!navigator.onLine){v.dispatchEvent(new CustomEvent("study-media-exhausted"));return}
+        if(!navigator.onLine){STUDY_WARM_MEDIA.delete(norm(name));if(STUDY_PLAY)STUDY_PLAY.media.delete(norm(name));v.dispatchEvent(new CustomEvent("study-media-exhausted"));return}
         let tried=new Set((v.dataset.tried||"").split("|").filter(Boolean));tried.add(bad);
         let candidates=[];
         try{candidates=await signOptions(name,{refresh:true})}catch{}
@@ -678,8 +784,11 @@ function bindStudyVideoFallbacks(root,name){
         let next=await firstPlayable(candidates,{timeout:3500,max:14});
         if(next){
           tried.add(next.url);v.dataset.tried=[...tried].join("|");
-          v.src=next.url;v.load();v.dataset.fallbackBusy="0";return;
+          let key=norm(name),entry={name,media:next,video:v,ready:Promise.resolve(true),createdAt:Date.now()};
+          studyRememberWarm(key,entry);if(STUDY_PLAY)STUDY_PLAY.media.set(key,Promise.resolve(next));
+          studyWarmUrl(next.url);v.src=next.url;v.load();v.dataset.fallbackBusy="0";return;
         }
+        STUDY_WARM_MEDIA.delete(norm(name));if(STUDY_PLAY)STUDY_PLAY.media.delete(norm(name));
         v.dispatchEvent(new CustomEvent("study-media-exhausted"));
       }finally{v.dataset.fallbackBusy="0"}
     };
@@ -724,31 +833,38 @@ async function renderStudyPlayer(){
     root.innerHTML=studyPlayerShell(body);studyBindBase();return;
   }
   if(step.type==="expansion"){
-    body='<div class="study-task expansion"><div class="study-task-badge">✨ Expansão opcional</div><h2>Amplie o repertório</h2><p>Estes sinais são relacionados à aula, mas não bloqueiam seu avanço.</p><div class="study-expansion-actions">'+step.signs.map(s=>'<button class="soft" data-study-extra="'+esc(s)+'">▶ '+esc(title(s))+'</button>').join("")+'</div><button class="primary wide" data-study-next>Continuar</button></div>';
-    root.innerHTML=studyPlayerShell(body);studyBindBase();
-    root.querySelectorAll("[data-study-extra]").forEach(b=>b.onclick=()=>playPreferredSign(b.dataset.studyExtra));
+    body='<div class="study-task expansion"><div class="study-task-badge">✨ Expansão opcional</div><h2>Amplie o repertório</h2><p>Estes sinais são relacionados à aula, mas não bloqueiam seu avanço.</p><div class="study-expansion-preview hidden" data-study-extra-preview></div><div class="study-expansion-actions">'+step.signs.map(s=>'<div class="study-expansion-item"><button class="soft" data-study-extra="'+esc(s)+'">▶ '+esc(title(s))+'</button>'+studyLibraryButton(s)+'</div>').join("")+'</div><button class="primary wide" data-study-next>Continuar</button></div>';
+    root.innerHTML=studyPlayerShell(body);studyBindBase();bindStudyLibraryButtons(root);
+    root.querySelectorAll("[data-study-extra]").forEach(b=>b.onclick=async()=>{
+      let name=b.dataset.studyExtra,row=await studyWarmSign(name),preview=root.querySelector("[data-study-extra-preview]");
+      if(!row?.media?.url||!preview)return toast("Vídeo indisponível agora.");
+      let id="study-extra-"+Date.now(),video=row.video;
+      preview.classList.remove("hidden");preview.innerHTML='<b>'+esc(title(name))+'</b><div data-study-extra-slot></div>'+speedTools(id);
+      let holder=preview.querySelector("[data-study-extra-slot]");
+      video.className="study-task-video";video.dataset.videoId=id;video.controls=true;video.autoplay=true;video.loop=true;video.muted=true;video.playsInline=true;
+      holder?.replaceChildren(video);bindSpeeds(preview);bindStudyVideoFallbacks(preview,name);
+      try{video.currentTime=0;video.play()?.catch?.(()=>{})}catch{}
+    });
     return;
   }
   if(["learn","recognize","produce"].includes(step.type)){
-    root.innerHTML=studyPlayerShell('<div class="study-task loading"><div class="study-task-badge">Preparando atividade</div><div class="study-video-loading">Procurando um vídeo reproduzível…</div></div>');
-    studyBindBase();
     let resolved=await studyResolveTarget(step);
     if(!STUDY_PLAY||token!==STUDY_PLAY.token)return;
     if(!resolved)return studyUnavailableStep("Nenhum dos sinais desta atividade encontrou vídeo válido agora.");
     step.target=resolved.target;
     let target=resolved.target,media=resolved.media,vid="study-"+step.type+"-"+Date.now();
     if(step.type==="learn"){
-      body='<div class="study-task learn"><div class="study-task-badge">👐 Observe</div><h2>'+esc(title(target))+'</h2><p>Observe configuração, movimento, orientação e expressão antes de repetir.</p><video class="study-task-video" data-video-id="'+vid+'" controls autoplay loop playsinline preload="metadata" src="'+esc(media.url)+'"></video>'+speedTools(vid)+'<button class="primary wide" data-study-next>Pratiquei · continuar</button></div>';
-      root.innerHTML=studyPlayerShell(body);studyBindBase();bindSpeeds(root);bindStudyVideoFallbacks(root,target);return;
+      body='<div class="study-task learn"><div class="study-task-badge">👐 Observe</div><h2>'+esc(title(target))+'</h2><p>Observe configuração, movimento, orientação e expressão antes de repetir.</p><div data-study-video-slot></div>'+speedTools(vid)+'<div class="study-video-actions">'+studyLibraryButton(target)+'</div><button class="primary wide" data-study-next>Pratiquei · continuar</button></div>';
+      root.innerHTML=studyPlayerShell(body);studyMountWarmVideo(root,target,media,vid);studyBindBase();bindSpeeds(root);bindStudyVideoFallbacks(root,target);bindStudyLibraryButtons(root);studyWarmUpcomingSteps();return;
     }
     if(step.type==="recognize"){
       let choices=studyChoiceOrder(target,studyLessonPool(p.lesson),step.seed||p.index);
-      body='<div class="study-task quiz"><div class="study-task-badge">👀 Reconheça</div><h2>Que sinal é este?</h2><video class="study-task-video" data-video-id="'+vid+'" controls autoplay loop playsinline preload="metadata" src="'+esc(media.url)+'"></video>'+speedTools(vid)+'<div class="study-answer-grid hidden">'+choices.map(x=>'<button data-study-answer="'+esc(x)+'">'+esc(title(x))+'</button>').join("")+'</div><div class="study-feedback" id="study-feedback"></div></div>';
-      root.innerHTML=studyPlayerShell(body);studyBindBase();bindSpeeds(root);bindStudyVideoFallbacks(root,target);studyArmQuestionVideo(root,target);bindStudyAnswers(target);return;
+      body='<div class="study-task quiz"><div class="study-task-badge">👀 Reconheça</div><h2>Que sinal é este?</h2><div data-study-video-slot></div>'+speedTools(vid)+'<div class="study-video-actions">'+studyLibraryButton(target)+'</div><div class="study-answer-grid hidden">'+choices.map(x=>'<button data-study-answer="'+esc(x)+'">'+esc(title(x))+'</button>').join("")+'</div><div class="study-feedback" id="study-feedback"></div></div>';
+      root.innerHTML=studyPlayerShell(body);studyMountWarmVideo(root,target,media,vid);studyBindBase();bindSpeeds(root);bindStudyVideoFallbacks(root,target);studyArmQuestionVideo(root,target);bindStudyAnswers(target);bindStudyLibraryButtons(root);studyWarmUpcomingSteps();return;
     }
     if(step.type==="produce"){
       body='<div class="study-task produce"><div class="study-task-badge">✋ Sua vez</div><h2>'+esc(step.prompt||"Faça este sinal")+'</h2><div class="study-production-word">'+esc(title(target))+'</div><p>Produza primeiro. O modelo só aparece depois que você pedir para conferir.</p><button class="primary wide" data-study-reveal>Já fiz · conferir modelo</button></div>';
-      root.innerHTML=studyPlayerShell(body);studyBindBase();
+      root.innerHTML=studyPlayerShell(body);studyBindBase();studyWarmUpcomingSteps();
       root.querySelector("[data-study-reveal]").onclick=()=>studyRevealProduction(target,media);return;
     }
   }
@@ -770,14 +886,17 @@ async function studyRevealProduction(target,knownMedia=null){
   if(!STUDY_PLAY||token!==STUDY_PLAY.token)return;
   if(!media?.url)return studyUnavailableStep("O modelo deste sinal ficou indisponível agora.");
   let vid="study-produce-"+Date.now();
-  root.querySelector(".study-task").innerHTML='<div class="study-task-badge">✋ Confira</div><h2>'+esc(title(target))+'</h2><p>Compare sua produção com o modelo e repita se precisar.</p><video class="study-task-video" data-video-id="'+vid+'" controls autoplay loop playsinline preload="metadata" src="'+esc(media.url)+'"></video>'+speedTools(vid)+'<div class="study-production-actions"><button class="soft" data-study-again>Repetir vídeo</button><button class="primary" data-study-next>Consegui · continuar</button></div>';
-  bindSpeeds(root);bindStudyVideoFallbacks(root,target);
+  root.querySelector(".study-task").innerHTML='<div class="study-task-badge">✋ Confira</div><h2>'+esc(title(target))+'</h2><p>Compare sua produção com o modelo e repita se precisar.</p><div data-study-video-slot></div>'+speedTools(vid)+'<div class="study-video-actions">'+studyLibraryButton(target)+'</div><div class="study-production-actions"><button class="soft" data-study-again>Repetir vídeo</button><button class="primary" data-study-next>Consegui · continuar</button></div>';
+  studyMountWarmVideo(root,target,media,vid);bindSpeeds(root);bindStudyVideoFallbacks(root,target);bindStudyLibraryButtons(root);studyWarmUpcomingSteps();
   root.querySelector("[data-study-again]")?.addEventListener("click",()=>{let v=root.querySelector("video");if(v){try{v.currentTime=0;v.play()}catch{}}});
   root.querySelector("[data-study-next]")?.addEventListener("click",()=>{STUDY_PLAY.score++;studyPlayerNext()});
 }
 async function studyPlayerNext(){
   if(!STUDY_PLAY)return;
   if(STUDY_PLAY.index>=STUDY_PLAY.steps.length-1)return finishInteractiveLesson();
+  let next=STUDY_PLAY.steps[STUDY_PLAY.index+1];
+  if(["learn","recognize","produce"].includes(next?.type)&&next.target)await studyWarmSign(next.target).catch(()=>null);
+  if(!STUDY_PLAY)return;
   STUDY_PLAY.index++;STUDY_PLAY.answer=null;studySaveSession();await renderStudyPlayer();
 }
 async function finishInteractiveLesson(){
@@ -836,7 +955,13 @@ function study(){
   $$("[data-study-unit]").forEach(b=>b.onclick=()=>{mods.dataset.activeUnit=b.dataset.studyUnit;study()});
   $("[data-study-unit-prev]")?.addEventListener("click",()=>{if(unitIndex>0){mods.dataset.activeUnit=String(cycleUnits[unitIndex-1].unit);study()}});
   $("[data-study-unit-next]")?.addEventListener("click",()=>{if(unitIndex<cycleUnits.length-1){mods.dataset.activeUnit=String(cycleUnits[unitIndex+1].unit);study()}});
-  $$("[data-study-open]").forEach(b=>b.onclick=()=>openInteractiveLesson(b.dataset.studyOpen));
+  $("[data-study-open]").forEach(b=>b.onclick=()=>{
+    let lesson=L.find(x=>x.id===b.dataset.studyOpen);studyWarmLesson(lesson).catch(()=>{});
+    openInteractiveLesson(b.dataset.studyOpen);
+  });
+  let warmIndex=lessons.findIndex(x=>x.id===(current?.id||"")),warmLesson=warmIndex>=0?lessons[warmIndex]:lessons.find(x=>!m[x.id]?.completed)||lessons[0],warmNext=warmLesson?L[L.findIndex(x=>x.id===warmLesson.id)+1]:null;
+  let warmNow=()=>{studyWarmLesson(warmLesson).catch(()=>{});if(warmNext&&Number(warmNext.unit)===Number(activeUnit))setTimeout(()=>studyWarmLesson(warmNext).catch(()=>{}),650)};
+  if("requestIdleCallback"in window)requestIdleCallback(warmNow,{timeout:700});else setTimeout(warmNow,80);
   if(window.LSHydrateIcons)LSHydrateIcons($("#study"));
 }
 async function saveLesson(id,v){let now=new Date().toISOString(),row={user_id:S.session.user.id,lesson_id:id,completed:v,completed_at:v?now:null,updated_at:now},i=S.study.findIndex(x=>x.lesson_id===id);if(i>=0)S.study[i]=row;else S.study.push(row);let L=window.LIBRAS_STUDY_CONTENT||[],idx=L.findIndex(x=>x.id===id);if(v){let nx=L.slice(idx+1).find(x=>!smap()[x.id]?.completed);if(nx)localStorage.setItem("ls-last-lesson",nx.id)}else localStorage.setItem("ls-last-lesson",id);cache();render();localStatus("📱 alterações locais · sincronize quando quiser")}
