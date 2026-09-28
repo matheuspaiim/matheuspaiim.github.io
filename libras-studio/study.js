@@ -1,6 +1,6 @@
-/* Libras Studio · currículo mestre 0→100 · 0.5.71
-   Arquitetura: 15 ciclos, 60 unidades, 10 experiências por unidade.
-   A prática conduz o curso; teoria entra no ponto em que passa a ser necessária.
+/* Libras Studio · currículo mestre 0→100
+   Arquitetura atual: 15 etapas, 60 unidades, 4 aulas de conteúdo novo + 1 missão por unidade,
+   com revisão espaçada no fim de cada etapa e microteoria embutida na prática.
    Os vídeos de sinais são resolvidos sob demanda pelo catálogo do Libras Studio. */
 (function(){
 const CYCLES=[
