@@ -402,18 +402,6 @@ const EXPANSION={
 60:["autonomia","fluência","objetivo","prática","comunidade","cultura","experiência","progresso"]
 };
 
-const EXAMPLE_PHRASES={
-1:"Bom dia",
-3:"Não entendi",
-5:"Eu amo minha família",
-9:"Fica em casa",
-15:"Estou com fome",
-25:"Eu vou",
-28:"Vamos embora",
-32:"Me ajuda",
-48:"Não se preocupe"
-};
-
 const KINDS={
 signals:["👐","Prática"],
 scene:["🎯","Situação"],
@@ -442,7 +430,7 @@ for(const unit of U){
     if(i===0){
       content.push(lesson("u"+unit.n+"-scene",unit,"scene",2,unit.st[0],unit.st[1],{
         signs:uniq([...unit.p[0].slice(2),...unit.p[1].slice(2)]).slice(0,10),
-        scene:unit.st[1],phraseExample:EXAMPLE_PHRASES[unit.n]||"",questions:[unit.st[2],"Quem participa da cena?","Qual informação é necessária para entender o resultado?"],
+        scene:unit.st[1],questions:[unit.st[2],"Quem participa da cena?","Qual informação é necessária para entender o resultado?"],
         practice:"Assista aos sinais necessários e reconstrua mentalmente a cena antes de responder."
       }));
     }
