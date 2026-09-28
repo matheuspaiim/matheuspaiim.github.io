@@ -1,4 +1,4 @@
-const APP_VERSION="0.5.74";
+const APP_VERSION="0.5.75";
 const cfg=window.LIBRAS_STUDIO_CONFIG||{},$=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const nativeParams=new URLSearchParams(location.search);
 const IS_NATIVE_ANDROID=nativeParams.get("native")==="android";
@@ -909,14 +909,61 @@ async function finishInteractiveLesson(){
   $("#modal-body").querySelector("[data-study-next-lesson]")?.addEventListener("click",e=>openInteractiveLesson(e.currentTarget.dataset.studyNextLesson,{fresh:true}));
   $("#modal-body").querySelector("[data-study-done]")?.addEventListener("click",()=>{$("#modal").classList.add("hidden");$("#modal").classList.remove("study-session-open")});
 }
+function studyLessonSemanticIcon(lesson){
+  let titleText=norm(lesson?.title||""),t=norm([lesson?.title,lesson?.summary,lesson?.module,lesson?.scene,lesson?.challenge,...(lesson?.signs||[])].join(" "));
+  if(/entenda|compreens|reconhe/.test(titleText))return window.LSCategoryIcon?window.LSCategoryIcon("perguntas"):window.LSIcon("review");
+  if(/agora e com voce|sua vez|produc/.test(titleText))return window.LSCategoryIcon?window.LSCategoryIcon("acoes e verbos"):window.LSIcon("learned");
+  if(/pratica mista|revis/.test(titleText))return window.LSIcon?window.LSIcon("reviewActivity","trail-special-icon"):window.LSCategoryIcon("comunicacao e lingua");
+  if(/missao|desafio/.test(titleText))return window.LSIcon?window.LSIcon("best","trail-special-icon"):window.LSCategoryIcon("comunicacao e lingua");
+  if(/pessoas se encontram|quem e quem/.test(titleText))return window.LSCategoryIcon?window.LSCategoryIcon("pessoas e pronomes"):window.LSIcon("people");
+  const rules=[
+    [/saud|ola|bom dia|boa tarde|boa noite|tchau|cortesia|obrig|descul|licenca/,"saudacoes e cortesia"],
+    [/famil|mae|pai|irma|filho|avo|tio|primo|casamento/,"familia"],
+    [/pergunt|respost|quem|onde|qual|como|quando|entender|repetir|duvida/,"perguntas"],
+    [/nome|apresent|pessoa|pronome|ele|ela|eu|voce|identidade/,"pessoas e pronomes"],
+    [/hora|calend|semana|mes|ano|ontem|amanha|data|tempo/,"tempo e calendario"],
+    [/rotina|acord|manha|dia inteiro|habito/,"rotina diaria"],
+    [/casa|quarto|sala|cozinha|banheiro|movel|objeto|chave/,"casa e objetos"],
+    [/comida|bebida|fome|sede|cafe|pao|arroz|cozinhar|ingrediente/,"alimentos e bebidas"],
+    [/animal|pet|cachorro|gato|passaro|peixe/,"animais"],
+    [/corpo|cabeca|rosto|braco|perna|mao|pe/,"corpo humano"],
+    [/saude|medic|consulta|sintoma|dor|febre|remedio|tratamento/,"saude e cuidados"],
+    [/roupa|vestir|oculos|chapeu|bone|acessorio/,"roupas e acessorios"],
+    [/escola|estudo|aprender|ensinar|professor|aluno|aula|prova/,"escola e estudo"],
+    [/trabalho|profiss|empresa|escritorio|chefe|salario/,"trabalho e profissoes"],
+    [/cidade|lugar|mercado|farmacia|hospital|praca|restaurante|shopping/,"lugares"],
+    [/onibus|carro|moto|bicicleta|direcao|trajet|rua|avenida|transporte|cruzamento/,"transporte e transito"],
+    [/clima|natureza|chuva|sol|frio|calor/,"natureza e clima"],
+    [/sentimento|emoc|feliz|triste|raiva|medo|opiniao|orgulho|preocup/,"sentimentos e emocoes"],
+    [/aparencia|alto|baixo|grande|pequeno|forma|dimens|estado/,"caracteristicas e estados"],
+    [/acao|verbo|movimento|fazer|produz|classificador|direcional|trajetoria/,"acoes e verbos"],
+    [/comunic|libras|lingua|datilologia|conversa|sinaliz|visual-espacial/,"comunicacao e lingua"],
+    [/tecnologia|computador|celular|internet|wifi|aplicativo|mensagem/,"tecnologia e midia"],
+    [/lazer|festa|cinema|parque|praia|esporte/,"lazer e esportes"],
+    [/preco|dinheiro|compr|vender|pagar|cartao|pix|desconto/,"dinheiro e compras"],
+    [/viagem|hotel|aviao|passagem|turismo|hospedagem|bagagem/,"viagens e turismo"],
+    [/emerg|socorro|perigo|ambulancia|bombeiro|policia|acidente/,"emergencia e seguranca"],
+    [/acessibil|inclus|comunidade surda/,"acessibilidade e inclusao"],
+    [/relacion|namor|marido|esposa|amigo|concord|discord/,"relacionamentos"],
+    [/numero|quantidade|idade|porcent|valor/,"numeros e quantidades"]
+  ];
+  let category=(rules.find(([r])=>r.test(t))||[])[1];
+  if(!category){
+    if(lesson?.kind==="theory")category="comunicacao e lingua";
+    else if(lesson?.kind==="comprehension")category="perguntas";
+    else if(lesson?.kind==="production")category="acoes e verbos";
+    else category="comunicacao e lingua";
+  }
+  return window.LSCategoryIcon?window.LSCategoryIcon(category):(window.LSIcon?window.LSIcon("lesson","trail-semantic-icon"):"👐");
+}
 function studyTrailPath(lessons,m,currentId){
   let coords=[[50,45],[35,135],[63,225],[39,315],[68,405],[48,495],[31,585],[64,675],[40,765],[60,855]];
   let used=coords.slice(0,Math.max(1,lessons.length)),d="";
   used.forEach((p,i)=>{if(i===0)d="M "+p[0]+" "+p[1];else{let prev=used[i-1],mid=(prev[1]+p[1])/2;d+=" C "+prev[0]+" "+mid+", "+p[0]+" "+mid+", "+p[0]+" "+p[1]}});
   let svg='<svg class="trail-route-svg" viewBox="0 0 100 900" preserveAspectRatio="none" aria-hidden="true"><path d="'+d+'"/></svg>';
   let nodes=lessons.map((x,i)=>{
-    let p=coords[i]||[50,45+i*90],isDone=!!m[x.id]?.completed,isCurrent=x.id===currentId,km=studyKindMeta(x.kind),state=isDone?"done":isCurrent?"current":"future",side=p[0]<45?"left":p[0]>55?"right":"center";
-    return '<button type="button" class="trail-stop '+state+' side-'+side+'" data-study-open="'+esc(x.id)+'" style="--trail-x:'+p[0]+'%;--trail-y:'+p[1]+'px"><span class="trail-stop-node"><em>'+esc(km.icon)+'</em><b>'+(isDone?"✓":i+1)+'</b></span><span class="trail-stop-label"><small>'+esc(km.label)+'</small><strong>'+esc(x.title)+'</strong></span></button>';
+    let p=coords[i]||[50,45+i*90],isDone=!!m[x.id]?.completed,isCurrent=x.id===currentId,km=studyKindMeta(x.kind),state=isDone?"done":isCurrent?"current":"future",side=p[0]<45?"left":p[0]>55?"right":"center",icon=studyLessonSemanticIcon(x);
+    return '<button type="button" class="trail-stop '+state+' side-'+side+'" data-study-open="'+esc(x.id)+'" style="--trail-x:'+p[0]+'%;--trail-y:'+p[1]+'px"><span class="trail-stop-node"><span class="trail-semantic-icon">'+icon+'</span><b>'+(isDone?"✓":i+1)+'</b></span><span class="trail-stop-label"><small>'+esc(km.label)+'</small><strong>'+esc(x.title)+'</strong></span></button>';
   }).join("");
   return '<div class="trail-map">'+svg+nodes+'</div>';
 }
@@ -934,8 +981,10 @@ function study(){
   }
   if(!snap.cycleRows.some(x=>x.cycle===activeCycle))activeCycle=snap.cycleRows[0]?.cycle||1;
   mods.dataset.activeCycle=String(activeCycle);
-  mods.innerHTML=snap.cycleRows.map(x=>'<button data-cycle="'+x.cycle+'" class="'+(activeCycle===x.cycle?"active":"")+'"><b>'+x.cycle+'</b><span>'+esc(x.name)+'</span><small>'+esc(x.range)+'</small></button>').join("");
-  $$("[data-cycle]").forEach(b=>b.onclick=()=>{mods.dataset.activeCycle=b.dataset.cycle;delete mods.dataset.activeUnit;study()});
+  let cycleIndex=snap.cycleRows.findIndex(x=>x.cycle===activeCycle),activeCycleRow=snap.cycleRows[cycleIndex]||snap.cycleRows[0];
+  mods.innerHTML='<div class="trail-stage-nav"><button type="button" class="trail-stage-arrow" data-stage-prev '+(cycleIndex<=0?"disabled":"")+'>‹</button><div class="trail-stage-copy"><small>ETAPA '+(cycleIndex+1)+' DE '+snap.cycleRows.length+'</small><b>'+esc(activeCycleRow?.name||"")+'</b><span>Nível '+esc(activeCycleRow?.range||"")+'</span></div><button type="button" class="trail-stage-arrow" data-stage-next '+(cycleIndex>=snap.cycleRows.length-1?"disabled":"")+'>›</button></div>';
+  mods.querySelector("[data-stage-prev]")?.addEventListener("click",()=>{if(cycleIndex>0){mods.dataset.activeCycle=String(snap.cycleRows[cycleIndex-1].cycle);delete mods.dataset.activeUnit;study()}});
+  mods.querySelector("[data-stage-next]")?.addEventListener("click",()=>{if(cycleIndex<snap.cycleRows.length-1){mods.dataset.activeCycle=String(snap.cycleRows[cycleIndex+1].cycle);delete mods.dataset.activeUnit;study()}});
   let cycleUnits=snap.moduleRows.filter(x=>x.cycle===activeCycle),defaultUnit=Number(current?.unit||cycleUnits[0]?.unit||1),activeUnit=Number(mods.dataset.activeUnit||defaultUnit);
   if(!cycleUnits.some(x=>x.unit===activeUnit))activeUnit=cycleUnits[0]?.unit||1;
   mods.dataset.activeUnit=String(activeUnit);
@@ -945,17 +994,15 @@ function study(){
     if(matching.length)lessons=matching;
   }
   let upct=Math.round((unitRow?.done||0)/Math.max(1,unitRow?.total||1)*100),cyRow=snap.cycleRows.find(x=>x.cycle===activeCycle),cyPct=Math.round((cyRow?.done||0)/Math.max(1,cyRow?.total||1)*100);
-  let unitDots=cycleUnits.map((u,i)=>'<button type="button" data-study-unit="'+u.unit+'" class="'+(u.unit===activeUnit?"active ":"")+(u.complete?"done":"")+'" aria-label="Unidade '+u.unit+'">'+(u.complete?"✓":i+1)+'</button>').join("");
-  let html='<section class="trail-cycle-banner"><div><small>CICLO '+cyc.id+' · NÍVEL '+esc(cyc.range||"")+'</small><h2>'+esc(cyc.title)+'</h2><p>'+esc(cyc.goal||"")+'</p></div><div><b>'+cyPct+'%</b><span>do ciclo</span></div></section>'+
-    '<section class="trail-unit-nav"><button type="button" class="trail-unit-arrow" data-study-unit-prev '+(unitIndex<=0?"disabled":"")+'>‹</button><div class="trail-unit-nav-center"><small>UNIDADE '+activeUnit+' · '+(unitIndex+1)+' DE '+cycleUnits.length+'</small><div class="trail-unit-dots">'+unitDots+'</div></div><button type="button" class="trail-unit-arrow" data-study-unit-next '+(unitIndex>=cycleUnits.length-1?"disabled":"")+'>›</button></section>'+
-    '<section class="trail-unit-hero"><div><span class="trail-unit-kicker">SEU CAMINHO AGORA</span><h3>'+esc(meta.title)+'</h3><p>'+esc(meta.mission||meta.subtitle||"")+'</p></div><div class="trail-unit-ring" style="--pct:'+upct+'"><b>'+upct+'%</b><small>'+ (unitRow?.done||0)+'/'+(unitRow?.total||0)+'</small></div></section>'+
+  let unitDots=cycleUnits.map(u=>'<button type="button" data-study-unit="'+u.unit+'" class="'+(u.unit===activeUnit?"active ":"")+(u.complete?"done":"")+'" aria-label="Unidade '+u.unit+'">'+(u.complete?"✓ ":"")+'Unidade '+u.unit+'</button>').join("");
+  let html='<section class="trail-stage-goal"><div><small>OBJETIVO DESTA ETAPA</small><p>'+esc(cyc.goal||"")+'</p></div><div><b>'+cyPct+'%</b><span>concluído</span></div></section>'+
+    '<section class="trail-unit-nav-simple"><small>UNIDADES DESTA ETAPA</small><div class="trail-unit-tabs">'+unitDots+'</div></section>'+
+    '<section class="trail-unit-hero"><div><span class="trail-unit-kicker">UNIDADE '+activeUnit+'</span><h3>'+esc(meta.title)+'</h3><p>'+esc(meta.mission||meta.subtitle||"")+'</p></div><div class="trail-unit-ring" style="--pct:'+upct+'"><b>'+upct+'%</b><small>'+ (unitRow?.done||0)+'/'+(unitRow?.total||0)+' aulas</small></div></section>'+
     (q&&lessons.length!==10?'<div class="trail-search-note">Mostrando '+lessons.length+' etapa(s) que combinam com sua busca nesta unidade.</div>':'')+
     studyTrailPath(lessons,m,current?.id||"");
   list.innerHTML=html;
   $$("[data-study-unit]").forEach(b=>b.onclick=()=>{mods.dataset.activeUnit=b.dataset.studyUnit;study()});
-  $("[data-study-unit-prev]")?.addEventListener("click",()=>{if(unitIndex>0){mods.dataset.activeUnit=String(cycleUnits[unitIndex-1].unit);study()}});
-  $("[data-study-unit-next]")?.addEventListener("click",()=>{if(unitIndex<cycleUnits.length-1){mods.dataset.activeUnit=String(cycleUnits[unitIndex+1].unit);study()}});
-  $("[data-study-open]").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll("[data-study-open]").forEach(b=>b.onclick=()=>{
     let lesson=L.find(x=>x.id===b.dataset.studyOpen);studyWarmLesson(lesson).catch(()=>{});
     openInteractiveLesson(b.dataset.studyOpen);
   });
