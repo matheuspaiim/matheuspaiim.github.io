@@ -1,4 +1,4 @@
-const APP_VERSION="0.5.72";
+const APP_VERSION="0.5.73";
 const cfg=window.LIBRAS_STUDIO_CONFIG||{},$=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const nativeParams=new URLSearchParams(location.search);
 const IS_NATIVE_ANDROID=nativeParams.get("native")==="android";
@@ -253,7 +253,7 @@ function moduleLabel(name){return name||"Trilha de aprendizagem"}
 function openStudyLesson(id){
   if(id)localStorage.setItem("ls-last-lesson",id);
   let snap=studySnapshot(),lesson=snap.L.find(x=>x.id===id);
-  if(lesson){let mods=$("#study-modules"),unit=studyUnitMeta(lesson.unit);if(mods)mods.dataset.activeCycle=String(lesson.cycle||unit.cycle||1)}
+  if(lesson){let mods=$("#study-modules"),unit=studyUnitMeta(lesson.unit);if(mods){mods.dataset.activeCycle=String(lesson.cycle||unit.cycle||1);mods.dataset.activeUnit=String(lesson.unit||1)}}
   go("study");study();
   requestAnimationFrame(()=>lesson&&openInteractiveLesson(id));
 }
@@ -547,42 +547,41 @@ function studyLessonPool(lesson){
   return out.filter(Boolean);
 }
 function studyChoiceOrder(target,pool,seed=0){
-  let list=[target,...pool.filter(x=>norm(x)!==norm(target))];
-  let seen=new Set,list2=list.filter(x=>{let k=norm(x);if(!k||seen.has(k))return false;seen.add(k);return true}).slice(0,4);
-  if(list2.length<2)return list2;
-  let shift=(seed%list2.length+list2.length)%list2.length;
-  return [...list2.slice(shift),...list2.slice(0,shift)];
-}
-function studyPhraseChoices(target,seed=0){
-  let all=(window.LIBRAS_PHRASE_DATA||[]).map(x=>x.text).filter(Boolean),pool=[target,...all.filter(x=>norm(x)!==norm(target))];
-  let seen=new Set,items=pool.filter(x=>{let k=norm(x);if(!k||seen.has(k))return false;seen.add(k);return true}).slice(0,4);
-  let shift=items.length?(seed%items.length):0;
-  return [...items.slice(shift),...items.slice(0,shift)];
+  let list=[target,...(pool||[]).filter(x=>norm(x)!==norm(target))],seen=new Set;
+  list=list.filter(x=>{let k=norm(x);if(!k||seen.has(k))return false;seen.add(k);return true}).slice(0,4);
+  if(list.length<2)return list;
+  let shift=(seed%list.length+list.length)%list.length;
+  return [...list.slice(shift),...list.slice(0,shift)];
 }
 function studyBuildSteps(lesson){
-  let pool=studyLessonPool(lesson),core=[...new Set((lesson.signs||[]).filter(Boolean))].slice(0,6),steps=[];
-  steps.push({type:"intro",title:lesson.title,text:lesson.summary||studyUnitMeta(lesson.unit).mission||"",kind:lesson.kind});
+  let pool=studyLessonPool(lesson),core=[...new Set((lesson.signs||[]).filter(Boolean))].slice(0,8),steps=[];
+  let detail={
+    mission:studyUnitMeta(lesson.unit).mission||"",
+    signs:core,
+    take:(lesson.take||[]).slice(0,3),
+    context:lesson.scene||lesson.challenge||"",
+    questions:(lesson.questions||[]).slice(0,3)
+  };
+  steps.push({type:"intro",title:lesson.title,text:lesson.summary||detail.mission,detail});
   if(lesson.kind==="theory"){
     (lesson.sections||[]).forEach((sec,i)=>steps.push({type:"concept",title:sec[0],text:sec[1],n:i+1}));
-    if(pool.length)steps.push({type:"produce",target:pool[0],prompt:"Faça o sinal e depois confira o modelo."});
-    steps.push({type:"reflect",title:"Aplique agora",text:lesson.practice||"Volte à prática e procure este conceito nos sinais."});
+    let theoryTargets=pool.slice(0,3);
+    theoryTargets.slice(0,2).forEach((s,i)=>steps.push({type:i?"recognize":"produce",target:s,prompt:"Aplique o conceito neste sinal.",seed:lesson.unit+i}));
+    steps.push({type:"recap",title:"O que fica desta aula",text:lesson.practice||"Observe o conceito nas próximas atividades.",take:lesson.take||[]});
     return steps;
   }
-  if(lesson.phraseExample){
-    steps.push({type:"phrase",target:lesson.phraseExample,choices:studyPhraseChoices(lesson.phraseExample,lesson.unit)});
-  }
-  let learnCount=lesson.kind==="signals"?Math.min(2,core.length):Math.min(1,core.length);
+  let learnCount=lesson.kind==="signals"?Math.min(4,core.length):Math.min(2,core.length);
   core.slice(0,learnCount).forEach(s=>steps.push({type:"learn",target:s}));
-  let recognition=core.slice(learnCount,learnCount+3);
-  if(!recognition.length)recognition=core.slice(0,Math.min(3,core.length));
-  recognition.forEach((s,i)=>steps.push({type:"recognize",target:s,choices:studyChoiceOrder(s,pool,lesson.unit+i)}));
-  if(core.length)steps.push({type:"produce",target:core[Math.min(core.length-1,3)],prompt:"Faça este sinal antes de revelar o vídeo."});
+  let recognition=core.slice(0,Math.min(5,core.length));
+  recognition.forEach((s,i)=>steps.push({type:"recognize",target:s,seed:lesson.unit*7+i}));
+  let production=core.slice(Math.max(0,core.length-3));
+  production.slice(0,2).forEach((s,i)=>steps.push({type:"produce",target:s,prompt:i?"Faça novamente sem olhar o modelo.":"Faça o sinal antes de revelar o modelo.",seed:lesson.unit*11+i}));
   if((lesson.expansion||[]).length)steps.push({type:"expansion",signs:lesson.expansion.slice(0,2)});
-  if(lesson.kind==="scene"||lesson.kind==="comprehension"||lesson.kind==="story"||lesson.kind==="checkpoint"){
-    let mix=core.slice(0,Math.min(3,core.length));
-    mix.forEach((s,i)=>steps.push({type:i%2?"produce":"recognize",target:s,choices:studyChoiceOrder(s,pool,lesson.unit+i+7),prompt:"Faça o sinal antes de conferir."}));
+  if(["scene","comprehension","story","checkpoint","production"].includes(lesson.kind)){
+    let extra=core.slice(0,Math.min(4,core.length));
+    extra.forEach((s,i)=>steps.push({type:i%2?"produce":"recognize",target:s,seed:lesson.unit*13+i,prompt:"Faça o sinal antes de conferir."}));
   }
-  steps.push({type:"reflect",title:lesson.kind==="checkpoint"?"Desafio concluído":"Fechando a aula",text:lesson.practice||studyUnitMeta(lesson.unit).mission||"Use o que aprendeu em uma situação real."});
+  steps.push({type:"recap",title:lesson.kind==="checkpoint"?"Desafio finalizado":"Fechando a aula",text:lesson.practice||detail.mission,take:lesson.take||[],signs:core});
   return steps;
 }
 let STUDY_PLAY=null;
@@ -598,7 +597,7 @@ async function openInteractiveLesson(id,{fresh=false}={}){
   let lesson=(window.LIBRAS_STUDY_CONTENT||[]).find(x=>x.id===id);if(!lesson)return;
   localStorage.setItem("ls-last-lesson",id);
   let steps=studyBuildSteps(lesson),saved=fresh?null:studySessionSaved(),index=saved?.lessonId===id?Math.min(Math.max(0,Number(saved.index||0)),Math.max(0,steps.length-1)):0;
-  STUDY_PLAY={lesson,steps,index,answer:null,revealed:false,score:0,errors:0,token:0,media:new Map};
+  STUDY_PLAY={lesson,steps,index,answer:null,score:0,errors:0,token:0,media:new Map,failed:new Set};
   modal('<div id="study-player" class="study-player"></div>');$("#modal").classList.add("study-session-open");
   await renderStudyPlayer();
 }
@@ -606,15 +605,44 @@ function studyPlayerProgress(){
   if(!STUDY_PLAY)return 0;
   return Math.round((STUDY_PLAY.index/Math.max(1,STUDY_PLAY.steps.length))*100);
 }
+async function preferredStudySignMedia(name){
+  let saved=S.signs.find(x=>signNormKey(x)===norm(name)),local=saved?nativeCachedVideoUrl(saved.studio_id):"";
+  if(local)return{url:local,source_id:saved.source_id||"saved",source_name:(saved.source_name||"Biblioteca")+" · offline"};
+  if(!navigator.onLine){
+    let url=saved?vurl(saved):"";
+    return url?{url,source_id:saved.source_id||"saved",source_name:saved.source_name||"Biblioteca"}:null;
+  }
+  try{
+    let list=await signOptions(name),picked=await firstPlayable(list,{timeout:3000,max:16});
+    if(!picked){list=await signOptions(name,{refresh:true});picked=await firstPlayable(list,{timeout:3200,max:20})}
+    if(picked)return picked;
+  }catch(e){console.warn("mídia da trilha",name,e)}
+  if(saved){
+    let url=vurl(saved);
+    if(url&&await probeVideo(url,2600))return{url,source_id:saved.source_id||"saved",source_name:saved.source_name||"Biblioteca"};
+  }
+  return null;
+}
 async function studyGetMedia(name){
   if(!STUDY_PLAY)return null;
   let key=norm(name);if(STUDY_PLAY.media.has(key))return STUDY_PLAY.media.get(key);
-  let p=preferredSignMedia(name).catch(()=>null);STUDY_PLAY.media.set(key,p);return p;
+  let p=preferredStudySignMedia(name).catch(()=>null);STUDY_PLAY.media.set(key,p);return p;
+}
+async function studyResolveTarget(step){
+  if(!STUDY_PLAY)return null;
+  let pool=studyLessonPool(STUDY_PLAY.lesson),candidates=[step.target,...pool],seen=new Set;
+  candidates=candidates.filter(x=>{let k=norm(x);if(!k||seen.has(k)||STUDY_PLAY.failed.has(k))return false;seen.add(k);return true});
+  for(let name of candidates.slice(0,16)){
+    let media=await studyGetMedia(name);
+    if(media?.url)return{target:name,media};
+    STUDY_PLAY.failed.add(norm(name));
+  }
+  return null;
 }
 function studyPlayerShell(body){
-  let p=STUDY_PLAY,lesson=p.lesson,meta=studyKindMeta(lesson.kind),pct=studyPlayerProgress();
+  let p=STUDY_PLAY,lesson=p.lesson,meta=studyKindMeta(lesson.kind),pct=studyPlayerProgress(),unit=studyUnitMeta(lesson.unit);
   return '<div class="study-player-top"><button type="button" class="study-player-close" data-study-exit aria-label="Fechar">×</button><div class="study-player-track"><span style="width:'+pct+'%"></span></div><small>'+Math.min(p.index+1,p.steps.length)+' / '+p.steps.length+'</small></div>'+
-    '<div class="study-player-heading"><span>'+esc(meta.icon)+'</span><div><small>'+esc(meta.label)+' · Unidade '+lesson.unit+'</small><b>'+esc(lesson.title)+'</b></div></div>'+
+    '<div class="study-player-heading"><span>'+esc(meta.icon)+'</span><div><small>UNIDADE '+lesson.unit+' · '+esc(meta.label)+'</small><b>'+esc(lesson.title)+'</b><em>'+esc(unit.title||"")+'</em></div></div>'+
     '<div class="study-player-stage">'+body+'</div>';
 }
 function studyBindBase(){
@@ -622,53 +650,107 @@ function studyBindBase(){
   root.querySelector("[data-study-exit]")?.addEventListener("click",()=>{$("#modal").classList.add("hidden");$("#modal").classList.remove("study-session-open");STUDY_PLAY=null});
   root.querySelectorAll("[data-study-next]").forEach(b=>b.onclick=()=>studyPlayerNext());
 }
+function studyIntroDetails(detail){
+  let signs=(detail?.signs||[]).slice(0,8),take=(detail?.take||[]).slice(0,3),questions=(detail?.questions||[]).slice(0,3);
+  return '<div class="study-intro-detail">'+
+    (detail?.mission?'<div><small>OBJETIVO DA UNIDADE</small><p>'+esc(detail.mission)+'</p></div>':'')+
+    (detail?.context?'<div><small>CONTEXTO</small><p>'+esc(detail.context)+'</p></div>':'')+
+    (signs.length?'<div><small>SINAIS DESTA AULA</small><div class="study-intro-signs">'+signs.map(s=>'<span>'+esc(title(s))+'</span>').join("")+'</div></div>':'')+
+    (questions.length?'<div><small>O QUE OBSERVAR</small><ul>'+questions.map(x=>'<li>'+esc(x)+'</li>').join("")+'</ul></div>':'')+
+    (take.length?'<div><small>FOCO</small><ul>'+take.map(x=>'<li>'+esc(x)+'</li>').join("")+'</ul></div>':'')+
+  '</div>';
+}
+function bindStudyVideoFallbacks(root,name){
+  let videos=[...root.querySelectorAll("video")];
+  for(let v of videos){
+    let current=()=>v.currentSrc||v.src;
+    v.onloadedmetadata=()=>setMediaHealth(current(),true);
+    v.onerror=async()=>{
+      if(v.dataset.fallbackBusy==="1")return;
+      v.dataset.fallbackBusy="1";
+      let bad=current();setMediaHealth(bad,false);
+      try{
+        if(!navigator.onLine){v.dispatchEvent(new CustomEvent("study-media-exhausted"));return}
+        let tried=new Set((v.dataset.tried||"").split("|").filter(Boolean));tried.add(bad);
+        let candidates=[];
+        try{candidates=await signOptions(name,{refresh:true})}catch{}
+        candidates=dedupeCandidates(candidates).filter(x=>x.url&&!tried.has(x.url));
+        let next=await firstPlayable(candidates,{timeout:3500,max:14});
+        if(next){
+          tried.add(next.url);v.dataset.tried=[...tried].join("|");
+          v.src=next.url;v.load();v.dataset.fallbackBusy="0";return;
+        }
+        v.dispatchEvent(new CustomEvent("study-media-exhausted"));
+      }finally{v.dataset.fallbackBusy="0"}
+    };
+  }
+}
+function studyArmQuestionVideo(root,target){
+  let v=root?.querySelector("video"),answers=root?.querySelector(".study-answer-grid"),feedback=root?.querySelector("#study-feedback");
+  if(!v||!answers)return;
+  let reveal=()=>{if(v.readyState>=2&&!v.error)answers.classList.remove("hidden")};
+  if(v.readyState>=2)reveal();else v.addEventListener("loadeddata",reveal,{once:true});
+  v.addEventListener("study-media-exhausted",()=>{
+    answers.classList.add("hidden");
+    if(feedback){
+      feedback.innerHTML='<b>↻ Vídeo indisponível</b><span>Esta pergunta foi retirada porque o vídeo não carregou.</span><button class="primary" data-study-next>Continuar</button>';
+      feedback.querySelector("[data-study-next]")?.addEventListener("click",()=>studyPlayerNext());
+    }
+  });
+}
+function studyUnavailableStep(message){
+  let root=$("#study-player");if(!root)return;
+  root.innerHTML=studyPlayerShell('<div class="study-task unavailable"><div class="study-task-badge">↻ Mídia indisponível</div><h2>Esta etapa foi ajustada</h2><p>'+esc(message||"Não encontrei um vídeo reproduzível para esta atividade.")+'</p><div class="study-task-tip">A pergunta não será exibida sem vídeo. Você pode continuar normalmente.</div><button class="primary wide" data-study-next>Continuar</button></div>');
+  studyBindBase();
+}
 async function renderStudyPlayer(){
   let p=STUDY_PLAY,root=$("#study-player");if(!p||!root)return;
   let step=p.steps[p.index];if(!step)return finishInteractiveLesson();
-  p.answer=null;p.revealed=false;p.token++;let token=p.token,body="";
+  p.answer=null;p.token++;let token=p.token,body="";
   if(step.type==="intro"){
-    body='<div class="study-task intro"><div class="study-task-badge">Comece por aqui</div><h2>'+esc(step.title)+'</h2><p>'+esc(step.text)+'</p><div class="study-task-tip">Você vai ver, responder, produzir e receber feedback. Uma etapa por vez.</div><button class="primary wide" data-study-next>Começar</button></div>';
+    body='<div class="study-task intro"><div class="study-task-badge">Sua próxima etapa</div><h2>'+esc(step.title)+'</h2><p>'+esc(step.text)+'</p>'+studyIntroDetails(step.detail)+'<button class="primary wide" data-study-next>Começar aula</button></div>';
     root.innerHTML=studyPlayerShell(body);studyBindBase();return;
   }
   if(step.type==="concept"){
-    body='<div class="study-task concept"><div class="study-task-badge">💡 Conceito rápido</div><h2>'+esc(step.title)+'</h2><p>'+esc(step.text)+'</p><button class="primary wide" data-study-next>Entendi, aplicar</button></div>';
+    body='<div class="study-task concept"><div class="study-task-badge">💡 Conceito rápido</div><h2>'+esc(step.title)+'</h2><p>'+esc(step.text)+'</p><button class="primary wide" data-study-next>Aplicar na prática</button></div>';
     root.innerHTML=studyPlayerShell(body);studyBindBase();return;
   }
-  if(step.type==="reflect"){
-    body='<div class="study-task reflect"><div class="study-task-badge">✓ Aplicação</div><h2>'+esc(step.title)+'</h2><p>'+esc(step.text)+'</p><button class="primary wide" data-study-next>'+(p.index===p.steps.length-1?"Concluir aula":"Continuar")+'</button></div>';
+  if(step.type==="recap"){
+    let take=(step.take||[]).slice(0,3),signs=(step.signs||[]).slice(0,8);
+    body='<div class="study-task recap"><div class="study-task-badge">✓ Revisão rápida</div><h2>'+esc(step.title)+'</h2><p>'+esc(step.text)+'</p>'+
+      (signs.length?'<div class="study-intro-signs">'+signs.map(s=>'<span>'+esc(title(s))+'</span>').join("")+'</div>':'')+
+      (take.length?'<ul class="study-recap-list">'+take.map(x=>'<li>'+esc(x)+'</li>').join("")+'</ul>':'')+
+      '<button class="primary wide" data-study-next>'+(p.index===p.steps.length-1?"Concluir aula":"Continuar")+'</button></div>';
     root.innerHTML=studyPlayerShell(body);studyBindBase();return;
   }
   if(step.type==="expansion"){
-    body='<div class="study-task expansion"><div class="study-task-badge">✨ Opcional</div><h2>Quer ampliar?</h2><p>Dois sinais relacionados, sem bloquear seu avanço.</p><div class="study-expansion-actions">'+step.signs.map(s=>'<button class="soft" data-study-extra="'+esc(s)+'">▶ '+esc(title(s))+'</button>').join("")+'</div><button class="primary wide" data-study-next>Continuar</button></div>';
+    body='<div class="study-task expansion"><div class="study-task-badge">✨ Expansão opcional</div><h2>Amplie o repertório</h2><p>Estes sinais são relacionados à aula, mas não bloqueiam seu avanço.</p><div class="study-expansion-actions">'+step.signs.map(s=>'<button class="soft" data-study-extra="'+esc(s)+'">▶ '+esc(title(s))+'</button>').join("")+'</div><button class="primary wide" data-study-next>Continuar</button></div>';
     root.innerHTML=studyPlayerShell(body);studyBindBase();
     root.querySelectorAll("[data-study-extra]").forEach(b=>b.onclick=()=>playPreferredSign(b.dataset.studyExtra));
     return;
   }
-  if(step.type==="phrase"){
-    let ph=(window.LIBRAS_PHRASE_DATA||[]).find(x=>norm(x.text)===norm(step.target)),vid="study-phrase-"+Date.now();
-    body='<div class="study-task quiz"><div class="study-task-badge">👀 Compreensão</div><h2>Qual frase está sendo sinalizada?</h2>'+(ph?.url?'<video class="study-task-video" data-video-id="'+vid+'" controls autoplay loop playsinline preload="metadata" src="'+esc(ph.url)+'"></video>'+speedTools(vid):'<div class="study-video-loading">Vídeo indisponível nesta etapa.</div>')+'<div class="study-answer-grid">'+step.choices.map(x=>'<button data-study-answer="'+esc(x)+'">'+esc(x)+'</button>').join("")+'</div><div class="study-feedback" id="study-feedback"></div></div>';
-    root.innerHTML=studyPlayerShell(body);studyBindBase();bindSpeeds(root);bindStudyAnswers(step.target);return;
-  }
+  if(["learn","recognize","produce"].includes(step.type)){
+    root.innerHTML=studyPlayerShell('<div class="study-task loading"><div class="study-task-badge">Preparando atividade</div><div class="study-video-loading">Procurando um vídeo reproduzível…</div></div>');
+    studyBindBase();
+    let resolved=await studyResolveTarget(step);
+    if(!STUDY_PLAY||token!==STUDY_PLAY.token)return;
+    if(!resolved)return studyUnavailableStep("Nenhum dos sinais desta atividade encontrou vídeo válido agora.");
+    step.target=resolved.target;
+    let target=resolved.target,media=resolved.media,vid="study-"+step.type+"-"+Date.now();
     if(step.type==="learn"){
-    body='<div class="study-task learn"><div class="study-task-badge">👐 Observe</div><h2>'+esc(title(step.target))+'</h2><div class="study-video-loading">Carregando o sinal…</div><button class="primary wide hidden" data-study-next>Continuar</button></div>';
-    root.innerHTML=studyPlayerShell(body);studyBindBase();
-    let media=await studyGetMedia(step.target);if(!STUDY_PLAY||token!==STUDY_PLAY.token)return;
-    let holder=root.querySelector(".study-video-loading"),next=root.querySelector("[data-study-next]"),vid="study-learn-"+Date.now();
-    holder.innerHTML=media?.url?'<video class="study-task-video" data-video-id="'+vid+'" controls autoplay loop playsinline preload="metadata" src="'+esc(media.url)+'"></video>'+speedTools(vid):'<p>Não encontrei vídeo agora. Você pode pular esta etapa.</p>';
-    next?.classList.remove("hidden");bindSpeeds(root);return;
-  }
+      body='<div class="study-task learn"><div class="study-task-badge">👐 Observe</div><h2>'+esc(title(target))+'</h2><p>Observe configuração, movimento, orientação e expressão antes de repetir.</p><video class="study-task-video" data-video-id="'+vid+'" controls autoplay loop playsinline preload="metadata" src="'+esc(media.url)+'"></video>'+speedTools(vid)+'<button class="primary wide" data-study-next>Pratiquei · continuar</button></div>';
+      root.innerHTML=studyPlayerShell(body);studyBindBase();bindSpeeds(root);bindStudyVideoFallbacks(root,target);return;
+    }
     if(step.type==="recognize"){
-    body='<div class="study-task quiz"><div class="study-task-badge">👀 Reconheça</div><h2>O que este sinal significa?</h2><div class="study-video-loading">Carregando o sinal…</div><div class="study-answer-grid hidden">'+step.choices.map(x=>'<button data-study-answer="'+esc(x)+'">'+esc(title(x))+'</button>').join("")+'</div><div class="study-feedback" id="study-feedback"></div></div>';
-    root.innerHTML=studyPlayerShell(body);studyBindBase();
-    let media=await studyGetMedia(step.target);if(!STUDY_PLAY||token!==STUDY_PLAY.token)return;
-    let holder=root.querySelector(".study-video-loading"),answers=root.querySelector(".study-answer-grid"),vid="study-recognize-"+Date.now();
-    holder.innerHTML=media?.url?'<video class="study-task-video" data-video-id="'+vid+'" controls autoplay loop playsinline preload="metadata" src="'+esc(media.url)+'"></video>'+speedTools(vid):'<p>Não encontrei vídeo agora. Passe para a próxima.</p>';
-    answers?.classList.remove("hidden");bindSpeeds(root);bindStudyAnswers(step.target);return;
-  }
+      let choices=studyChoiceOrder(target,studyLessonPool(p.lesson),step.seed||p.index);
+      body='<div class="study-task quiz"><div class="study-task-badge">👀 Reconheça</div><h2>Que sinal é este?</h2><video class="study-task-video" data-video-id="'+vid+'" controls autoplay loop playsinline preload="metadata" src="'+esc(media.url)+'"></video>'+speedTools(vid)+'<div class="study-answer-grid hidden">'+choices.map(x=>'<button data-study-answer="'+esc(x)+'">'+esc(title(x))+'</button>').join("")+'</div><div class="study-feedback" id="study-feedback"></div></div>';
+      root.innerHTML=studyPlayerShell(body);studyBindBase();bindSpeeds(root);bindStudyVideoFallbacks(root,target);studyArmQuestionVideo(root,target);bindStudyAnswers(target);return;
+    }
     if(step.type==="produce"){
-    body='<div class="study-task produce"><div class="study-task-badge">✋ Sua vez</div><h2>'+esc(step.prompt||"Faça o sinal")+'</h2><div class="study-production-word">'+esc(title(step.target))+'</div><p>Faça o sinal antes de conferir o modelo.</p><button class="primary wide" data-study-reveal>Já fiz · conferir</button></div>';
-    root.innerHTML=studyPlayerShell(body);studyBindBase();
-    root.querySelector("[data-study-reveal]").onclick=()=>studyRevealProduction(step.target);return;
+      body='<div class="study-task produce"><div class="study-task-badge">✋ Sua vez</div><h2>'+esc(step.prompt||"Faça este sinal")+'</h2><div class="study-production-word">'+esc(title(target))+'</div><p>Produza primeiro. O modelo só aparece depois que você pedir para conferir.</p><button class="primary wide" data-study-reveal>Já fiz · conferir modelo</button></div>';
+      root.innerHTML=studyPlayerShell(body);studyBindBase();
+      root.querySelector("[data-study-reveal]").onclick=()=>studyRevealProduction(target,media);return;
+    }
   }
 }
 function bindStudyAnswers(correct){
@@ -678,25 +760,25 @@ function bindStudyAnswers(correct){
     let ok=norm(b.dataset.studyAnswer)===norm(correct);STUDY_PLAY.answer={choice:b.dataset.studyAnswer,correct:ok};
     if(ok)STUDY_PLAY.score++;else STUDY_PLAY.errors++;
     root.querySelectorAll("[data-study-answer]").forEach(x=>{x.disabled=true;x.classList.toggle("correct",norm(x.dataset.studyAnswer)===norm(correct));if(x===b&&!ok)x.classList.add("wrong")});
-    let fb=$("#study-feedback");if(fb)fb.innerHTML='<b>'+(ok?"✅ Certo!":"↻ Quase.")+'</b><span>'+(ok?"Você reconheceu o sinal.":"A resposta é "+esc(title(correct))+".")+'</span><button class="primary" data-study-next>Continuar</button>';
+    let fb=$("#study-feedback");if(fb)fb.innerHTML='<b>'+(ok?"✅ Certo!":"↻ Ainda não.")+'</b><span>'+(ok?"Você reconheceu o sinal.":"O sinal era "+esc(title(correct))+". Observe novamente antes de avançar.")+'</span><button class="primary" data-study-next>Continuar</button>';
     root.querySelector("[data-study-next]")?.addEventListener("click",()=>studyPlayerNext());
   });
 }
-async function studyRevealProduction(target){
+async function studyRevealProduction(target,knownMedia=null){
   let root=$("#study-player");if(!root||!STUDY_PLAY)return;
-  let token=++STUDY_PLAY.token;
-  root.querySelector(".study-task").innerHTML='<div class="study-task-badge">✋ Confira</div><h2>'+esc(title(target))+'</h2><div class="study-video-loading">Carregando o modelo…</div><div class="study-production-actions hidden"><button class="soft" data-study-again>Quero repetir</button><button class="primary" data-study-next>Consegui · continuar</button></div>';
-  let media=await studyGetMedia(target);if(!STUDY_PLAY||token!==STUDY_PLAY.token)return;
-  let holder=root.querySelector(".study-video-loading"),actions=root.querySelector(".study-production-actions"),vid="study-produce-"+Date.now();
-  holder.innerHTML=media?.url?'<video class="study-task-video" data-video-id="'+vid+'" controls autoplay loop playsinline preload="metadata" src="'+esc(media.url)+'"></video>'+speedTools(vid):'<p>Vídeo indisponível agora.</p>';
-  actions?.classList.remove("hidden");bindSpeeds(root);
+  let token=++STUDY_PLAY.token,media=knownMedia||await studyGetMedia(target);
+  if(!STUDY_PLAY||token!==STUDY_PLAY.token)return;
+  if(!media?.url)return studyUnavailableStep("O modelo deste sinal ficou indisponível agora.");
+  let vid="study-produce-"+Date.now();
+  root.querySelector(".study-task").innerHTML='<div class="study-task-badge">✋ Confira</div><h2>'+esc(title(target))+'</h2><p>Compare sua produção com o modelo e repita se precisar.</p><video class="study-task-video" data-video-id="'+vid+'" controls autoplay loop playsinline preload="metadata" src="'+esc(media.url)+'"></video>'+speedTools(vid)+'<div class="study-production-actions"><button class="soft" data-study-again>Repetir vídeo</button><button class="primary" data-study-next>Consegui · continuar</button></div>';
+  bindSpeeds(root);bindStudyVideoFallbacks(root,target);
   root.querySelector("[data-study-again]")?.addEventListener("click",()=>{let v=root.querySelector("video");if(v){try{v.currentTime=0;v.play()}catch{}}});
   root.querySelector("[data-study-next]")?.addEventListener("click",()=>{STUDY_PLAY.score++;studyPlayerNext()});
 }
 async function studyPlayerNext(){
   if(!STUDY_PLAY)return;
   if(STUDY_PLAY.index>=STUDY_PLAY.steps.length-1)return finishInteractiveLesson();
-  STUDY_PLAY.index++;STUDY_PLAY.answer=null;STUDY_PLAY.revealed=false;studySaveSession();await renderStudyPlayer();
+  STUDY_PLAY.index++;STUDY_PLAY.answer=null;studySaveSession();await renderStudyPlayer();
 }
 async function finishInteractiveLesson(){
   let p=STUDY_PLAY;if(!p)return;
@@ -708,32 +790,52 @@ async function finishInteractiveLesson(){
   $("#modal-body").querySelector("[data-study-next-lesson]")?.addEventListener("click",e=>openInteractiveLesson(e.currentTarget.dataset.studyNextLesson,{fresh:true}));
   $("#modal-body").querySelector("[data-study-done]")?.addEventListener("click",()=>{$("#modal").classList.add("hidden");$("#modal").classList.remove("study-session-open")});
 }
+function studyTrailPath(lessons,m,currentId){
+  let coords=[[50,45],[35,135],[63,225],[39,315],[68,405],[48,495],[31,585],[64,675],[40,765],[60,855]];
+  let used=coords.slice(0,Math.max(1,lessons.length)),d="";
+  used.forEach((p,i)=>{if(i===0)d="M "+p[0]+" "+p[1];else{let prev=used[i-1],mid=(prev[1]+p[1])/2;d+=" C "+prev[0]+" "+mid+", "+p[0]+" "+mid+", "+p[0]+" "+p[1]}});
+  let svg='<svg class="trail-route-svg" viewBox="0 0 100 900" preserveAspectRatio="none" aria-hidden="true"><path d="'+d+'"/></svg>';
+  let nodes=lessons.map((x,i)=>{
+    let p=coords[i]||[50,45+i*90],isDone=!!m[x.id]?.completed,isCurrent=x.id===currentId,km=studyKindMeta(x.kind),state=isDone?"done":isCurrent?"current":"future",side=p[0]<45?"left":p[0]>55?"right":"center";
+    return '<button type="button" class="trail-stop '+state+' side-'+side+'" data-study-open="'+esc(x.id)+'" style="--trail-x:'+p[0]+'%;--trail-y:'+p[1]+'px"><span class="trail-stop-node"><em>'+esc(km.icon)+'</em><b>'+(isDone?"✓":i+1)+'</b></span><span class="trail-stop-label"><small>'+esc(km.label)+'</small><strong>'+esc(x.title)+'</strong></span></button>';
+  }).join("");
+  return '<div class="trail-map">'+svg+nodes+'</div>';
+}
 function study(){
   let L=window.LIBRAS_STUDY_CONTENT||[],m=smap(),done=L.filter(x=>m[x.id]?.completed).length,snap=studySnapshot();
   let count=$("#study-count"),pct=$("#study-pct"),mods=$("#study-modules"),search=$("#study-search"),list=$("#study-list");
   if(!count||!pct||!mods||!search||!list)return;
   count.textContent=done+" de "+L.length+" aulas · "+snap.completedModules+" de "+snap.moduleRows.length+" unidades";
   pct.textContent=Math.round(done/Math.max(1,L.length)*100)+"%";
-  let currentCycle=Number(snap.current?.cycle||studyUnitMeta(snap.current?.unit||1).cycle||1);
-  let active=Number(mods.dataset.activeCycle||currentCycle||1);
-  if(!snap.cycleRows.some(x=>x.cycle===active))active=snap.cycleRows[0]?.cycle||1;
-  mods.dataset.activeCycle=String(active);
-  mods.innerHTML=snap.cycleRows.map(x=>'<button data-cycle="'+x.cycle+'" class="'+(active===x.cycle?"active":"")+'"><b>Ciclo '+x.cycle+'</b><span>'+esc(x.name)+'</span><small>'+esc(x.range)+'</small></button>').join("");
-  $$("[data-cycle]").forEach(b=>b.onclick=()=>{mods.dataset.activeCycle=b.dataset.cycle;study()});
-  let q=norm(search.value),currentId=snap.current?.id||"",base=L.filter(x=>Number(x.cycle||studyUnitMeta(x.unit).cycle||1)===active);
-  let F=base.filter(x=>!q||norm([x.title,x.summary,x.module,x.scene,x.challenge,...(x.signs||[])].join(" ")).includes(q));
-  let grouped=new Map;F.forEach(x=>{let key=Number(x.unit||1);if(!grouped.has(key))grouped.set(key,[]);grouped.get(key).push(x)});
-  let cyc=studyCycleMeta(active),cyRow=snap.cycleRows.find(x=>x.cycle===active),cyPct=Math.round((cyRow?.done||0)/Math.max(1,cyRow?.total||1)*100);
-  let cycleHead='<section class="study-cycle-head"><div><small>CICLO '+cyc.id+' · NÍVEL '+esc(cyc.range||"")+'</small><h2>'+esc(cyc.title)+'</h2><p>'+esc(cyc.goal||"")+'</p></div><div class="study-cycle-progress"><b>'+cyPct+'%</b><span>'+(cyRow?.done||0)+'/'+(cyRow?.total||0)+' aulas</span></div></section>';
-  let units=[...grouped.entries()].map(([unit,lessons])=>{
-    let meta=studyUnitMeta(unit),row=snap.moduleRows.find(x=>x.unit===unit),upct=Math.round((row?.done||0)/Math.max(1,row?.total||1)*100);
-    let cards=lessons.map(x=>{
-      let pos=L.filter(y=>Number(y.unit||1)===unit).findIndex(y=>y.id===x.id)+1,isDone=!!m[x.id]?.completed,isCurrent=x.id===currentId,km=studyKindMeta(x.kind);
-      return '<button type="button" class="study-lesson-launch '+(isDone?"done ":"")+(isCurrent?"current":"")+'" data-study-open="'+esc(x.id)+'"><span class="study-lesson-no">'+pos+'</span><span class="study-kind-icon">'+esc(km.icon)+'</span><span class="study-lesson-copy"><small>'+esc(km.label)+'</small><b>'+esc(x.title)+'</b><span>'+esc(x.summary||"")+'</span></span><span class="study-lesson-state">'+(isDone?"✓":"▶")+'</span></button>';
-    }).join("");
-    return '<section class="study-unit" data-study-unit="'+unit+'"><div class="study-unit-head"><div class="study-unit-badge">👐</div><div><small>UNIDADE '+unit+' · '+esc(meta.band||cyc.range||"")+'</small><h3>'+esc(meta.title)+'</h3><p>'+esc(meta.mission||meta.subtitle||"")+'</p></div><div class="study-unit-progress"><b>'+upct+'%</b><span>'+(row?.done||0)+'/'+(row?.total||0)+' aulas</span></div></div><div class="study-lesson-launch-list">'+cards+'</div></section>';
-  }).join("");
-  list.innerHTML=cycleHead+(units||'<div class="surface center"><p>Nenhuma aula encontrada neste ciclo.</p></div>');
+  let q=norm(search.value),current=snap.current,currentCycle=Number(current?.cycle||studyUnitMeta(current?.unit||1).cycle||1);
+  let activeCycle=Number(mods.dataset.activeCycle||currentCycle||1);
+  if(q){
+    let hit=L.find(x=>norm([x.title,x.summary,x.module,x.scene,x.challenge,...(x.signs||[])].join(" ")).includes(q));
+    if(hit){activeCycle=Number(hit.cycle||studyUnitMeta(hit.unit).cycle||1);mods.dataset.activeUnit=String(hit.unit)}
+  }
+  if(!snap.cycleRows.some(x=>x.cycle===activeCycle))activeCycle=snap.cycleRows[0]?.cycle||1;
+  mods.dataset.activeCycle=String(activeCycle);
+  mods.innerHTML=snap.cycleRows.map(x=>'<button data-cycle="'+x.cycle+'" class="'+(activeCycle===x.cycle?"active":"")+'"><b>'+x.cycle+'</b><span>'+esc(x.name)+'</span><small>'+esc(x.range)+'</small></button>').join("");
+  $$("[data-cycle]").forEach(b=>b.onclick=()=>{mods.dataset.activeCycle=b.dataset.cycle;delete mods.dataset.activeUnit;study()});
+  let cycleUnits=snap.moduleRows.filter(x=>x.cycle===activeCycle),defaultUnit=Number(current?.unit||cycleUnits[0]?.unit||1),activeUnit=Number(mods.dataset.activeUnit||defaultUnit);
+  if(!cycleUnits.some(x=>x.unit===activeUnit))activeUnit=cycleUnits[0]?.unit||1;
+  mods.dataset.activeUnit=String(activeUnit);
+  let unitIndex=cycleUnits.findIndex(x=>x.unit===activeUnit),unitRow=cycleUnits[unitIndex],meta=studyUnitMeta(activeUnit),cyc=studyCycleMeta(activeCycle),lessons=L.filter(x=>Number(x.unit||1)===activeUnit).sort((a,b)=>a.order-b.order);
+  if(q){
+    let matching=lessons.filter(x=>norm([x.title,x.summary,x.module,x.scene,x.challenge,...(x.signs||[])].join(" ")).includes(q));
+    if(matching.length)lessons=matching;
+  }
+  let upct=Math.round((unitRow?.done||0)/Math.max(1,unitRow?.total||1)*100),cyRow=snap.cycleRows.find(x=>x.cycle===activeCycle),cyPct=Math.round((cyRow?.done||0)/Math.max(1,cyRow?.total||1)*100);
+  let unitDots=cycleUnits.map((u,i)=>'<button type="button" data-study-unit="'+u.unit+'" class="'+(u.unit===activeUnit?"active ":"")+(u.complete?"done":"")+'" aria-label="Unidade '+u.unit+'">'+(u.complete?"✓":i+1)+'</button>').join("");
+  let html='<section class="trail-cycle-banner"><div><small>CICLO '+cyc.id+' · NÍVEL '+esc(cyc.range||"")+'</small><h2>'+esc(cyc.title)+'</h2><p>'+esc(cyc.goal||"")+'</p></div><div><b>'+cyPct+'%</b><span>do ciclo</span></div></section>'+
+    '<section class="trail-unit-nav"><button type="button" class="trail-unit-arrow" data-study-unit-prev '+(unitIndex<=0?"disabled":"")+'>‹</button><div class="trail-unit-nav-center"><small>UNIDADE '+activeUnit+' · '+(unitIndex+1)+' DE '+cycleUnits.length+'</small><div class="trail-unit-dots">'+unitDots+'</div></div><button type="button" class="trail-unit-arrow" data-study-unit-next '+(unitIndex>=cycleUnits.length-1?"disabled":"")+'>›</button></section>'+
+    '<section class="trail-unit-hero"><div><span class="trail-unit-kicker">SEU CAMINHO AGORA</span><h3>'+esc(meta.title)+'</h3><p>'+esc(meta.mission||meta.subtitle||"")+'</p></div><div class="trail-unit-ring" style="--pct:'+upct+'"><b>'+upct+'%</b><small>'+ (unitRow?.done||0)+'/'+(unitRow?.total||0)+'</small></div></section>'+
+    (q&&lessons.length!==10?'<div class="trail-search-note">Mostrando '+lessons.length+' etapa(s) que combinam com sua busca nesta unidade.</div>':'')+
+    studyTrailPath(lessons,m,current?.id||"");
+  list.innerHTML=html;
+  $$("[data-study-unit]").forEach(b=>b.onclick=()=>{mods.dataset.activeUnit=b.dataset.studyUnit;study()});
+  $("[data-study-unit-prev]")?.addEventListener("click",()=>{if(unitIndex>0){mods.dataset.activeUnit=String(cycleUnits[unitIndex-1].unit);study()}});
+  $("[data-study-unit-next]")?.addEventListener("click",()=>{if(unitIndex<cycleUnits.length-1){mods.dataset.activeUnit=String(cycleUnits[unitIndex+1].unit);study()}});
   $$("[data-study-open]").forEach(b=>b.onclick=()=>openInteractiveLesson(b.dataset.studyOpen));
   if(window.LSHydrateIcons)LSHydrateIcons($("#study"));
 }
