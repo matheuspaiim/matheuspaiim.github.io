@@ -1,4 +1,4 @@
-const APP_VERSION="0.5.76";
+const APP_VERSION="0.5.77";
 const cfg=window.LIBRAS_STUDIO_CONFIG||{},$=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const nativeParams=new URLSearchParams(location.search);
 const IS_NATIVE_ANDROID=nativeParams.get("native")==="android";
@@ -814,11 +814,17 @@ function bindStudyVideoFallbacks(root,name){
   }
 }
 function studyArmQuestionVideo(root,target){
-  let v=root?.querySelector("video"),answers=root?.querySelector(".study-answer-grid"),feedback=root?.querySelector("#study-feedback");
-  if(!v||!answers)return;
-  let reveal=()=>{if(v.readyState>=2&&!v.error)answers.classList.remove("hidden")};
+  let v=root?.querySelector("video"),question=root?.querySelector("[data-study-question]"),answers=root?.querySelector(".study-answer-grid"),feedback=root?.querySelector("#study-feedback");
+  if(!v||!question||!answers)return;
+  let reveal=()=>{
+    if(v.readyState>=2&&!v.error){
+      question.classList.remove("hidden");
+      answers.classList.remove("hidden");
+    }
+  };
   if(v.readyState>=2)reveal();else v.addEventListener("loadeddata",reveal,{once:true});
   v.addEventListener("study-media-exhausted",()=>{
+    question.classList.add("hidden");
     answers.classList.add("hidden");
     if(feedback){
       feedback.innerHTML='<b>↻ Vídeo indisponível</b><span>Esta pergunta foi retirada porque o vídeo não carregou.</span><button class="primary" data-study-next>Continuar</button>';
@@ -878,7 +884,7 @@ async function renderStudyPlayer(){
     }
     if(step.type==="recognize"){
       let choices=studyChoiceOrder(target,studyLessonPool(p.lesson),step.seed||p.index);
-      body='<div class="study-task quiz"><div class="study-task-badge">👀 Reconheça</div><h2>Que sinal é este?</h2><div data-study-video-slot></div>'+speedTools(vid)+'<div class="study-video-actions">'+studyLibraryButton(target)+'</div><div class="study-answer-grid hidden">'+choices.map(x=>'<button data-study-answer="'+esc(x)+'">'+esc(title(x))+'</button>').join("")+'</div><div class="study-feedback" id="study-feedback"></div></div>';
+      body='<div class="study-task quiz"><div class="study-task-badge">👀 Reconheça</div><h2 class="hidden" data-study-question>Que sinal é este?</h2><div data-study-video-slot></div>'+speedTools(vid)+'<div class="study-video-actions">'+studyLibraryButton(target)+'</div><div class="study-answer-grid hidden">'+choices.map(x=>'<button data-study-answer="'+esc(x)+'">'+esc(title(x))+'</button>').join("")+'</div><div class="study-feedback" id="study-feedback"></div></div>';
       root.innerHTML=studyPlayerShell(body);studyMountWarmVideo(root,target,media,vid);studyBindBase();bindSpeeds(root);bindStudyVideoFallbacks(root,target);studyArmQuestionVideo(root,target);bindStudyAnswers(target);bindStudyLibraryButtons(root);studyWarmUpcomingSteps();return;
     }
     if(step.type==="produce"){
