@@ -2548,7 +2548,7 @@ body{background:var(--studio-bg)}
 
 .trail-map{
   position:relative;
-  height:910px;
+  height:var(--trail-height,910px);
   max-width:520px;
   margin:8px auto 24px;
   overflow:visible;
@@ -2557,7 +2557,7 @@ body{background:var(--studio-bg)}
   position:absolute;
   inset:0;
   width:100%;
-  height:900px;
+  height:var(--trail-height,900px);
   overflow:visible;
   pointer-events:none;
 }
@@ -2766,7 +2766,7 @@ body{background:var(--studio-bg)}
   .trail-map{
     width:100%;
     max-width:390px;
-    height:910px;
+    height:var(--trail-height,910px);
   }
   .trail-stop{
     width:60px;
