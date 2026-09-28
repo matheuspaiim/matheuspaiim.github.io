@@ -1,4 +1,4 @@
-const APP_VERSION="0.5.75";
+const APP_VERSION="0.5.76";
 const cfg=window.LIBRAS_STUDIO_CONFIG||{},$=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const nativeParams=new URLSearchParams(location.search);
 const IS_NATIVE_ANDROID=nativeParams.get("native")==="android";
@@ -228,7 +228,7 @@ function streakInfo(){
 }
 function studyCycleMeta(cycle){
   let id=Number(cycle||1),all=window.LIBRAS_STUDY_CYCLES||[];
-  return all.find(x=>Number(x.id)===id)||{id,title:"Ciclo "+id,range:"",goal:""};
+  return all.find(x=>Number(x.id)===id)||{id,title:"Etapa "+id,range:"",goal:""};
 }
 function studyUnitMeta(unit){
   let id=Number(unit||1),all=window.LIBRAS_STUDY_UNITS||[];
@@ -236,7 +236,7 @@ function studyUnitMeta(unit){
 }
 function studyLessonUnitLabel(lesson){
   let u=studyUnitMeta(lesson?.unit||1),cy=studyCycleMeta(lesson?.cycle||u.cycle||1);
-  return "Ciclo "+cy.id+" · Unidade "+u.id+" · "+u.title;
+  return "Etapa "+cy.id+" · Unidade "+u.id+" · "+u.title;
 }
 function studySnapshot(){
   let L=window.LIBRAS_STUDY_CONTENT||[],m=smap(),done=L.filter(x=>m[x.id]?.completed);
@@ -317,7 +317,7 @@ function renderProgressPage(){
   let moduleIcons=["education","explore","trail","people"];
   let modules=snap.cycleRows.map((cy,ci)=>{
     let cpct=Math.round((cy.done/Math.max(1,cy.total))*100),rows=snap.moduleRows.filter(x=>x.cycle===cy.cycle).map((x,i)=>{let pct=Math.round((x.done/Math.max(1,x.total))*100);return '<div class="module-progress-row tone-'+(i%4)+'"><div class="module-progress-icon">'+LSIcon(moduleIcons[i%moduleIcons.length],"icon-sm")+'</div><div class="module-progress-copy"><div class="module-progress-head"><b>Unidade '+x.unit+' · '+esc(moduleLabel(x.name))+'</b><strong>'+pct+'%</strong></div><small>'+x.done+' de '+x.total+' aulas concluídas</small><div class="module-progress-track"><span style="width:'+pct+'%"></span></div></div></div>'}).join("");
-    return '<section class="progress-cycle-group"><div class="progress-cycle-head"><div><small>CICLO '+cy.cycle+' · '+esc(cy.range||"")+'</small><b>'+esc(cy.name)+'</b><span>'+esc(cy.goal||"")+'</span></div><strong>'+cpct+'%</strong></div><div class="progress-cycle-units">'+rows+'</div></section>';
+    return '<section class="progress-cycle-group"><div class="progress-cycle-head"><div><small>ETAPA '+cy.cycle+' · '+esc(cy.range||"")+'</small><b>'+esc(cy.name)+'</b><span>'+esc(cy.goal||"")+'</span></div><strong>'+cpct+'%</strong></div><div class="progress-cycle-units">'+rows+'</div></section>';
   }).join("");
   let history=activityHistory(),years=[...new Set([...history.keys()].map(k=>+k.slice(0,4)).concat([new Date().getFullYear()]))].sort((x,y)=>y-x),months=Array.from({length:12},(_,i)=>new Date(2026,i,1).toLocaleDateString("pt-BR",{month:"long"}));
   root.innerHTML=
@@ -559,29 +559,48 @@ function studyBuildSteps(lesson){
     mission:studyUnitMeta(lesson.unit).mission||"",
     signs:core,
     take:(lesson.take||[]).slice(0,3),
-    context:lesson.scene||lesson.challenge||"",
+    context:lesson.scene||lesson.challenge||lesson.context||"",
     questions:(lesson.questions||[]).slice(0,3)
   };
   steps.push({type:"intro",title:lesson.title,text:lesson.summary||detail.mission,detail});
-  if(lesson.kind==="theory"){
-    (lesson.sections||[]).forEach((sec,i)=>steps.push({type:"concept",title:sec[0],text:sec[1],n:i+1}));
-    let theoryTargets=pool.slice(0,3);
-    theoryTargets.slice(0,2).forEach((s,i)=>steps.push({type:i?"recognize":"produce",target:s,prompt:"Aplique o conceito neste sinal.",seed:lesson.unit+i}));
-    steps.push({type:"recap",title:"O que fica desta aula",text:lesson.practice||"Observe o conceito nas próximas atividades.",take:lesson.take||[]});
+
+  if(lesson.kind==="signals"){
+    core.slice(0,6).forEach((s,i)=>{
+      steps.push({type:"learn",target:s});
+      steps.push({type:"recognize",target:s,seed:lesson.unit*31+lesson.order*7+i});
+      if(i===1&&lesson.microtheory){
+        steps.push({type:"concept",title:lesson.microtheory.title,text:lesson.microtheory.text+" "+(lesson.microtheory.observe||"")});
+      }
+    });
+    let production=core.slice(-2);
+    production.forEach((s,i)=>steps.push({
+      type:"produce",
+      target:s,
+      prompt:i?"Faça este sinal novamente sem olhar o modelo.":"Agora faça este sinal antes de revelar o modelo.",
+      seed:lesson.unit*41+i
+    }));
+    if((lesson.expansion||[]).length)steps.push({type:"expansion",signs:lesson.expansion.slice(0,2)});
+    steps.push({type:"recap",title:"Aula concluída",text:lesson.practice||detail.mission,take:lesson.take||[],signs:core});
     return steps;
   }
-  let learnCount=lesson.kind==="signals"?Math.min(4,core.length):Math.min(2,core.length);
-  core.slice(0,learnCount).forEach(s=>steps.push({type:"learn",target:s}));
-  let recognition=core.slice(0,Math.min(5,core.length));
-  recognition.forEach((s,i)=>steps.push({type:"recognize",target:s,seed:lesson.unit*7+i}));
-  let production=core.slice(Math.max(0,core.length-3));
-  production.slice(0,2).forEach((s,i)=>steps.push({type:"produce",target:s,prompt:i?"Faça novamente sem olhar o modelo.":"Faça o sinal antes de revelar o modelo.",seed:lesson.unit*11+i}));
-  if((lesson.expansion||[]).length)steps.push({type:"expansion",signs:lesson.expansion.slice(0,2)});
-  if(["scene","comprehension","story","checkpoint","production"].includes(lesson.kind)){
-    let extra=core.slice(0,Math.min(4,core.length));
-    extra.forEach((s,i)=>steps.push({type:i%2?"produce":"recognize",target:s,seed:lesson.unit*13+i,prompt:"Faça o sinal antes de conferir."}));
+
+  if(lesson.kind==="integration"){
+    core.slice(0,4).forEach((s,i)=>steps.push({type:"recognize",target:s,seed:lesson.unit*53+i}));
+    core.slice(4,6).forEach((s,i)=>steps.push({type:"produce",target:s,prompt:i?"Produza outro sinal da missão.":"Sua vez: produza antes de conferir.",seed:lesson.unit*59+i}));
+    steps.push({type:"recap",title:"Missão concluída",text:lesson.practice||lesson.challenge||detail.mission,take:lesson.take||[],signs:core.slice(0,6)});
+    return steps;
   }
-  steps.push({type:"recap",title:lesson.kind==="checkpoint"?"Desafio finalizado":"Fechando a aula",text:lesson.practice||detail.mission,take:lesson.take||[],signs:core});
+
+  if(lesson.kind==="review"){
+    core.slice(0,5).forEach((s,i)=>steps.push({type:"recognize",target:s,seed:lesson.cycle*67+i}));
+    core.slice(5,8).forEach((s,i)=>steps.push({type:"produce",target:s,prompt:"Recupere este sinal sem rever a aula antiga.",seed:lesson.cycle*71+i}));
+    steps.push({type:"recap",title:"Revisão concluída",text:lesson.practice||"Siga em frente e salve na Biblioteca apenas o que ainda precisa revisar.",take:lesson.take||[],signs:core});
+    return steps;
+  }
+
+  core.slice(0,4).forEach((s,i)=>steps.push({type:"recognize",target:s,seed:lesson.unit*73+i}));
+  core.slice(4,6).forEach((s,i)=>steps.push({type:"produce",target:s,prompt:"Faça o sinal antes de conferir.",seed:lesson.unit*79+i}));
+  steps.push({type:"recap",title:"Fechando a aula",text:lesson.practice||detail.mission,take:lesson.take||[],signs:core});
   return steps;
 }
 const STUDY_WARM_MEDIA=new Map(),STUDY_WARM_ORDER=[],STUDY_WARM_LIMIT=18;
@@ -957,15 +976,15 @@ function studyLessonSemanticIcon(lesson){
   return window.LSCategoryIcon?window.LSCategoryIcon(category):(window.LSIcon?window.LSIcon("lesson","trail-semantic-icon"):"👐");
 }
 function studyTrailPath(lessons,m,currentId){
-  let coords=[[50,45],[35,135],[63,225],[39,315],[68,405],[48,495],[31,585],[64,675],[40,765],[60,855]];
-  let used=coords.slice(0,Math.max(1,lessons.length)),d="";
-  used.forEach((p,i)=>{if(i===0)d="M "+p[0]+" "+p[1];else{let prev=used[i-1],mid=(prev[1]+p[1])/2;d+=" C "+prev[0]+" "+mid+", "+p[0]+" "+mid+", "+p[0]+" "+p[1]}});
-  let svg='<svg class="trail-route-svg" viewBox="0 0 100 900" preserveAspectRatio="none" aria-hidden="true"><path d="'+d+'"/></svg>';
+  const xs=[50,34,65,38,67,46,30,64,40,60],gap=112,startY=52;
+  let coords=lessons.map((_,i)=>[xs[i%xs.length],startY+i*gap]),height=Math.max(180,startY*2+Math.max(0,lessons.length-1)*gap),d="";
+  coords.forEach((p,i)=>{if(i===0)d="M "+p[0]+" "+p[1];else{let prev=coords[i-1],mid=(prev[1]+p[1])/2;d+=" C "+prev[0]+" "+mid+", "+p[0]+" "+mid+", "+p[0]+" "+p[1]}});
+  let svg='<svg class="trail-route-svg" viewBox="0 0 100 '+height+'" preserveAspectRatio="none" aria-hidden="true"><path d="'+d+'"/></svg>';
   let nodes=lessons.map((x,i)=>{
-    let p=coords[i]||[50,45+i*90],isDone=!!m[x.id]?.completed,isCurrent=x.id===currentId,km=studyKindMeta(x.kind),state=isDone?"done":isCurrent?"current":"future",side=p[0]<45?"left":p[0]>55?"right":"center",icon=studyLessonSemanticIcon(x);
+    let p=coords[i]||[50,startY+i*gap],isDone=!!m[x.id]?.completed,isCurrent=x.id===currentId,km=studyKindMeta(x.kind),state=isDone?"done":isCurrent?"current":"future",side=p[0]<45?"left":p[0]>55?"right":"center",icon=studyLessonSemanticIcon(x);
     return '<button type="button" class="trail-stop '+state+' side-'+side+'" data-study-open="'+esc(x.id)+'" style="--trail-x:'+p[0]+'%;--trail-y:'+p[1]+'px"><span class="trail-stop-node"><span class="trail-semantic-icon">'+icon+'</span><b>'+(isDone?"✓":i+1)+'</b></span><span class="trail-stop-label"><small>'+esc(km.label)+'</small><strong>'+esc(x.title)+'</strong></span></button>';
   }).join("");
-  return '<div class="trail-map">'+svg+nodes+'</div>';
+  return '<div class="trail-map" style="--trail-height:'+height+'px">'+svg+nodes+'</div>';
 }
 function study(){
   let L=window.LIBRAS_STUDY_CONTENT||[],m=smap(),done=L.filter(x=>m[x.id]?.completed).length,snap=studySnapshot();
@@ -998,7 +1017,7 @@ function study(){
   let html='<section class="trail-stage-goal"><div><small>OBJETIVO DESTA ETAPA</small><p>'+esc(cyc.goal||"")+'</p></div><div><b>'+cyPct+'%</b><span>concluído</span></div></section>'+
     '<section class="trail-unit-nav-simple"><small>UNIDADES DESTA ETAPA</small><div class="trail-unit-tabs">'+unitDots+'</div></section>'+
     '<section class="trail-unit-hero"><div><span class="trail-unit-kicker">UNIDADE '+activeUnit+'</span><h3>'+esc(meta.title)+'</h3><p>'+esc(meta.mission||meta.subtitle||"")+'</p></div><div class="trail-unit-ring" style="--pct:'+upct+'"><b>'+upct+'%</b><small>'+ (unitRow?.done||0)+'/'+(unitRow?.total||0)+' aulas</small></div></section>'+
-    (q&&lessons.length!==10?'<div class="trail-search-note">Mostrando '+lessons.length+' etapa(s) que combinam com sua busca nesta unidade.</div>':'')+
+    (q&&lessons.length!==(unitRow?.total||lessons.length)?'<div class="trail-search-note">Mostrando '+lessons.length+' aula(s) que combinam com sua busca nesta unidade.</div>':'')+
     studyTrailPath(lessons,m,current?.id||"");
   list.innerHTML=html;
   $$("[data-study-unit]").forEach(b=>b.onclick=()=>{mods.dataset.activeUnit=b.dataset.studyUnit;study()});
