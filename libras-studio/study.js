@@ -1,1277 +1,531 @@
-/* Libras Studio · trilha estruturada 0.5.70
-   Unidade 1 usa uma progressão temática própria, inspirada na ordem pública de temas do LibrasLab.
-   A lista interna de sinais foi curada a partir do catálogo do Libras Studio. */
-window.LIBRAS_STUDY_UNITS=[
-  {
-    "id": 1,
-    "title": "Vocabulário essencial",
-    "subtitle": "32 aulas em sequência para construir uma base prática.",
-    "icon": "👐"
-  },
-  {
-    "id": 2,
-    "title": "Fundamentos da Libras",
-    "subtitle": "Entenda a língua e a formação dos sinais.",
-    "icon": "🖐️"
-  },
-  {
-    "id": 3,
-    "title": "Expressão e gramática",
-    "subtitle": "Passe do vocabulário para estruturas de língua.",
-    "icon": "🙂"
-  },
-  {
-    "id": 4,
-    "title": "Espaço e fluidez",
-    "subtitle": "Use direção, referentes e classificadores.",
-    "icon": "🧭"
-  },
-  {
-    "id": 5,
-    "title": "Conversa e fluência",
-    "subtitle": "Conecte ideias e ganhe naturalidade.",
-    "icon": "💬"
-  }
+/* Libras Studio · currículo mestre 0→100 · 0.5.71
+   Arquitetura: 15 ciclos, 60 unidades, 10 experiências por unidade.
+   A prática conduz o curso; teoria entra no ponto em que passa a ser necessária.
+   Os vídeos de sinais são resolvidos sob demanda pelo catálogo do Libras Studio. */
+(function(){
+const CYCLES=[
+[1,"Primeiro contato","0–10","Sobreviver à primeira conversa com autonomia básica."],
+[2,"Eu e as pessoas","10–20","Apresentar pessoas, relações e características."],
+[3,"Minha vida cotidiana","20–30","Falar de rotina, horas, datas e sequência diária."],
+[4,"Casa e necessidades","30–40","Descrever casa, localização, alimentação e ações cotidianas."],
+[5,"O mundo fora de casa","40–50","Circular pela cidade, pedir informação, comprar e resolver tarefas."],
+[6,"Pessoas no espaço","50–60","Usar referentes, direção, apontação e coesão espacial."],
+[7,"Planos e acontecimentos","60–68","Combinar eventos, falar de planos e lidar com mudanças."],
+[8,"Saúde e segurança","68–75","Descrever corpo, sintomas, atendimento e emergências."],
+[9,"Estudo, trabalho e tecnologia","75–80","Explicar atividades, funções, processos e problemas."],
+[10,"Descrição visual","80–85","Construir descrições espaciais e introduzir classificadores."],
+[11,"Contar histórias","85–90","Organizar sequência, personagens, perspectiva e narrativa."],
+[12,"Emoção e opinião","90–93","Expressar sentimentos, preferências, opinião e desacordo."],
+[13,"Compreensão natural","93–95","Entender velocidade, estilos e sinalizantes diferentes."],
+[14,"Discurso avançado","95–98","Narrar, explicar, hipotetizar e discutir temas abstratos."],
+[15,"Autonomia e fluência","98–100","Interagir em grupos, ajustar registro e seguir aprendendo fora do curso."]
+].map(x=>({id:x[0],title:x[1],range:x[2],goal:x[3]}));
+
+
+const CHARACTERS=[
+{id:"ana",name:"Ana",role:"personagem central; sinalizante experiente"},
+{id:"lucas",name:"Lucas",role:"novo colega; começa a ampliar sua comunicação em Libras"},
+{id:"rafa",name:"Rafa",role:"amigo de Ana; aparece em situações de trabalho e tecnologia"},
+{id:"bia",name:"Bia",role:"irmã de Ana; conecta família, rotina e estudos"},
+{id:"davi",name:"Davi",role:"amigo do grupo; participa de viagens, cidade e narrativas"},
+{id:"luiza",name:"Luiza",role:"colega que amplia as interações em grupo e os pontos de vista"}
 ];
-window.LIBRAS_STUDY_CONTENT=[
-  {
-    "id": "u1-ola",
-    "unit": 1,
-    "module": "Vocabulário essencial",
-    "kind": "signals",
-    "icon": "👐",
-    "level": "Iniciante",
-    "order": 1,
-    "title": "Olá!",
-    "summary": "Cumprimentos básicos para iniciar e encerrar uma conversa.",
-    "signs": [
-      "oi",
-      "olá",
-      "tchau",
-      "obrigado",
-      "obrigada",
-      "desculpa",
-      "licença",
-      "prazer"
-    ],
-    "practice": "Cumprimente alguém, pergunte como está e encerre a conversa.",
-    "take": [
-      "Assista aos sinais com atenção.",
-      "Repita cada sinal algumas vezes.",
-      "Use os sinais em uma situação curta."
-    ]
-  },
-  {
-    "id": "u1-apresentando",
-    "unit": 1,
-    "module": "Vocabulário essencial",
-    "kind": "signals",
-    "icon": "👐",
-    "level": "Iniciante",
-    "order": 2,
-    "title": "Se apresentando",
-    "summary": "Vocabulário para dizer quem você é e reconhecer a outra pessoa.",
-    "signs": [
-      "eu",
-      "você",
-      "nome",
-      "pessoa",
-      "homem",
-      "mulher",
-      "surdo",
-      "ouvinte"
-    ],
-    "practice": "Faça uma apresentação curta usando pelo menos quatro sinais.",
-    "take": [
-      "Assista aos sinais com atenção.",
-      "Repita cada sinal algumas vezes.",
-      "Use os sinais em uma situação curta."
-    ]
-  },
-  {
-    "id": "u1-conversar",
-    "unit": 1,
-    "module": "Vocabulário essencial",
-    "kind": "signals",
-    "icon": "👐",
-    "level": "Iniciante",
-    "order": 3,
-    "title": "Vamos conversar?",
-    "summary": "Perguntas e respostas essenciais para manter uma interação simples.",
-    "signs": [
-      "sim",
-      "não",
-      "talvez",
-      "como",
-      "quem",
-      "onde",
-      "quando",
-      "entender"
-    ],
-    "practice": "Monte três perguntas curtas e responda com sim, não ou talvez.",
-    "take": [
-      "Assista aos sinais com atenção.",
-      "Repita cada sinal algumas vezes.",
-      "Use os sinais em uma situação curta."
-    ]
-  },
-  {
-    "id": "u1-linguas",
-    "unit": 1,
-    "module": "Vocabulário essencial",
-    "kind": "signals",
-    "icon": "👐",
-    "level": "Iniciante",
-    "order": 4,
-    "title": "Línguas",
-    "summary": "Sinais ligados a Libras, idiomas e comunicação.",
-    "signs": [
-      "libras",
-      "português",
-      "língua",
-      "idioma",
-      "sinal",
-      "palavra",
-      "frase",
-      "intérprete"
-    ],
-    "practice": "Diga qual língua você está aprendendo e peça para repetir um sinal.",
-    "take": [
-      "Assista aos sinais com atenção.",
-      "Repita cada sinal algumas vezes.",
-      "Use os sinais em uma situação curta."
-    ]
-  },
-  {
-    "id": "u1-familia",
-    "unit": 1,
-    "module": "Vocabulário essencial",
-    "kind": "signals",
-    "icon": "👐",
-    "level": "Iniciante",
-    "order": 5,
-    "title": "Família",
-    "summary": "Primeiros sinais para falar de pessoas da família.",
-    "signs": [
-      "família",
-      "mãe",
-      "pai",
-      "filho",
-      "filha",
-      "irmão",
-      "irmã",
-      "avó"
-    ],
-    "practice": "Apresente quatro pessoas da sua família.",
-    "take": [
-      "Assista aos sinais com atenção.",
-      "Repita cada sinal algumas vezes.",
-      "Use os sinais em uma situação curta."
-    ]
-  },
-  {
-    "id": "u1-compras",
-    "unit": 1,
-    "module": "Vocabulário essencial",
-    "kind": "signals",
-    "icon": "👐",
-    "level": "Iniciante",
-    "order": 6,
-    "title": "Compras",
-    "summary": "Vocabulário essencial para lojas, preços e pagamentos.",
-    "signs": [
-      "comprar",
-      "vender",
-      "pagar",
-      "dinheiro",
-      "preço",
-      "barato",
-      "caro",
-      "loja"
-    ],
-    "practice": "Simule perguntar o preço de algo e fazer um pagamento.",
-    "take": [
-      "Assista aos sinais com atenção.",
-      "Repita cada sinal algumas vezes.",
-      "Use os sinais em uma situação curta."
-    ]
-  },
-  {
-    "id": "u1-aula",
-    "unit": 1,
-    "module": "Vocabulário essencial",
-    "kind": "signals",
-    "icon": "👐",
-    "level": "Iniciante",
-    "order": 7,
-    "title": "Aula",
-    "summary": "Vocabulário básico de estudo e sala de aula.",
-    "signs": [
-      "aula",
-      "escola",
-      "aluno",
-      "professor",
-      "estudar",
-      "aprender",
-      "ensinar",
-      "prova"
-    ],
-    "practice": "Explique que você estuda Libras e está aprendendo sinais.",
-    "take": [
-      "Assista aos sinais com atenção.",
-      "Repita cada sinal algumas vezes.",
-      "Use os sinais em uma situação curta."
-    ]
-  },
-  {
-    "id": "u1-casa",
-    "unit": 1,
-    "module": "Vocabulário essencial",
-    "kind": "signals",
-    "icon": "👐",
-    "level": "Iniciante",
-    "order": 8,
-    "title": "Minha casa",
-    "summary": "Ambientes e objetos comuns da casa.",
-    "signs": [
-      "casa",
-      "quarto",
-      "sala",
-      "cozinha",
-      "banheiro",
-      "porta",
-      "janela",
-      "cama"
-    ],
-    "practice": "Descreva os principais cômodos da sua casa.",
-    "take": [
-      "Assista aos sinais com atenção.",
-      "Repita cada sinal algumas vezes.",
-      "Use os sinais em uma situação curta."
-    ]
-  },
-  {
-    "id": "u1-apresentacao-2",
-    "unit": 1,
-    "module": "Vocabulário essencial",
-    "kind": "signals",
-    "icon": "👐",
-    "level": "Iniciante",
-    "order": 9,
-    "title": "Apresentação 2",
-    "summary": "Amplie sua apresentação com pessoas, lugar e trabalho.",
-    "signs": [
-      "amigo",
-      "colega",
-      "adulto",
-      "jovem",
-      "criança",
-      "cidade",
-      "bairro",
-      "trabalho"
-    ],
-    "practice": "Apresente uma pessoa dizendo relação, cidade e trabalho.",
-    "take": [
-      "Assista aos sinais com atenção.",
-      "Repita cada sinal algumas vezes.",
-      "Use os sinais em uma situação curta."
-    ]
-  },
-  {
-    "id": "u1-familia-2",
-    "unit": 1,
-    "module": "Vocabulário essencial",
-    "kind": "signals",
-    "icon": "👐",
-    "level": "Iniciante",
-    "order": 10,
-    "title": "Família 2",
-    "summary": "Mais relações familiares e afetivas.",
-    "signs": [
-      "tio",
-      "tia",
-      "primo",
-      "prima",
-      "sobrinho",
-      "sobrinha",
-      "marido",
-      "esposa"
-    ],
-    "practice": "Escolha três parentes e indique a relação de cada um.",
-    "take": [
-      "Assista aos sinais com atenção.",
-      "Repita cada sinal algumas vezes.",
-      "Use os sinais em uma situação curta."
-    ]
-  },
-  {
-    "id": "u1-comida",
-    "unit": 1,
-    "module": "Vocabulário essencial",
-    "kind": "signals",
-    "icon": "👐",
-    "level": "Iniciante",
-    "order": 11,
-    "title": "Comida",
-    "summary": "Comidas, bebidas e necessidades básicas.",
-    "signs": [
-      "comida",
-      "comer",
-      "água",
-      "café",
-      "leite",
-      "arroz",
-      "feijão",
-      "carne"
-    ],
-    "practice": "Monte uma frase sobre o que você quer comer e beber.",
-    "take": [
-      "Assista aos sinais com atenção.",
-      "Repita cada sinal algumas vezes.",
-      "Use os sinais em uma situação curta."
-    ]
-  },
-  {
-    "id": "u1-clima",
-    "unit": 1,
-    "module": "Vocabulário essencial",
-    "kind": "signals",
-    "icon": "👐",
-    "level": "Iniciante",
-    "order": 12,
-    "title": "Clima",
-    "summary": "Sinais para conversar sobre tempo e temperatura.",
-    "signs": [
-      "sol",
-      "chuva",
-      "vento",
-      "calor",
-      "frio",
-      "nuvem",
-      "céu",
-      "praia"
-    ],
-    "practice": "Descreva o clima de hoje usando pelo menos três sinais.",
-    "take": [
-      "Assista aos sinais com atenção.",
-      "Repita cada sinal algumas vezes.",
-      "Use os sinais em uma situação curta."
-    ]
-  },
-  {
-    "id": "u1-pets",
-    "unit": 1,
-    "module": "Vocabulário essencial",
-    "kind": "signals",
-    "icon": "👐",
-    "level": "Iniciante",
-    "order": 13,
-    "title": "Pets",
-    "summary": "Animais comuns e vocabulário para falar de pets.",
-    "signs": [
-      "cachorro",
-      "gato",
-      "pássaro",
-      "peixe",
-      "coelho",
-      "tartaruga",
-      "cavalo",
-      "vaca"
-    ],
-    "practice": "Diga quais animais você tem ou gostaria de ter.",
-    "take": [
-      "Assista aos sinais com atenção.",
-      "Repita cada sinal algumas vezes.",
-      "Use os sinais em uma situação curta."
-    ]
-  },
-  {
-    "id": "u1-saude",
-    "unit": 1,
-    "module": "Vocabulário essencial",
-    "kind": "signals",
-    "icon": "👐",
-    "level": "Iniciante",
-    "order": 14,
-    "title": "Saúde",
-    "summary": "Vocabulário básico para saúde e atendimento.",
-    "signs": [
-      "saúde",
-      "doente",
-      "dor",
-      "médico",
-      "hospital",
-      "remédio",
-      "farmácia",
-      "febre"
-    ],
-    "practice": "Explique um sintoma simples e onde buscaria atendimento.",
-    "take": [
-      "Assista aos sinais com atenção.",
-      "Repita cada sinal algumas vezes.",
-      "Use os sinais em uma situação curta."
-    ]
-  },
-  {
-    "id": "u1-aparencia",
-    "unit": 1,
-    "module": "Vocabulário essencial",
-    "kind": "signals",
-    "icon": "👐",
-    "level": "Iniciante",
-    "order": 15,
-    "title": "Aparência",
-    "summary": "Características simples para descrever pessoas e objetos.",
-    "signs": [
-      "alto",
-      "baixo",
-      "bonito",
-      "feio",
-      "novo",
-      "velho",
-      "forte",
-      "fraco"
-    ],
-    "practice": "Descreva duas pessoas usando características diferentes.",
-    "take": [
-      "Assista aos sinais com atenção.",
-      "Repita cada sinal algumas vezes.",
-      "Use os sinais em uma situação curta."
-    ]
-  },
-  {
-    "id": "u1-mercado",
-    "unit": 1,
-    "module": "Vocabulário essencial",
-    "kind": "signals",
-    "icon": "👐",
-    "level": "Iniciante",
-    "order": 16,
-    "title": "Mercado",
-    "summary": "Compras do dia a dia e formas de pagamento.",
-    "signs": [
-      "mercado",
-      "shopping",
-      "comprar",
-      "preço",
-      "dinheiro",
-      "cartão",
-      "crédito",
-      "débito"
-    ],
-    "practice": "Simule uma compra no mercado do começo ao pagamento.",
-    "take": [
-      "Assista aos sinais com atenção.",
-      "Repita cada sinal algumas vezes.",
-      "Use os sinais em uma situação curta."
-    ]
-  },
-  {
-    "id": "u1-familia-3",
-    "unit": 1,
-    "module": "Vocabulário essencial",
-    "kind": "signals",
-    "icon": "👐",
-    "level": "Iniciante",
-    "order": 17,
-    "title": "Família 3",
-    "summary": "Relacionamentos e novos vínculos familiares.",
-    "signs": [
-      "namorado",
-      "namorada",
-      "noivo",
-      "noiva",
-      "sogro",
-      "sogra",
-      "neto",
-      "neta"
-    ],
-    "practice": "Explique duas relações entre pessoas da mesma família.",
-    "take": [
-      "Assista aos sinais com atenção.",
-      "Repita cada sinal algumas vezes.",
-      "Use os sinais em uma situação curta."
-    ]
-  },
-  {
-    "id": "u1-fim-semana",
-    "unit": 1,
-    "module": "Vocabulário essencial",
-    "kind": "signals",
-    "icon": "👐",
-    "level": "Iniciante",
-    "order": 18,
-    "title": "Fim de semana",
-    "summary": "Vocabulário de lazer e planos para sábado e domingo.",
-    "signs": [
-      "sábado",
-      "domingo",
-      "passeio",
-      "cinema",
-      "filme",
-      "festa",
-      "viajar",
-      "descansar"
-    ],
-    "practice": "Conte o que pretende fazer no próximo fim de semana.",
-    "take": [
-      "Assista aos sinais com atenção.",
-      "Repita cada sinal algumas vezes.",
-      "Use os sinais em uma situação curta."
-    ]
-  },
-  {
-    "id": "u1-rotina",
-    "unit": 1,
-    "module": "Vocabulário essencial",
-    "kind": "signals",
-    "icon": "👐",
-    "level": "Iniciante",
-    "order": 19,
-    "title": "Rotina",
-    "summary": "Ações frequentes do começo ao fim do dia.",
-    "signs": [
-      "acordar",
-      "levantar",
-      "banho",
-      "vestir",
-      "café",
-      "almoço",
-      "trabalhar",
-      "dormir"
-    ],
-    "practice": "Conte sua rotina em ordem, da manhã à noite.",
-    "take": [
-      "Assista aos sinais com atenção.",
-      "Repita cada sinal algumas vezes.",
-      "Use os sinais em uma situação curta."
-    ]
-  },
-  {
-    "id": "u1-casa-2",
-    "unit": 1,
-    "module": "Vocabulário essencial",
-    "kind": "signals",
-    "icon": "👐",
-    "level": "Iniciante",
-    "order": 20,
-    "title": "Minha casa 2",
-    "summary": "Mais objetos e móveis encontrados em casa.",
-    "signs": [
-      "mesa",
-      "cadeira",
-      "sofá",
-      "armário",
-      "geladeira",
-      "fogão",
-      "copo",
-      "prato"
-    ],
-    "practice": "Escolha um cômodo e descreva o que existe nele.",
-    "take": [
-      "Assista aos sinais com atenção.",
-      "Repita cada sinal algumas vezes.",
-      "Use os sinais em uma situação curta."
-    ]
-  },
-  {
-    "id": "u1-tarefas",
-    "unit": 1,
-    "module": "Vocabulário essencial",
-    "kind": "signals",
-    "icon": "👐",
-    "level": "Iniciante",
-    "order": 21,
-    "title": "Tarefas domésticas",
-    "summary": "Ações úteis para falar de organização e tarefas de casa.",
-    "signs": [
-      "fazer",
-      "arrumar",
-      "limpo",
-      "sujo",
-      "abrir",
-      "fechar",
-      "colocar",
-      "tirar"
-    ],
-    "practice": "Explique duas tarefas que você faz em casa.",
-    "take": [
-      "Assista aos sinais com atenção.",
-      "Repita cada sinal algumas vezes.",
-      "Use os sinais em uma situação curta."
-    ]
-  },
-  {
-    "id": "u1-clima-2",
-    "unit": 1,
-    "module": "Vocabulário essencial",
-    "kind": "signals",
-    "icon": "👐",
-    "level": "Iniciante",
-    "order": 22,
-    "title": "Clima 2",
-    "summary": "Tempo, períodos do dia e referências temporais.",
-    "signs": [
-      "manhã",
-      "tarde",
-      "noite",
-      "hoje",
-      "ontem",
-      "amanhã",
-      "agora",
-      "depois"
-    ],
-    "practice": "Compare o clima de ontem, hoje e amanhã.",
-    "take": [
-      "Assista aos sinais com atenção.",
-      "Repita cada sinal algumas vezes.",
-      "Use os sinais em uma situação curta."
-    ]
-  },
-  {
-    "id": "u1-cafe",
-    "unit": 1,
-    "module": "Vocabulário essencial",
-    "kind": "signals",
-    "icon": "👐",
-    "level": "Iniciante",
-    "order": 23,
-    "title": "Café",
-    "summary": "Vocabulário de café da manhã e lanches.",
-    "signs": [
-      "café",
-      "leite",
-      "pão",
-      "queijo",
-      "bolo",
-      "banana",
-      "maçã",
-      "fome"
-    ],
-    "practice": "Monte seu café da manhã ideal em Libras.",
-    "take": [
-      "Assista aos sinais com atenção.",
-      "Repita cada sinal algumas vezes.",
-      "Use os sinais em uma situação curta."
-    ]
-  },
-  {
-    "id": "u1-cozinhando",
-    "unit": 1,
-    "module": "Vocabulário essencial",
-    "kind": "signals",
-    "icon": "👐",
-    "level": "Iniciante",
-    "order": 24,
-    "title": "Cozinhando",
-    "summary": "Ingredientes e ações para falar de preparo de comida.",
-    "signs": [
-      "cozinha",
-      "comida",
-      "fazer",
-      "carne",
-      "frango",
-      "peixe",
-      "ovo",
-      "arroz"
-    ],
-    "practice": "Explique, com os sinais que conhece, o que vai preparar para comer.",
-    "take": [
-      "Assista aos sinais com atenção.",
-      "Repita cada sinal algumas vezes.",
-      "Use os sinais em uma situação curta."
-    ]
-  },
-  {
-    "id": "u1-consulta",
-    "unit": 1,
-    "module": "Vocabulário essencial",
-    "kind": "signals",
-    "icon": "👐",
-    "level": "Iniciante",
-    "order": 25,
-    "title": "Consulta médica",
-    "summary": "Sinais úteis em uma consulta e para relatar sintomas.",
-    "signs": [
-      "consulta",
-      "médico",
-      "doente",
-      "dor",
-      "febre",
-      "gripe",
-      "tosse",
-      "tratamento"
-    ],
-    "practice": "Simule uma conversa curta entre paciente e profissional de saúde.",
-    "take": [
-      "Assista aos sinais com atenção.",
-      "Repita cada sinal algumas vezes.",
-      "Use os sinais em uma situação curta."
-    ]
-  },
-  {
-    "id": "u1-festa",
-    "unit": 1,
-    "module": "Vocabulário essencial",
-    "kind": "signals",
-    "icon": "👐",
-    "level": "Iniciante",
-    "order": 26,
-    "title": "Festa",
-    "summary": "Pessoas, celebrações e atividades de uma festa.",
-    "signs": [
-      "festa",
-      "parabéns",
-      "música",
-      "cantar",
-      "dançar",
-      "amigo",
-      "feliz",
-      "bolo"
-    ],
-    "practice": "Conte como seria uma festa e quem estaria presente.",
-    "take": [
-      "Assista aos sinais com atenção.",
-      "Repita cada sinal algumas vezes.",
-      "Use os sinais em uma situação curta."
-    ]
-  },
-  {
-    "id": "u1-escola",
-    "unit": 1,
-    "module": "Vocabulário essencial",
-    "kind": "signals",
-    "icon": "👐",
-    "level": "Iniciante",
-    "order": 27,
-    "title": "Escola",
-    "summary": "Objetos, pessoas e atividades do ambiente escolar.",
-    "signs": [
-      "escola",
-      "aluno",
-      "professor",
-      "caderno",
-      "livro",
-      "lápis",
-      "caneta",
-      "atividade"
-    ],
-    "practice": "Descreva uma aula e os objetos que você usa para estudar.",
-    "take": [
-      "Assista aos sinais com atenção.",
-      "Repita cada sinal algumas vezes.",
-      "Use os sinais em uma situação curta."
-    ]
-  },
-  {
-    "id": "u1-afazeres",
-    "unit": 1,
-    "module": "Vocabulário essencial",
-    "kind": "signals",
-    "icon": "👐",
-    "level": "Iniciante",
-    "order": 28,
-    "title": "Afazeres",
-    "summary": "Verbos para organizar tarefas e compromissos cotidianos.",
-    "signs": [
-      "fazer",
-      "precisar",
-      "ajudar",
-      "esperar",
-      "procurar",
-      "encontrar",
-      "ir",
-      "vir"
-    ],
-    "practice": "Conte três coisas que você precisa fazer hoje.",
-    "take": [
-      "Assista aos sinais com atenção.",
-      "Repita cada sinal algumas vezes.",
-      "Use os sinais em uma situação curta."
-    ]
-  },
-  {
-    "id": "u1-viagem",
-    "unit": 1,
-    "module": "Vocabulário essencial",
-    "kind": "signals",
-    "icon": "👐",
-    "level": "Iniciante",
-    "order": 29,
-    "title": "Viagem",
-    "summary": "Vocabulário básico para deslocamentos e turismo.",
-    "signs": [
-      "viagem",
-      "viajar",
-      "mala",
-      "passaporte",
-      "hotel",
-      "aeroporto",
-      "passagem",
-      "mapa"
-    ],
-    "practice": "Planeje uma viagem curta usando pelo menos cinco sinais.",
-    "take": [
-      "Assista aos sinais com atenção.",
-      "Repita cada sinal algumas vezes.",
-      "Use os sinais em uma situação curta."
-    ]
-  },
-  {
-    "id": "u1-encontro",
-    "unit": 1,
-    "module": "Vocabulário essencial",
-    "kind": "signals",
-    "icon": "👐",
-    "level": "Iniciante",
-    "order": 30,
-    "title": "Encontro",
-    "summary": "Vocabulário social e afetivo para combinar e contar um encontro.",
-    "signs": [
-      "encontro",
-      "amigo",
-      "namorado",
-      "namorada",
-      "restaurante",
-      "cinema",
-      "gostar",
-      "amor"
-    ],
-    "practice": "Conte com quem você vai se encontrar e aonde pretende ir.",
-    "take": [
-      "Assista aos sinais com atenção.",
-      "Repita cada sinal algumas vezes.",
-      "Use os sinais em uma situação curta."
-    ]
-  },
-  {
-    "id": "u1-aparencia-2",
-    "unit": 1,
-    "module": "Vocabulário essencial",
-    "kind": "signals",
-    "icon": "👐",
-    "level": "Iniciante",
-    "order": 31,
-    "title": "Aparência 2",
-    "summary": "Roupas e acessórios para ampliar descrições.",
-    "signs": [
-      "roupa",
-      "camisa",
-      "calça",
-      "vestido",
-      "casaco",
-      "sapato",
-      "óculos",
-      "relógio"
-    ],
-    "practice": "Descreva a roupa de uma pessoa usando quatro sinais.",
-    "take": [
-      "Assista aos sinais com atenção.",
-      "Repita cada sinal algumas vezes.",
-      "Use os sinais em uma situação curta."
-    ]
-  },
-  {
-    "id": "u1-revisao",
-    "unit": 1,
-    "module": "Vocabulário essencial",
-    "kind": "signals",
-    "icon": "👐",
-    "level": "Iniciante",
-    "order": 32,
-    "title": "Revisão da Unidade 1",
-    "summary": "Retome os conceitos mais frequentes antes de avançar.",
-    "signs": [
-      "olá",
-      "nome",
-      "família",
-      "casa",
-      "comida",
-      "trabalho",
-      "hoje",
-      "viajar"
-    ],
-    "practice": "Faça uma apresentação de 30 segundos usando sinais de diferentes aulas.",
-    "take": [
-      "Assista aos sinais com atenção.",
-      "Repita cada sinal algumas vezes.",
-      "Use os sinais em uma situação curta."
-    ]
-  },
-  {
-    "id": "fundamentos-lingua",
-    "unit": 2,
-    "module": "Fundamentos",
-    "icon": "👐",
-    "level": "Essencial",
-    "title": "Libras é uma língua, não português com as mãos",
-    "summary": "Entenda a lógica visual-espacial e por que traduzir palavra por palavra produz frases artificiais.",
-    "sections": [
-      [
-        "A ideia central",
-        "Libras é uma língua natural com vocabulário e gramática próprios. Mãos, corpo, rosto, olhar e espaço podem transmitir informação simultaneamente."
-      ],
-      [
-        "O que observar",
-        "Além das mãos, observe olhar, tronco, expressão facial, pausas e os pontos criados no espaço. Esses elementos podem ter função linguística."
-      ]
-    ],
-    "practice": "Assista a 30 segundos de Libras e anote tudo que comunica informação além das mãos.",
-    "take": [
-      "Libras tem gramática própria.",
-      "A modalidade é visual-espacial.",
-      "Vocabulário isolado não basta."
-    ],
-    "resources": [
-      [
-        "Gramática da Libras · UFSC",
-        "https://www.libras.ufsc.br/arquivos/vbooks/gramatica/index.php"
-      ]
-    ]
-  },
-  {
-    "id": "fundamentos-parametros",
-    "unit": 2,
-    "module": "Fundamentos",
-    "icon": "🖐️",
-    "level": "Essencial",
-    "title": "Os parâmetros que formam um sinal",
-    "summary": "Configuração de mão, localização, movimento, orientação e componentes não manuais.",
-    "sections": [
-      [
-        "Peças do sinal",
-        "Um sinal pode ser descrito por configuração de mão, ponto de articulação, movimento e orientação. Alterar um desses elementos pode alterar a forma ou o significado."
-      ],
-      [
-        "Não manuais",
-        "Expressão facial e corporal também podem integrar a produção. Aprenda observando o conjunto, não uma fotografia da mão."
-      ]
-    ],
-    "practice": "Escolha cinco sinais e descreva configuração, localização, movimento, orientação e expressão.",
-    "take": [
-      "Forma e movimento importam.",
-      "Não copie apenas a mão.",
-      "Compare gravações reais."
-    ],
-    "resources": [
-      [
-        "Corpus de Libras · UFSC",
-        "https://corpuslibras.ufsc.br/?lang=ptbr"
-      ]
-    ]
-  },
-  {
-    "id": "expressao-nao-manual",
-    "unit": 3,
-    "module": "Expressão e gramática",
-    "icon": "🙂",
-    "level": "Essencial",
-    "title": "Expressão facial não é enfeite",
-    "summary": "Sobrancelhas, cabeça, boca e tronco podem marcar intenção e estrutura.",
-    "sections": [
-      [
-        "Função linguística",
-        "Marcas não manuais podem participar de perguntas, negação, intensidade e outras construções. Elas precisam estar coordenadas com a parte manual."
-      ],
-      [
-        "Treino",
-        "Grave-se e reveja sem som. Pergunte se a intenção continua clara apenas visualmente."
-      ]
-    ],
-    "practice": "Produza uma pergunta, uma negação e uma frase afirmativa observando rosto e cabeça.",
-    "take": [
-      "O rosto participa da gramática.",
-      "A marca deve ter alcance adequado.",
-      "Treine no espelho e em vídeo."
-    ],
-    "resources": [
-      [
-        "Gramática da Libras · UFSC",
-        "https://www.libras.ufsc.br/arquivos/vbooks/gramatica/index.php"
-      ]
-    ]
-  },
-  {
-    "id": "ordem-sentenca",
-    "unit": 3,
-    "module": "Expressão e gramática",
-    "icon": "🧩",
-    "level": "Essencial",
-    "title": "Ordem das palavras e tópico",
-    "summary": "Pare de montar Libras como português palavra por palavra.",
-    "sections": [
-      [
-        "Estrutura",
-        "A ordem das sentenças em Libras não deve ser deduzida simplesmente da ordem do português. Contexto, tópico, foco, tipo de verbo e uso do espaço influenciam a organização."
-      ],
-      [
-        "Tópico",
-        "Uma informação pode ser estabelecida primeiro e depois comentada. O importante é observar padrões reais em sentenças completas."
-      ]
-    ],
-    "practice": "Pegue três frases simples em português e procure exemplos reais em Libras antes de decidir a ordem.",
-    "take": [
-      "Não existe tradução mecânica palavra por palavra.",
-      "Contexto altera a organização.",
-      "Estude frases completas."
-    ],
-    "resources": [
-      [
-        "Gramática da Libras · Sentença",
-        "https://www.libras.ufsc.br/arquivos/vbooks/gramatica/index.php"
-      ]
-    ]
-  },
-  {
-    "id": "tempo-negacao-pergunta",
-    "unit": 3,
-    "module": "Expressão e gramática",
-    "icon": "❓",
-    "level": "Essencial",
-    "title": "Tempo, negação e perguntas",
-    "summary": "Veja como contexto e marcas não manuais organizam construções completas.",
-    "sections": [
-      [
-        "Tempo",
-        "O tempo pode ser estabelecido pelo contexto e por expressões temporais, sem copiar obrigatoriamente a flexão verbal do português."
-      ],
-      [
-        "Perguntas e negação",
-        "Tipos de pergunta e construções negativas podem combinar sinais manuais com marcas de sobrancelha, cabeça e corpo."
-      ]
-    ],
-    "practice": "Grave uma pergunta, uma resposta negativa e uma frase cujo tempo seja estabelecido no começo.",
-    "take": [
-      "Marcas não manuais têm alcance.",
-      "Tempo pode vir do contexto.",
-      "Estude construções, não só palavras."
-    ],
-    "resources": [
-      [
-        "Gramática da Libras · UFSC",
-        "https://www.libras.ufsc.br/arquivos/vbooks/gramatica/index.php"
-      ]
-    ]
-  },
-  {
-    "id": "espaco-referentes",
-    "unit": 4,
-    "module": "Espaço e fluidez",
-    "icon": "🧭",
-    "level": "Intermediário",
-    "title": "Use o espaço para criar e retomar referentes",
-    "summary": "Monte a cena no espaço e retome pessoas e objetos com consistência.",
-    "sections": [
-      [
-        "O espaço guarda informação",
-        "Uma pessoa, objeto ou local pode ser associado a uma posição. Depois, apontação, olhar, corpo e direção podem retomar esse referente."
-      ],
-      [
-        "Consistência",
-        "Se você estabelece uma pessoa à direita e outra à esquerda, mantenha esses pontos enquanto a cena continuar."
-      ]
-    ],
-    "practice": "Estabeleça duas pessoas em lados diferentes e produza três frases retomando cada uma.",
-    "take": [
-      "Referentes podem ser ancorados.",
-      "Consistência gera coesão.",
-      "Olhar e corpo também referenciam."
-    ],
-    "resources": [
-      [
-        "Gramática da Libras · UFSC",
-        "https://www.libras.ufsc.br/arquivos/vbooks/gramatica/index.php"
-      ]
-    ]
-  },
-  {
-    "id": "espaco-classificadores",
-    "unit": 4,
-    "module": "Espaço e fluidez",
-    "icon": "🧱",
-    "level": "Intermediário",
-    "title": "Classificadores e descrição visual",
-    "summary": "Represente forma, localização e movimento sem depender de uma sequência de palavras.",
-    "sections": [
-      [
-        "O que fazem",
-        "Construções classificadoras usam configurações de mão e espaço para representar classes de entidades, formas, dimensões, localização e movimento."
-      ],
-      [
-        "Cuidado",
-        "Não trate qualquer gesto inventado como classificador. Há convenções linguísticas que precisam ser aprendidas em uso real."
-      ]
-    ],
-    "practice": "Imagine um carro parando ao lado de uma casa e pense em como representar entidades, movimento e localização.",
-    "take": [
-      "Classificadores exploram espaço e forma.",
-      "Não são gestos aleatórios.",
-      "Observe modelos reais."
-    ],
-    "resources": [
-      [
-        "Curso de Libras · INES",
-        "https://www.gov.br/ines/pt-br"
-      ]
-    ]
-  },
-  {
-    "id": "espaco-direcionalidade",
-    "unit": 4,
-    "module": "Espaço e fluidez",
-    "icon": "↔️",
-    "level": "Intermediário",
-    "title": "Direcionalidade, concordância e apontação",
-    "summary": "A direção do movimento pode ajudar a codificar relações entre participantes.",
-    "sections": [
-      [
-        "Direção",
-        "Alguns verbos permitem orientar o movimento de acordo com participantes. Isso não se aplica do mesmo modo a todo verbo."
-      ],
-      [
-        "Apontação",
-        "Apontar pode funcionar como recurso pronominal e de retomada quando o referente já está estabelecido."
-      ]
-    ],
-    "practice": "Compare gravações do mesmo verbo com participantes diferentes e observe a trajetória.",
-    "take": [
-      "Alguns verbos usam direção gramaticalmente.",
-      "Nem todo verbo aceita o padrão.",
-      "Espaço reduz repetições."
-    ],
-    "resources": [
-      [
-        "Gramática da Libras · UFSC",
-        "https://www.libras.ufsc.br/arquivos/vbooks/gramatica/index.php"
-      ]
-    ]
-  },
-  {
-    "id": "conversa-coesao",
-    "unit": 5,
-    "module": "Conversa e texto",
-    "icon": "💬",
-    "level": "Avançando",
-    "title": "Coesão: conecte uma frase à próxima",
-    "summary": "Passe de frases isoladas para relatos em que pessoas, lugares e ideias continuam identificáveis.",
-    "sections": [
-      [
-        "Texto sinalizado",
-        "Uma sequência fluente mantém referentes, tempo, lugar e relações compreensíveis usando espaço, apontação, olhar, repetição controlada e contexto."
-      ],
-      [
-        "Coerência",
-        "Antes de sinalizar uma história, organize cenário, personagens, sequência dos eventos e conclusão."
-      ]
-    ],
-    "practice": "Conte uma história de 30 segundos com duas pessoas e um lugar. Reveja procurando ambiguidades.",
-    "take": [
-      "Fluência inclui conectar sentenças.",
-      "Espaço é ferramenta de coesão.",
-      "Planeje o cenário."
-    ],
-    "resources": [
-      [
-        "Gramática da Libras · Texto",
-        "https://www.libras.ufsc.br/arquivos/vbooks/gramatica/index.php"
-      ]
-    ]
-  },
-  {
-    "id": "conversa-interacao",
-    "unit": 5,
-    "module": "Conversa e texto",
-    "icon": "👀",
-    "level": "Avançando",
-    "title": "Interação: atenção, olhar, ritmo e turnos",
-    "summary": "Aprenda o que acontece entre os sinais numa conversa visual.",
-    "sections": [
-      [
-        "Atenção visual",
-        "Contato visual, posicionamento e iluminação afetam diretamente a comunicação. Estratégias para chamar atenção dependem do ambiente."
-      ],
-      [
-        "Turnos",
-        "Pausas, olhar, postura e finalização ajudam a indicar quando um turno continua ou pode passar."
-      ]
-    ],
-    "practice": "Assista a uma conversa em Libras e marque onde cada turno começa e termina.",
-    "take": [
-      "Comunicação é bidirecional.",
-      "Olhar faz parte da interação.",
-      "Treine compreensão e produção."
-    ],
-    "resources": [
-      [
-        "Corpus de Libras · vídeos",
-        "https://corpuslibras.ufsc.br/?lang=ptbr"
-      ]
-    ]
-  },
-  {
-    "id": "conversa-variacao",
-    "unit": 5,
-    "module": "Conversa e texto",
-    "icon": "🌎",
-    "level": "Essencial contínuo",
-    "title": "Variação linguística e comunidades surdas",
-    "summary": "Entenda por que pode existir mais de uma forma legítima para um conceito.",
-    "sections": [
-      [
-        "Libras varia",
-        "Há variação lexical e fonológica associada a região, geração, grupos e contexto. Dois sinais diferentes não significam automaticamente que um está errado."
-      ],
-      [
-        "Comunidade",
-        "Aprender Libras envolve contato com produções de pessoas surdas, cultura, história e normas de interação."
-      ]
-    ],
-    "practice": "Compare duas gravações de um mesmo conceito e descreva diferenças sem rotular uma como errada.",
-    "take": [
-      "Variação faz parte da língua.",
-      "Não invente origem regional.",
-      "Inclua sinalizantes surdos no estudo."
-    ],
-    "resources": [
-      [
-        "Corpus de Libras · UFSC",
-        "https://corpuslibras.ufsc.br/?lang=ptbr"
-      ]
-    ]
-  },
-  {
-    "id": "fluencia-imersao",
-    "unit": 5,
-    "module": "Conversa e texto",
-    "icon": "🔥",
-    "level": "Contínuo",
-    "title": "Imersão e caminho para fluência",
-    "summary": "Transforme estudo em uso frequente, compreensão visual e produção espontânea.",
-    "sections": [
-      [
-        "Exposição",
-        "Combine revisão de vocabulário com vídeos reais, narrativas, conversas e repetição espaçada. A compreensão precisa crescer junto com a produção."
-      ],
-      [
-        "Produção",
-        "Faça pequenos diários em vídeo, descreva ambientes, conte o que aconteceu no dia e reveja sua própria sinalização."
-      ]
-    ],
-    "practice": "Faça um vídeo de 60 segundos sobre seu dia e anote três pontos para melhorar amanhã.",
-    "take": [
-      "Fluência exige exposição frequente.",
-      "Produza mensagens completas.",
-      "Revise e observe usuários proficientes."
-    ],
-    "resources": [
-      [
-        "TV INES",
-        "https://tvines.ines.gov.br/"
-      ],
-      [
-        "Corpus de Libras",
-        "https://corpuslibras.ufsc.br/?lang=ptbr"
-      ]
-    ]
-  }
+const STORY_ARCS=[
+[1,["ana","lucas"],"Ana e Lucas se conhecem. O aluno acompanha os primeiros contatos, pequenos ruídos de compreensão e a construção da primeira conversa."],
+[2,["ana","lucas","bia"],"A conversa se expande para família, amigos e descrições. Lucas conhece pessoas importantes para Ana e aprende a manter referentes claros."],
+[3,["ana","lucas","bia"],"A rotina dos personagens começa a se cruzar: manhã, horários, compromissos e dias que nem sempre saem como planejado."],
+[4,["ana","bia","lucas"],"O grupo passa mais tempo em casa. Objetos somem, refeições são preparadas e o espaço doméstico vira parte da narrativa."],
+[5,["ana","lucas","rafa"],"Ana apresenta Rafa e os três atravessam a cidade resolvendo compras, caminhos, serviços e pequenos imprevistos."],
+[6,["ana","lucas","rafa"],"Com mais personagens em cena, quem fez o quê começa a importar. Um celular desaparecido conecta referentes, direção e coesão espacial."],
+[7,["ana","lucas","rafa","davi"],"O grupo organiza encontros e uma viagem. Planos mudam, horários se chocam e as decisões precisam ser renegociadas."],
+[8,["ana","bia","lucas","davi"],"Um problema de saúde interrompe a rotina e obriga o grupo a descrever sintomas, pedir ajuda e reconstruir o que aconteceu."],
+[9,["lucas","rafa","ana"],"Estudo, trabalho e tecnologia se encontram quando Lucas precisa resolver uma tarefa e Rafa ajuda a diagnosticar um problema."],
+[10,["rafa","ana","davi"],"Uma situação na rua exige descrição visual precisa de objetos, trajetórias e movimento. O espaço passa a contar parte da história."],
+[11,["ana","lucas","davi","luiza"],"Um mesmo acontecimento é contado por pessoas diferentes. Perspectiva, ação construída e memória começam a mudar a narrativa."],
+[12,["ana","lucas","luiza"],"Opiniões e emoções entram no centro da conversa. Um desacordo obriga os personagens a explicar, reformular e negociar."],
+[13,["ana","rafa","luiza","davi"],"O aluno encontra estilos e ritmos diferentes dentro do mesmo grupo e precisa acompanhar conversas menos didáticas e mais espontâneas."],
+[14,["ana","lucas","rafa","luiza"],"O grupo passa a discutir ideias, hipóteses e consequências, transformando experiências anteriores em narrativas e argumentos mais longos."],
+[15,["ana","lucas","rafa","bia","davi","luiza"],"Todos se reencontram em uma atividade coletiva. O aluno precisa acompanhar o grupo, explicar, narrar, negociar e demonstrar autonomia para continuar aprendendo."]
+].map(x=>({cycle:x[0],cast:x[1],summary:x[2]}));
+function storyArc(cycle){
+ const a=STORY_ARCS.find(x=>x.cycle===cycle)||{cast:[],summary:""};
+ return {...a,characters:a.cast.map(id=>CHARACTERS.find(x=>x.id===id)).filter(Boolean)};
+}
+
+const U=[
+{n:1,c:1,t:"O primeiro encontro",m:"Cumprimentar, chamar atenção visualmente e encerrar uma interação.",th:["Libras é visual-espacial","A mensagem não está apenas nas mãos. Olhar, rosto, corpo e espaço participam da comunicação.","Observe o conjunto da sinalização antes de tentar traduzir palavra por palavra."],st:["Duas pessoas se encontram","Uma pessoa chega, estabelece contato visual, cumprimenta, troca uma informação curta e se despede.","Reconheça onde a interação começa, como a atenção é estabelecida e como termina."],p:[
+["Chegar e cumprimentar","Primeiros sinais sociais.","oi","olá","bom dia","boa tarde","boa noite","tchau"],
+["Cortesia","Recursos para uma interação respeitosa.","por favor","obrigado","obrigada","desculpa","licença","prazer"],
+["Atenção e resposta","Sinais para iniciar contato e responder.","sim","não","tudo bem","bem","esperar","olhar"],
+["Encerrar a conversa","Finalizar sem quebrar a interação.","depois","amanhã","até logo","ir","ficar","tchau"]]},
+{n:2,c:1,t:"Quem é você?",m:"Apresentar-se, perguntar nome e lidar com nomes próprios.",th:["Primeira datilologia","O alfabeto manual entra cedo porque nomes próprios e palavras sem sinal conhecido aparecem em conversas reais.","Priorize fluidez e reconhecimento de blocos, não velocidade artificial letra por letra."],st:["A nova colega","Duas pessoas se apresentam. Uma usa datilologia para o nome e depois retoma a pessoa no diálogo.","Identifique nome, quem é surdo ou ouvinte e quais informações foram apresentadas."],p:[
+["Eu e você","Identidade básica na conversa.","eu","você","ele","ela","nós","pessoa"],
+["Meu nome","Apresentação e identificação.","nome","chamar","quem","qual","conhecer","prazer"],
+["Pessoas","Vocabulário para reconhecer participantes.","homem","mulher","menino","menina","surdo","ouvinte"],
+["De onde?","Primeiras informações pessoais.","cidade","bairro","morar","Brasil","Bahia","Salvador"]]},
+{n:3,c:1,t:"Não entendi",m:"Pedir repetição, esclarecimento e ajuda quando a conversa falha.",th:["Reparação é parte da fluência","Fluência não é entender tudo. Bons interlocutores sabem sinalizar que não entenderam, pedir repetição e confirmar informação.","Aprenda a manter a conversa viva em vez de abandonar a interação."],st:["A conversa emperrou","Uma pessoa não entende um sinal, pede repetição, recebe uma explicação e confirma que agora compreendeu.","Localize o problema, a estratégia usada e a confirmação final."],p:[
+["Entender ou não","Sinalizar compreensão.","entender","não entender","saber","não saber","certo","errado"],
+["Peça de novo","Controlar ritmo e repetição.","repetir","novamente","devagar","rápido","parar","continuar"],
+["Peça ajuda","Recursos de apoio.","ajudar","mostrar","explicar","como","o que","significado"],
+["Confirme","Checar se a informação ficou clara.","sim","agora","entendi","certo","talvez","obrigado"]]},
+{n:4,c:1,t:"Minha primeira conversa",m:"Combinar apresentação, perguntas, reparação e despedida em uma interação curta.",th:["Pergunta não é só uma palavra","Tipos de pergunta podem combinar sinais interrogativos com marcas de rosto, cabeça e corpo.","Observe a extensão da expressão não manual durante a pergunta."],st:["Primeiro dia","Uma pessoa conhece alguém, pergunta nome e cidade, não entende uma resposta, pede repetição e encerra a conversa.","Reconstrua a ordem inteira sem consultar a lista de sinais."],p:[
+["Perguntas essenciais","Perguntar informações simples.","quem","onde","como","qual","quando","quanto"],
+["Respostas curtas","Responder com segurança.","sim","não","talvez","aqui","ali","agora"],
+["Miniapresentação","Combinar identidade e lugar.","nome","morar","cidade","surdo","ouvinte","conhecer"],
+["Conversa completa","Reutilizar o ciclo inteiro.","olá","prazer","repetir","entender","obrigado","tchau"]]},
+
+{n:5,c:2,t:"Minha família",m:"Apresentar parentes e relações familiares.",th:["Referência começa cedo","Quando várias pessoas entram na conversa, apontação e localização ajudam a manter claro de quem se fala.","Comece a observar onde cada pessoa é estabelecida no espaço."],st:["Conheça minha família","Uma personagem apresenta parentes próximos e depois responde quem mora com ela.","Acompanhe parentesco e quantidade de pessoas sem transformar a tarefa numa lista."],p:[
+["Família próxima","Parentes de convívio frequente.","família","mãe","pai","irmão","irmã","pais"],
+["Filhos e avós","Expandir gerações.","filho","filha","avô","avó","neto","neta"],
+["Tios e primos","Relações ampliadas.","tio","tia","primo","prima","sobrinho","sobrinha"],
+["Relacionamentos","Vínculos afetivos e civis.","marido","esposa","namorado","namorada","casamento","divórcio"]]},
+{n:6,c:2,t:"Pessoas ao meu redor",m:"Descrever grupos, idades aproximadas e relações sociais.",th:["Apontação e contexto","Um apontamento pode retomar alguém já estabelecido. O significado depende do contexto espacial criado.","Evite repetir nomes quando o espaço já permite identificar o referente."],st:["Quem veio à festa?","Várias pessoas chegam e são apresentadas por relação e faixa etária.","Descubra quem é amigo, colega, vizinho e parente."],p:[
+["Faixas da vida","Falar de idade social.","bebê","criança","jovem","adulto","idoso","idade"],
+["Relações sociais","Pessoas do cotidiano.","amigo","amiga","colega","vizinho","vizinha","pessoa"],
+["Grupos","Quantidade e coletividade.","todos","ninguém","alguém","grupo","muitos","poucos"],
+["Relacionar pessoas","Dizer quem conhece quem.","conhecer","encontrar","junto","separado","mesmo","diferente"]]},
+{n:7,c:2,t:"Aparência",m:"Descrever características visíveis sem depender de uma fotografia mental em português.",th:["Os parâmetros formam o sinal","Configuração de mão, localização, movimento, orientação e componentes não manuais distinguem produções.","Compare sinais parecidos observando qual parâmetro muda."],st:["Quem é a pessoa?","Uma descrição visual permite identificar alguém entre várias opções.","Use um conjunto de pistas, não uma única característica."],p:[
+["Altura e tamanho","Características gerais.","alto","baixo","grande","pequeno","forte","fraco"],
+["Rosto e cabelo","Partes visíveis.","rosto","cabelo","olho","nariz","boca","orelha"],
+["Acessórios","Pistas de identificação.","óculos","chapéu","boné","relógio","bolsa","mochila"],
+["Avaliação simples","Qualidades básicas.","bonito","feio","novo","velho","igual","diferente"]]},
+{n:8,c:2,t:"Quem é quem?",m:"Manter duas ou mais pessoas identificáveis numa mesma conversa.",th:["Consistência espacial","Se uma pessoa é estabelecida à direita e outra à esquerda, preserve esses pontos enquanto a cena continuar.","A consistência reduz repetição e prepara o aluno para narrativas maiores."],st:["A fotografia da turma","Uma pessoa descreve quatro integrantes de um grupo usando relações, aparência e posição.","Associe cada descrição ao referente correto e mantenha os pontos espaciais."],p:[
+["Dois referentes","Contrastar duas pessoas.","ele","ela","esse","outro","primeiro","segundo"],
+["Relações","Conectar pessoas.","amigo","irmão","colega","professor","aluno","vizinho"],
+["Comparar","Dizer semelhanças e diferenças.","igual","diferente","mais","menos","alto","baixo"],
+["Retomar","Voltar a alguém já apresentado.","lembrar","conhecer","falar","perguntar","responder","olhar"]]},
+
+{n:9,c:3,t:"Minha manhã",m:"Narrar uma rotina curta desde acordar até sair de casa.",th:["Sequência antes da gramática longa","Rotinas são um bom lugar para perceber ordem de eventos, marcação de tempo e repetição.","Organize primeiro o cenário temporal e depois as ações."],st:["Acordei atrasado","A personagem acorda tarde, acelera a rotina e sai de casa com pressa.","Coloque os acontecimentos na ordem e identifique o que foi pulado."],p:[
+["Começar o dia","Ações da manhã.","acordar","levantar","dormir","banho","escovar","vestir"],
+["Café da manhã","Necessidades e alimentação.","café","pão","leite","comer","beber","fome"],
+["Preparar-se","Organização antes de sair.","arrumar","pegar","mochila","chave","celular","procurar"],
+["Sair de casa","Transição para fora.","sair","ir","trabalho","escola","cedo","atrasado"]]},
+{n:10,c:3,t:"Horas e rotina",m:"Combinar horários com ações cotidianas.",th:["Números mudam de função","Números aparecem em idade, hora, quantidade, preço e data. A forma de uso depende da função comunicativa.","Treine números dentro de situações, não como sequência decorada."],st:["Que horas começa?","Duas pessoas combinam horários e percebem que entenderam horas diferentes.","Identifique o horário original, o mal-entendido e a correção."],p:[
+["Horas","Vocabulário temporal básico.","hora","minuto","manhã","tarde","noite","meio dia"],
+["Números essenciais","Quantidades de alta frequência.","um","dois","três","quatro","cinco","dez"],
+["Frequência","Organizar hábitos.","sempre","nunca","às vezes","todo dia","semana","rotina"],
+["Pontualidade","Falar de começo e atraso.","cedo","tarde","começar","terminar","esperar","atrasado"]]},
+{n:11,c:3,t:"Calendário",m:"Falar de dias, datas, meses e compromissos próximos.",th:["Ancoragem temporal","O tempo pode ser estabelecido no início de um trecho e permanecer válido até ser alterado.","Observe quando o sinalizador muda o marco temporal em vez de repetir a informação em toda frase."],st:["Qual é o dia?","Um compromisso é marcado, remarcado e finalmente confirmado.","Recupere dia, período e mudança de data."],p:[
+["Dias próximos","Orientação imediata.","hoje","ontem","amanhã","antes","depois","agora"],
+["Semana","Dias e planejamento.","segunda","terça","quarta","quinta","sexta","sábado"],
+["Domingo e mês","Ampliar calendário.","domingo","semana","mês","ano","data","calendário"],
+["Eventos","Marcar acontecimentos.","aniversário","feriado","encontro","consulta","prova","viagem"]]},
+{n:12,c:3,t:"Meu dia inteiro",m:"Produzir um relato cotidiano com começo, meio e fim.",th:["Coesão simples","Uma sequência fica clara quando tempo, participantes e ações permanecem rastreáveis.","Evite transformar o relato em lista de verbos desconectados."],st:["Um dia fora do plano","Trânsito, atraso e uma mudança de compromisso alteram a rotina de uma personagem.","Conte novamente o dia preservando causa e ordem dos acontecimentos."],p:[
+["Trabalho e estudo","Blocos do dia.","trabalhar","estudar","aula","almoço","descansar","voltar"],
+["Deslocamento","Entre atividades.","ônibus","carro","andar","chegar","sair","esperar"],
+["Fim do dia","Fechar rotina.","jantar","casa","banho","televisão","dormir","cansado"],
+["Relatar","Conectores simples.","primeiro","depois","então","finalmente","acontecer","dia"]]},
+
+{n:13,c:4,t:"Minha casa",m:"Apresentar cômodos e objetos relevantes da casa.",th:["Espaço pode virar planta mental","Ao descrever um ambiente, o espaço de sinalização pode representar relações entre partes da cena.","Mantenha uma organização coerente para que o interlocutor consiga reconstruir o lugar."],st:["Visita à casa","Uma personagem apresenta a casa e indica onde ficam objetos importantes.","Reconstrua a disposição geral sem memorizar frases."],p:[
+["Cômodos","Estrutura da casa.","casa","sala","quarto","cozinha","banheiro","garagem"],
+["Móveis","Objetos grandes.","mesa","cadeira","cama","sofá","armário","geladeira"],
+["Partes da casa","Elementos fixos.","porta","janela","parede","chão","teto","escada"],
+["Objetos úteis","Coisas do cotidiano.","chave","lâmpada","copo","prato","toalha","ventilador"]]},
+{n:14,c:4,t:"Onde está?",m:"Localizar objetos e pessoas em relação a outros elementos.",th:["Relações espaciais","Em Libras, localização pode ser mostrada diretamente no espaço, não apenas nomeada por uma sequência de palavras.","Observe direção, altura, distância e relação entre referentes."],st:["Cadê a chave?","Uma pessoa procura um objeto e recebe pistas de localização cada vez mais específicas.","Siga as pistas visualmente e determine onde o objeto estava."],p:[
+["Dentro e fora","Relações básicas.","dentro","fora","entrar","sair","abrir","fechar"],
+["Perto e longe","Distância e posição.","perto","longe","aqui","ali","lado","entre"],
+["Em cima e embaixo","Eixos verticais.","em cima","embaixo","alto","baixo","colocar","tirar"],
+["Encontrar","Busca e localização.","procurar","encontrar","perder","achar","onde","mostrar"]]},
+{n:15,c:4,t:"Comida e bebida",m:"Expressar fome, sede, preferência e pedidos simples.",th:["Preferência é interação","Vocabulário de comida ganha valor quando o aluno pergunta, escolhe, aceita, recusa e compara.","Use o tema para praticar turnos e respostas, não para decorar um cardápio."],st:["O que vamos comer?","Duas pessoas têm preferências diferentes e precisam escolher uma refeição.","Identifique preferências, recusas e decisão final."],p:[
+["Necessidades","Fome e sede.","comida","comer","bebida","beber","fome","sede"],
+["Básicos","Itens frequentes.","água","café","leite","suco","pão","queijo"],
+["Refeição","Prato cotidiano.","arroz","feijão","carne","frango","peixe","ovo"],
+["Preferências","Escolher alimentos.","gostar","não gostar","querer","preferir","mais","menos"]]},
+{n:16,c:4,t:"Na cozinha",m:"Descrever ações e sequência de preparo.",th:["Verbos podem mostrar maneira","Movimento, duração e intensidade podem acrescentar informação à ação.","Comece a observar como a execução modifica o sentido sem criar regras artificiais."],st:["O jantar deu errado","Uma sequência de preparo é interrompida porque falta um ingrediente e algo passa do ponto.","Reconstrua a receita e identifique o momento do problema."],p:[
+["Preparar","Ações iniciais.","lavar","cortar","pegar","colocar","abrir","fechar"],
+["Cozinhar","Ações de preparo.","cozinhar","ferver","misturar","esperar","fogo","panela"],
+["Ingredientes","Itens úteis.","sal","açúcar","óleo","água","carne","legume"],
+["Servir e limpar","Finalizar a tarefa.","prato","copo","mesa","servir","limpar","guardar"]]},
+
+{n:17,c:5,t:"Lugares da cidade",m:"Identificar destinos e dizer aonde precisa ir.",th:["Lugar vira referente","Um local estabelecido pode ser retomado espacialmente como qualquer outro referente.","Isso prepara direções, rotas e histórias de deslocamento."],st:["Um sábado na cidade","A personagem passa por vários lugares para resolver tarefas.","Coloque os destinos na ordem e associe cada lugar à atividade."],p:[
+["Serviços","Destinos essenciais.","banco","farmácia","hospital","mercado","escola","trabalho"],
+["Lazer","Locais sociais.","praça","parque","praia","cinema","restaurante","shopping"],
+["Viagem urbana","Pontos de transporte.","aeroporto","rodoviária","estação","rua","avenida","bairro"],
+["Destino","Perguntar e responder.","onde","aonde","ir","chegar","voltar","lugar"]]},
+{n:18,c:5,t:"Como chegar?",m:"Pedir, compreender e produzir orientações simples de caminho.",th:["Direção é informação visual","Rotas ficam mais claras quando direção e trajetória são representadas consistentemente no espaço.","Não reduza o exercício a decorar DIREITA e ESQUERDA."],st:["Perdido no caminho","Uma pessoa pergunta como chegar, interpreta uma instrução errado e precisa corrigir a rota.","Identifique em que ponto ocorreu o erro."],p:[
+["Direções","Orientação básica.","direita","esquerda","frente","atrás","reto","virar"],
+["Movimento","Ações de deslocamento.","andar","correr","parar","continuar","subir","descer"],
+["Referências","Pontos do caminho.","esquina","semáforo","rua","praça","perto","longe"],
+["Perguntar rota","Interação funcional.","como","onde","chegar","mostrar","ajudar","obrigado"]]},
+{n:19,c:5,t:"Compras",m:"Perguntar preço, comparar opções e efetuar pagamento.",th:["Quantidade em contexto","Preço combina números, moeda, comparação e decisão.","Treine leitura de valores dentro de uma negociação simples."],st:["Mais barato ou melhor?","Uma pessoa compara duas opções, pergunta preço e escolhe uma forma de pagamento.","Recupere os valores e a razão da escolha."],p:[
+["Preço","Vocabulário central.","preço","valor","dinheiro","real","caro","barato"],
+["Comprar","Ações comerciais.","comprar","vender","pagar","escolher","querer","precisar"],
+["Pagamento","Formas comuns.","pix","cartão","crédito","débito","conta","troco"],
+["Comparar","Tomar decisão.","mais","menos","melhor","pior","igual","diferente"]]},
+{n:20,c:5,t:"Resolver tarefas",m:"Atender pequenas necessidades em lojas, serviços e filas.",th:["Pragmática básica","A mesma necessidade pode ser expressa de forma mais direta ou mais elaborada conforme contexto e interlocutor.","Observe como atenção, pedido e confirmação organizam o atendimento."],st:["Três coisas para resolver","A personagem vai a um serviço, enfrenta fila e precisa corrigir uma informação.","Identifique o objetivo em cada lugar e como o problema foi resolvido."],p:[
+["Atendimento","Vocabulário funcional.","atender","fila","esperar","senha","documento","informação"],
+["Pedido","Solicitar algo.","precisar","querer","ajudar","dar","mostrar","explicar"],
+["Problema","Quando algo falha.","erro","problema","faltar","não ter","errado","corrigir"],
+["Concluir","Finalizar tarefa.","pronto","certo","obrigado","pagar","receber","sair"]]},
+
+{n:21,c:6,t:"Referentes no espaço",m:"Estabelecer pessoas e lugares e retomá-los sem repetição excessiva.",th:["Ancoragem de referente","Um referente pode ser associado a um ponto do espaço e recuperado por apontação, olhar ou direção corporal.","O ponto precisa permanecer estável durante o trecho."],st:["Três pessoas, dois lugares","Uma narrativa estabelece pessoas em posições diferentes e alterna entre elas.","Mantenha um mapa mental dos referentes enquanto acompanha."],p:[
+["Estabelecer","Introduzir participantes.","pessoa","homem","mulher","amigo","colega","vizinho"],
+["Retomar","Voltar ao referente.","ele","ela","esse","aquele","apontar","olhar"],
+["Lugares","Ancorar cenários.","casa","trabalho","escola","mercado","hospital","praça"],
+["Alternar","Mover atenção entre pontos.","falar","perguntar","responder","dar","receber","encontrar"]]},
+{n:22,c:6,t:"Quem fez o quê?",m:"Acompanhar ações com vários participantes mantendo clareza de agente e alvo.",th:["Olhar e corpo ajudam a rastrear participantes","Mudanças de orientação podem sinalizar quem interage com quem.","O aluno deve acompanhar relações, não traduzir palavra por palavra."],st:["O pacote trocado","Um objeto passa por três pessoas e chega ao destinatário errado.","Reconstrua quem entregou, recebeu e devolveu."],p:[
+["Dar e receber","Transferência entre pessoas.","dar","receber","emprestar","devolver","pegar","entregar"],
+["Pergunta e resposta","Fluxo de informação.","perguntar","responder","explicar","contar","mostrar","avisar"],
+["Ajudar","Ações interpessoais.","ajudar","chamar","esperar","acompanhar","encontrar","procurar"],
+["Rastrear","Manter relações claras.","quem","qual","primeiro","segundo","outro","mesmo"]]},
+{n:23,c:6,t:"Direcionalidade",m:"Perceber como alguns verbos codificam relações entre participantes.",th:["Nem todo verbo é direcional","Alguns verbos permitem orientar o movimento de acordo com participantes; outros não seguem o mesmo padrão.","Aprenda por exemplos reais e evite generalizar uma regra para todos os verbos."],st:["Quem contou para quem?","Uma informação circula entre três pessoas e muda o plano do grupo.","Siga a direção das relações e identifique a origem da informação."],p:[
+["Comunicar","Relações de informação.","avisar","contar","perguntar","responder","mostrar","explicar"],
+["Trocar","Relações de objeto.","dar","receber","emprestar","devolver","enviar","pegar"],
+["Convidar","Relações sociais.","chamar","convidar","ajudar","acompanhar","encontrar","visitar"],
+["Comparar direção","Observar pares.","eu","você","ele","ela","nós","eles"]]},
+{n:24,c:6,t:"Espaço conta histórias",m:"Combinar referentes, lugares e ações numa narrativa espacial curta.",th:["Coesão espacial","O espaço guarda informação ao longo de uma história. Mudá-lo sem motivo pode tornar a narrativa ambígua.","Planeje cenário e personagens antes de sinalizar."],st:["O celular desaparecido","Um celular passa por cômodos e pessoas até ser encontrado em um lugar inesperado.","Reconte a história mantendo os mesmos pontos espaciais."],p:[
+["Montar cenário","Preparar ambiente.","casa","sala","quarto","mesa","sofá","porta"],
+["Criar personagens","Definir participantes.","irmão","irmã","mãe","amigo","eu","ele"],
+["Mover objetos","Ações espaciais.","pegar","colocar","levar","trazer","procurar","encontrar"],
+["Fechar narrativa","Resolver o problema.","lembrar","perder","achar","explicar","rir","finalmente"]]},
+
+{n:25,c:7,t:"Fazer planos",m:"Propor, aceitar, recusar e organizar atividades futuras.",th:["Futuro pode ser estabelecido pelo contexto","Depois de marcar um tempo futuro, uma sequência pode permanecer nesse quadro até outra mudança temporal.","Use contexto e não tente copiar flexões do português."],st:["O que vamos fazer amanhã?","Duas pessoas propõem opções, verificam disponibilidade e fecham um plano.","Identifique proposta inicial, alternativa e decisão."],p:[
+["Planejar","Intenções básicas.","querer","poder","precisar","planejar","combinar","decidir"],
+["Tempo futuro","Marcar quando.","amanhã","depois","semana","sábado","domingo","noite"],
+["Convite","Propor encontro.","convidar","encontro","ir","vir","junto","aceitar"],
+["Recusar e mudar","Negociar plano.","não poder","talvez","outro dia","mudar","cancelar","confirmar"]]},
+{n:26,c:7,t:"Festa e encontro",m:"Combinar evento social, horário, lugar e participantes.",th:["Turnos e atenção","Conversas visuais dependem de olhar, pausas e postura para indicar continuidade ou passagem de turno.","Observe quando o interlocutor está pronto para responder."],st:["Aniversário surpresa","Um grupo organiza uma festa sem revelar o plano à pessoa homenageada.","Descubra quem sabe do plano, o horário e a tarefa de cada um."],p:[
+["Eventos","Vocabulário social.","festa","aniversário","parabéns","encontro","casamento","convite"],
+["Pessoas","Participantes.","amigo","família","colega","namorado","namorada","todos"],
+["Atividades","O que acontece.","comer","beber","dançar","cantar","conversar","tirar foto"],
+["Organizar","Preparação.","horário","lugar","comprar","preparar","chegar","esperar"]]},
+{n:27,c:7,t:"Viagem",m:"Planejar deslocamento, hospedagem e atividades de viagem.",th:["Sequência de planejamento","Viagens combinam tempo, localização, quantidade e decisões. Use o tema para integrar habilidades já aprendidas.","O objetivo é sustentar uma situação longa, não memorizar turismo."],st:["Primeira viagem sozinho","Uma pessoa organiza passagem, mala e hospedagem e precisa confirmar informações.","Recupere destino, transporte, horário e o que faltou na mala."],p:[
+["Planejar viagem","Elementos centrais.","viagem","viajar","destino","mapa","turismo","passeio"],
+["Transporte","Deslocamento longo.","avião","ônibus","trem","carro","passagem","embarque"],
+["Hospedagem","Permanência.","hotel","pousada","quarto","reserva","chegar","sair"],
+["Bagagem","Preparação.","mala","bagagem","passaporte","documento","roupa","esquecer"]]},
+{n:28,c:7,t:"O plano mudou",m:"Relatar imprevistos, cancelar e reorganizar um plano.",th:["Negação e contraste","Negação pode combinar elementos manuais e não manuais, e seu alcance precisa ficar claro.","Compare uma simples resposta negativa com uma mudança de plano mais longa."],st:["A viagem que quase não aconteceu","Um problema com horário força o grupo a mudar transporte e hospedagem.","Explique o que deu errado e qual solução foi escolhida."],p:[
+["Imprevisto","Nomear mudanças.","problema","atraso","cancelar","mudar","perder","acontecer"],
+["Negação","Recusar ou negar.","não","nunca","não poder","não ter","errado","impossível"],
+["Alternativas","Replanejar.","outra opção","depois","amanhã","esperar","escolher","resolver"],
+["Resultado","Fechar o episódio.","conseguir","finalmente","chegar","certo","alívio","contar"]]},
+
+{n:29,c:8,t:"Corpo humano",m:"Identificar regiões do corpo dentro de descrições funcionais.",th:["Localização corporal importa","Muitos sinais usam o corpo como ponto de articulação. Atenção à localização melhora produção e percepção.","Treine com precisão, não apenas reconhecendo a palavra."],st:["Onde dói?","Uma pessoa aponta e descreve diferentes regiões do corpo durante um atendimento.","Identifique a localização antes de focar no nome do sintoma."],p:[
+["Cabeça e rosto","Regiões superiores.","cabeça","rosto","olho","nariz","boca","orelha"],
+["Tronco","Regiões centrais.","pescoço","ombro","peito","barriga","costas","coração"],
+["Braços e mãos","Membros superiores.","braço","cotovelo","mão","dedo","pulso","unha"],
+["Pernas e pés","Membros inferiores.","perna","joelho","pé","tornozelo","andar","correr"]]},
+{n:30,c:8,t:"Sintomas",m:"Descrever sintomas simples, intensidade e duração.",th:["Intensidade também é visual","Expressão, movimento e repetição podem contribuir para intensidade e duração.","Evite adicionar força aleatória: observe modelos reais."],st:["Desde ontem","Uma pessoa descreve sintomas que começaram em momentos diferentes.","Identifique qual sintoma começou primeiro e qual piorou."],p:[
+["Mal-estar","Estados gerais.","doente","dor","febre","gripe","tosse","cansado"],
+["Tempo do sintoma","Duração.","hoje","ontem","dias","começar","continuar","melhorar"],
+["Intensidade","Graduação.","muito","pouco","forte","fraco","pior","melhor"],
+["Cuidados","Primeiras ações.","remédio","descansar","água","dormir","farmácia","médico"]]},
+{n:31,c:8,t:"Consulta médica",m:"Participar de uma consulta básica descrevendo problema e respondendo perguntas.",th:["Perguntas em contexto clínico","O atendimento exige precisão de tempo, localização e intensidade, além de confirmação de compreensão.","Treine respostas completas sem inventar terminologia que não domina."],st:["Na consulta","Profissional pergunta quando começou, onde dói e o que a pessoa já fez.","Organize sintomas, duração e orientação recebida."],p:[
+["Atendimento","Pessoas e lugares.","médico","enfermeiro","paciente","consulta","hospital","clínica"],
+["Histórico","Perguntas comuns.","quando","onde","quanto tempo","antes","remédio","alergia"],
+["Tratamento","Orientações básicas.","tratamento","receita","exame","vacina","cirurgia","descansar"],
+["Confirmar","Checar entendimento.","entender","repetir","explicar","certo","dúvida","obrigado"]]},
+{n:32,c:8,t:"Emergência",m:"Pedir ajuda, indicar perigo e relatar rapidamente o que aconteceu.",th:["Priorize informação crítica","Em emergência, clareza e ordem das informações importam mais que riqueza lexical.","Quem, onde, o que aconteceu e qual ajuda é necessária formam um bom núcleo."],st:["O que aconteceu?","Uma testemunha precisa explicar rapidamente um acidente e chamar ajuda.","Identifique local, pessoas envolvidas e sequência do ocorrido."],p:[
+["Pedir socorro","Ações críticas.","socorro","ajuda","urgente","perigo","cuidado","chamar"],
+["Serviços","Quem pode ajudar.","ambulância","bombeiro","polícia","hospital","médico","segurança"],
+["Acidente","Descrever ocorrência.","acidente","cair","bater","machucar","sangue","dor"],
+["Relatar","Informação rápida.","onde","quem","acontecer","agora","esperar","chegar"]]},
+
+{n:33,c:9,t:"Aprender e ensinar",m:"Falar sobre estudo, aula, dúvida e aprendizagem.",th:["Metalinguagem ajuda a aprender","Quando o aluno sabe perguntar sobre a própria língua, ganha autonomia para aprender com outras pessoas.","Use Libras para falar de Libras progressivamente."],st:["Primeira aula nova","Um aluno chega a uma turma, perde uma explicação e pede ajuda a um colega.","Identifique a dúvida e como ela foi resolvida."],p:[
+["Ambiente de estudo","Pessoas e lugares.","escola","faculdade","curso","aula","aluno","professor"],
+["Materiais","Objetos acadêmicos.","livro","caderno","caneta","lápis","atividade","prova"],
+["Aprender","Processos.","estudar","aprender","ensinar","explicar","perguntar","responder"],
+["Dificuldade","Autorregulação.","fácil","difícil","entender","dúvida","repetir","praticar"]]},
+{n:34,c:9,t:"Trabalho",m:"Descrever profissão, função, rotina e responsabilidades.",th:["Do rótulo à função","Saber o nome de uma profissão é menos útil do que conseguir explicar o que a pessoa faz.","Priorize verbos, rotina e relações de trabalho."],st:["Um novo emprego","Uma personagem começa num trabalho e recebe tarefas diferentes durante o dia.","Resuma a função sem apenas repetir o nome da profissão."],p:[
+["Profissões","Áreas frequentes.","professor","médico","motorista","vendedor","advogado","engenheiro"],
+["Ambiente","Vocabulário profissional.","trabalho","empresa","escritório","chefe","colega","salário"],
+["Tarefas","Ações gerais.","atender","escrever","ler","organizar","reunião","ajudar"],
+["Rotina profissional","Descrever jornada.","começar","terminar","horário","almoço","cansado","voltar"]]},
+{n:35,c:9,t:"Tecnologia",m:"Falar de dispositivos, comunicação digital e ações básicas.",th:["Novos conceitos e datilologia","Tecnologia produz nomes próprios e termos novos com frequência. Datilologia e contexto ajudam quando não há um sinal lexical conhecido.","Não invente um sinal porque uma palavra é nova."],st:["Mensagem que não chegou","Duas pessoas tentam descobrir por que uma mensagem não apareceu no celular.","Siga o diagnóstico e a solução escolhida."],p:[
+["Dispositivos","Objetos digitais.","computador","notebook","celular","telefone","teclado","mouse"],
+["Internet","Conectividade.","internet","wifi","site","aplicativo","email","senha"],
+["Mídia","Conteúdo digital.","vídeo","foto","câmera","mensagem","youtube","jogo"],
+["Ações","Uso cotidiano.","ligar","desligar","abrir","fechar","enviar","receber"]]},
+{n:36,c:9,t:"Resolver um problema",m:"Explicar falha, seguir instruções e confirmar solução.",th:["Explicação procedural","Processos ficam claros quando passos têm ordem, referentes estáveis e condição de sucesso.","Aprenda a dizer o que tentou, o que mudou e o que ainda falha."],st:["O computador parou","Uma pessoa descreve um problema, recebe três instruções e testa uma solução.","Coloque as ações na ordem e diga qual resolveu."],p:[
+["Diagnóstico","Nomear estado.","problema","erro","funcionar","não funcionar","ligar","desligar"],
+["Instruções","Executar passos.","primeiro","depois","clicar","abrir","fechar","esperar"],
+["Testar","Verificar resultado.","tentar","ver","certo","errado","melhor","igual"],
+["Explicar solução","Relatar processo.","resolver","conseguir","ajudar","mostrar","explicar","finalmente"]]},
+
+{n:37,c:10,t:"Forma e dimensão",m:"Descrever forma, tamanho e propriedades visuais.",th:["Descrição não é lista de adjetivos","Libras pode representar visualmente dimensões e formas por recursos espaciais e classificadores.","Observe modelos antes de transformar qualquer gesto em descrição linguística."],st:["Qual objeto é?","Uma pessoa descreve objetos sem nomeá-los diretamente.","Identifique cada objeto a partir de forma, tamanho e uso."],p:[
+["Tamanho","Dimensões básicas.","grande","pequeno","alto","baixo","largo","fino"],
+["Forma","Propriedades visuais.","redondo","quadrado","comprido","curto","reto","curvo"],
+["Estado","Condição do objeto.","aberto","fechado","cheio","vazio","limpo","sujo"],
+["Comparação","Contrastar propriedades.","mais","menos","igual","diferente","pesado","leve"]]},
+{n:38,c:10,t:"Objetos no espaço",m:"Representar relação espacial entre objetos de uma cena.",th:["Mapeamento espacial","Uma boa descrição permite ao interlocutor reconstruir a cena no espaço mental.","Escolha um ponto de vista e preserve-o."],st:["Arrumando o quarto","Objetos mudam de lugar enquanto uma pessoa reorganiza o ambiente.","Reconstrua posição inicial e final de cada objeto."],p:[
+["Superfícies","Relações de apoio.","mesa","cadeira","cama","chão","parede","prateleira"],
+["Posições","Organização relativa.","em cima","embaixo","lado","entre","perto","longe"],
+["Mover","Alterar localização.","colocar","tirar","levar","trazer","mover","guardar"],
+["Descrever cena","Consolidar espaço.","aqui","ali","frente","atrás","direita","esquerda"]]},
+{n:39,c:10,t:"Movimento e trajetória",m:"Descrever deslocamentos de pessoas, veículos e objetos.",th:["Trajetória pode carregar informação","Direção, percurso, velocidade e maneira podem ser representados visualmente.","Separe o que é sinal lexical do que é construção produtiva."],st:["No cruzamento","Dois veículos e uma pessoa percorrem trajetórias diferentes.","Represente o movimento sem perder a posição inicial dos elementos."],p:[
+["Veículos","Entidades móveis.","carro","moto","ônibus","bicicleta","avião","barco"],
+["Trajetória","Movimentos gerais.","ir","voltar","subir","descer","virar","parar"],
+["Velocidade","Maneira.","rápido","devagar","acelerar","frear","correr","andar"],
+["Percurso","Organizar caminho.","estrada","rua","ponte","esquina","entrada","saída"]]},
+{n:40,c:10,t:"Classificadores I",m:"Introduzir construções classificadoras para entidade, forma, localização e movimento.",th:["Classificadores não são gestos inventados","Configurações e movimentos participam de convenções linguísticas. O aluno precisa aprender por uso real e comparação.","Nunca trate qualquer representação improvisada como automaticamente correta."],st:["Um acidente na rua","A cena exige representar veículos, pessoas, localização e trajetória.","Conte o ocorrido usando espaço consistente e recursos visuais apropriados."],p:[
+["Entidades","Classes gerais para observação.","pessoa","carro","animal","objeto","grupo","lugar"],
+["Localização","Relações visuais.","parado","em pé","sentado","deitado","perto","longe"],
+["Movimento","Trajetórias de entidades.","andar","correr","cair","virar","entrar","sair"],
+["Manipulação","Interação com objetos.","pegar","segurar","abrir","fechar","colocar","tirar"]]},
+
+{n:41,c:11,t:"Sequência narrativa",m:"Contar acontecimentos em ordem compreensível.",th:["Narrativa precisa de arquitetura","Antes de sinalizar, estabeleça tempo, cenário, participantes e cadeia principal de eventos.","Conectores ajudam, mas coerência não depende apenas deles."],st:["Um encontro inesperado","Uma sequência simples ganha um evento surpresa no meio.","Reconte preservando preparação, ruptura e conclusão."],p:[
+["Ordem","Marcar sequência.","primeiro","depois","então","antes","durante","finalmente"],
+["Eventos","Ações narrativas.","acontecer","chegar","encontrar","ver","falar","sair"],
+["Mudança","Viradas simples.","de repente","mudar","problema","surpresa","esperar","resolver"],
+["Encerrar","Fechar relato.","fim","conseguir","voltar","lembrar","contar","rir"]]},
+{n:42,c:11,t:"Personagens e perspectiva",m:"Manter personagens distintos e alternar ponto de vista com clareza.",th:["Mudança de papel exige controle","Corpo, olhar e orientação podem ajudar a representar participantes e perspectivas diferentes.","A mudança deve ser reconhecível e consistente."],st:["Duas versões","Duas personagens contam o mesmo acontecimento com focos diferentes.","Compare o que cada uma sabe e como a perspectiva muda."],p:[
+["Personagens","Funções narrativas.","pessoa","amigo","desconhecido","família","colega","vizinho"],
+["Perspectiva","Marcar ponto de vista.","ver","pensar","saber","não saber","lembrar","perceber"],
+["Fala relatada","Interações.","perguntar","responder","contar","avisar","explicar","chamar"],
+["Contraste","Comparar versões.","mesmo","diferente","verdade","erro","antes","depois"]]},
+{n:43,c:11,t:"Mostrar em vez de explicar",m:"Usar corpo, espaço e ação construída para tornar narrativa visual.",th:["Ação construída","Narrativas podem incorporar postura, olhar e ação dos personagens de modo estruturado.","O objetivo não é teatralizar tudo, mas escolher recursos que acrescentem informação."],st:["A porta que não abria","Uma situação cotidiana depende mais de ação visual do que de vocabulário abstrato.","Mostre tentativas, reação e solução sem narrar cada microação com palavras."],p:[
+["Ações físicas","Verbos concretos.","abrir","fechar","empurrar","puxar","segurar","soltar"],
+["Reações","Resposta corporal.","surpresa","medo","raiva","rir","cansado","alívio"],
+["Tentativas","Progressão.","tentar","de novo","não conseguir","força","devagar","rápido"],
+["Resultado","Fechar ação.","conseguir","quebrar","chamar","ajudar","resolver","fim"]]},
+{n:44,c:11,t:"Storytelling I",m:"Produzir histórias de 1 a 2 minutos com cenário, personagens, problema e conclusão.",th:["Revisão narrativa","Fluência narrativa combina coesão, espaço, perspectiva, expressão e seleção lexical.","Grave, reveja e procure ambiguidades antes de buscar velocidade."],st:["A história completa","O aluno recebe um cenário, personagens e um problema, mas precisa construir a narrativa.","Mantenha referentes, tempo e conclusão claros durante toda a produção."],p:[
+["Abrir história","Estabelecer contexto.","quando","onde","pessoa","dia","lugar","começar"],
+["Criar problema","Introduzir conflito.","problema","perder","esquecer","atrasar","procurar","preocupar"],
+["Desenvolver","Construir tentativa.","tentar","pedir ajuda","encontrar","explicar","esperar","mudar"],
+["Concluir","Resolver e refletir.","resolver","finalmente","feliz","alívio","lembrar","contar"]]},
+
+{n:45,c:12,t:"Como eu me sinto",m:"Expressar emoções e explicar o que as provoca.",th:["Expressão facial tem função linguística e afetiva","Nem toda expressão é apenas emoção; marcas não manuais também participam da gramática.","Aprenda a distinguir função linguística do conteúdo emocional da cena."],st:["Uma notícia inesperada","A mesma notícia provoca reações diferentes em três pessoas.","Identifique emoção e motivo sem depender de legenda."],p:[
+["Emoções positivas","Estados agradáveis.","feliz","amor","orgulho","calmo","animado","alívio"],
+["Emoções difíceis","Estados desconfortáveis.","triste","raiva","medo","vergonha","nervoso","preocupado"],
+["Relação com causa","Explicar motivo.","porque","acontecer","pensar","lembrar","esperar","receber"],
+["Mudança emocional","Transição.","antes","depois","melhor","pior","surpresa","tranquilo"]]},
+{n:46,c:12,t:"Preferência e opinião",m:"Dizer o que prefere, comparar opções e justificar escolha.",th:["Opinião precisa de apoio","Uma opinião comunicativa não termina em GOSTAR ou NÃO GOSTAR. O próximo passo é explicar razão, condição ou experiência.","Use exemplos concretos antes de temas abstratos."],st:["Qual é melhor?","Duas pessoas defendem escolhas diferentes para um passeio.","Recupere argumento principal de cada pessoa."],p:[
+["Preferência","Expressar gosto.","gostar","não gostar","preferir","querer","favorito","escolher"],
+["Avaliar","Julgar opção.","bom","ruim","melhor","pior","fácil","difícil"],
+["Comparar","Contrastar.","mais","menos","igual","diferente","caro","barato"],
+["Justificar","Dar razão.","porque","por isso","experiência","pensar","achar","depender"]]},
+{n:47,c:12,t:"Concordar e discordar",m:"Concordar, discordar e sustentar uma posição sem encerrar a conversa.",th:["Discordância é interação","Discordar inclui reconhecer o ponto anterior, marcar contraste e oferecer razão ou alternativa.","Pratique intensidade e registro para não reduzir tudo a SIM/NÃO."],st:["Dois planos para o mesmo problema","Duas pessoas propõem soluções e precisam chegar a acordo.","Identifique pontos de concordância e onde ainda existe divergência."],p:[
+["Concordância","Apoiar ideia.","concordar","sim","certo","também","mesmo","boa ideia"],
+["Discordância","Marcar contraste.","discordar","não","mas","diferente","não acho","problema"],
+["Argumentar","Sustentar ponto.","porque","exemplo","resultado","melhor","pior","importante"],
+["Negociar","Construir acordo.","talvez","depende","alternativa","combinar","decidir","aceitar"]]},
+{n:48,c:12,t:"Conversas difíceis",m:"Lidar com mal-entendido, pedido de desculpas, correção e negociação.",th:["Pragmática e relação","A forma de corrigir ou recusar depende de relação, contexto e objetivo da interação.","Treine clareza sem transformar um único jeito de dizer em regra universal."],st:["Foi isso que você entendeu?","Um mal-entendido cresce porque duas pessoas interpretam uma informação de modos diferentes.","Localize a origem do problema e reformule a mensagem."],p:[
+["Mal-entendido","Reconhecer falha.","entender errado","confusão","pensar","achar","dizer","ouvir"],
+["Corrigir","Reformular.","não","quer dizer","explicar","repetir","corrigir","agora"],
+["Reparar relação","Reduzir tensão.","desculpa","calma","respeito","entender","obrigado","tudo bem"],
+["Negociar saída","Chegar a solução.","combinar","aceitar","mudar","resolver","depois","fim"]]},
+
+{n:49,c:13,t:"Velocidade natural",m:"Aumentar compreensão sem exigir que todo sinal seja reconhecido isoladamente.",th:["Compreensão não é legenda mental","Sinalização natural envolve redução, coarticulação, antecipação e contexto. Tentar nomear cada sinal pode atrasar a compreensão.","Treine captar ideia, participantes e eventos antes dos detalhes."],st:["Uma conversa sem pausa didática","O conteúdo usa vocabulário conhecido em ritmo menos controlado.","Primeiro resuma o tema; só depois procure detalhes específicos."],p:[
+["Ideia principal","Focar sentido global.","tema","assunto","pessoa","acontecer","lugar","tempo"],
+["Pistas contextuais","Usar informação parcial.","quem","onde","quando","porque","depois","resultado"],
+["Ritmo","Perceber fluxo.","rápido","devagar","pausa","continuar","repetir","entender"],
+["Recuperação","Lidar com lacunas.","não entender","inferir","contexto","lembrar","confirmar","perguntar"]]},
+{n:50,c:13,t:"Sinalizantes diferentes",m:"Adaptar compreensão a diferenças individuais e variação linguística.",th:["Variação faz parte da língua","Região, geração, grupo, estilo e contexto podem influenciar formas. Diferença não significa automaticamente erro.","O curso mantém um núcleo principal, mas o aluno avançado precisa reconhecer que a Libras real não é uniforme."],st:["Três pessoas, um assunto","Pessoas diferentes falam do mesmo tema com ritmo e escolhas distintas.","Compare estratégias de compreensão sem classificar automaticamente uma forma como errada."],p:[
+["Diferença","Falar sobre variação.","igual","diferente","variação","região","pessoa","grupo"],
+["Estilo","Características de produção.","rápido","devagar","formal","informal","claro","difícil"],
+["Estratégias","Continuar entendendo.","contexto","perguntar","repetir","confirmar","comparar","aprender"],
+["Comunidade","Situar língua.","surdo","comunidade","Libras","cultura","experiência","identidade"]]},
+{n:51,c:13,t:"Conversa espontânea",m:"Entrar numa interação sem saber exatamente quais perguntas virão.",th:["Improviso com ferramentas conhecidas","Espontaneidade não é ausência de estrutura. O aluno usa reparação, contexto, inferência e repertório para manter a conversa.","Avalie continuidade e clareza, não perfeição."],st:["Descubra o objetivo","O aluno entra numa situação sem receber antecipadamente toda a informação.","Faça perguntas suficientes para entender o problema e encaminhar a conversa."],p:[
+["Abrir tema","Descobrir contexto.","o que","quem","onde","quando","como","porque"],
+["Explorar","Pedir detalhes.","mais","exemplo","explicar","mostrar","qual","quanto"],
+["Reparar","Sobreviver à lacuna.","repetir","devagar","não entendi","quer dizer","confirmar","certo"],
+["Encaminhar","Levar a conversa adiante.","então","depois","decidir","ajudar","resolver","combinar"]]},
+{n:52,c:13,t:"Compreensão visual complexa",m:"Interpretar cenas com múltiplos referentes, movimento e informação simultânea.",th:["Informação pode ser simultânea","Mãos, rosto, corpo e espaço podem carregar camadas ao mesmo tempo. A análise linear do português nem sempre captura isso.","Treine observar relações antes de decompor em palavras."],st:["A cena movimentada","Várias pessoas e objetos se deslocam e interagem num mesmo espaço narrativo.","Desenhe mentalmente a cena e responda quem estava onde e o que mudou."],p:[
+["Cenário","Elementos espaciais.","frente","atrás","lado","entre","perto","longe"],
+["Participantes","Múltiplos referentes.","pessoa","grupo","criança","adulto","carro","animal"],
+["Mudança","Movimento simultâneo.","entrar","sair","cruzar","cair","parar","continuar"],
+["Resultado","Estado final.","ficar","chegar","mudar","posição","encontrar","resolver"]]},
+
+{n:53,c:14,t:"Aspecto e intensidade",m:"Perceber e produzir diferenças de duração, frequência e maneira de uma ação.",th:["A forma da ação importa","Repetição, duração, amplitude e expressão podem contribuir para aspecto e intensidade conforme a construção.","Observe padrões de uso real e não aplique uma fórmula mecânica."],st:["A mesma ação, quatro maneiras","A narrativa contrasta ações rápidas, prolongadas, repetidas e intensas.","Explique a diferença de sentido sem depender de quatro advérbios em português."],p:[
+["Frequência","Repetição temporal.","sempre","nunca","às vezes","muitas vezes","de novo","frequente"],
+["Duração","Tempo da ação.","rápido","devagar","demorar","continuar","parar","tempo"],
+["Intensidade","Grau.","muito","pouco","forte","fraco","mais","menos"],
+["Maneira","Como ocorre.","calmo","nervoso","cuidado","pressa","fácil","difícil"]]},
+{n:54,c:14,t:"Storytelling II",m:"Narrar por 3 a 5 minutos com perspectiva, ação construída e coesão.",th:["Narrativa longa precisa de gerenciamento","Quanto maior a história, mais importante é reativar referentes, controlar tempo e sinalizar mudanças de cena.","Planeje blocos narrativos em vez de memorizar frases."],st:["Três cenas, um conflito","Uma história passa por três lugares e envolve versões diferentes do mesmo problema.","Produza uma narrativa com transições claras entre cenas."],p:[
+["Cena 1","Estabelecer contexto.","lugar","tempo","pessoa","objetivo","começar","acontecer"],
+["Cena 2","Desenvolver conflito.","problema","tentar","mudar","encontrar","perguntar","descobrir"],
+["Cena 3","Resolver.","explicar","decidir","ajudar","resolver","voltar","finalmente"],
+["Reflexão","Fechar narrativa.","pensar","aprender","lembrar","opinião","sentir","fim"]]},
+{n:55,c:14,t:"Discurso abstrato",m:"Falar sobre conceitos que não estão presentes fisicamente no ambiente.",th:["Do concreto ao abstrato","Temas abstratos exigem definição, exemplo, comparação e retomada conceitual.","Estabeleça o conceito antes de desenvolver argumentos longos."],st:["Uma ideia em debate","Duas pessoas discutem um tema social de modo respeitoso e dão exemplos.","Resuma cada posição sem copiar frases."],p:[
+["Conceitos","Vocabulário discursivo.","ideia","conceito","opinião","experiência","sociedade","cultura"],
+["Avaliação","Analisar tema.","importante","necessário","possível","difícil","melhor","problema"],
+["Exemplificar","Tornar concreto.","exemplo","situação","pessoa","acontecer","resultado","comparar"],
+["Retomar","Manter tópico.","assunto","isso","mesmo","outro","então","conclusão"]]},
+{n:56,c:14,t:"Causa, hipótese e argumento",m:"Explicar relações de causa, consequência, condição e possibilidade.",th:["Relações lógicas precisam ficar visíveis","Uma argumentação clara mostra como uma ideia leva à outra e quais partes são fato, possibilidade ou condição.","Use exemplos e contraste para verificar compreensão."],st:["E se acontecer?", "Uma decisão depende de duas condições e produz consequências diferentes.","Mapeie condição, consequência e alternativa."],p:[
+["Causa","Explicar motivo.","porque","causa","motivo","acontecer","resultado","por isso"],
+["Condição","Falar de hipótese.","se","talvez","possível","depende","caso","escolher"],
+["Consequência","Projetar resultado.","então","depois","resultado","mudar","melhor","pior"],
+["Argumento","Construir raciocínio.","opinião","exemplo","comparar","concordar","discordar","concluir"]]},
+
+{n:57,c:15,t:"Explicar procedimentos",m:"Ensinar um processo complexo em etapas claras.",th:["Procedimento é uma narrativa orientada a objetivo","Uma explicação boa apresenta pré-requisitos, sequência, pontos de decisão e resultado esperado.","Teste a explicação pedindo que outra pessoa reconstrua o processo."],st:["Ensine sem demonstrar tudo","O aluno precisa explicar uma tarefa para alguém que não conhece o processo.","Organize etapas e critérios de sucesso."],p:[
+["Preparar","Definir pré-requisitos.","precisar","material","antes","preparar","verificar","começar"],
+["Sequenciar","Ordenar etapas.","primeiro","segundo","depois","então","enquanto","finalmente"],
+["Condição","Lidar com exceção.","se","problema","parar","tentar","mudar","continuar"],
+["Concluir","Checar resultado.","pronto","funcionar","certo","resultado","confirmar","explicar"]]},
+{n:58,c:15,t:"Pragmática e registro",m:"Adaptar clareza, formalidade e estratégia ao contexto e ao interlocutor.",th:["Não existe uma única forma apropriada para toda situação","Relação entre pessoas, ambiente e objetivo influenciam escolhas de linguagem.","Aprenda a observar usos reais e justificar adequação pelo contexto."],st:["Mesma intenção, três contextos","Um pedido semelhante ocorre entre amigos, em atendimento e numa situação formal.","Compare como a interação muda sem transformar estilos em caricaturas."],p:[
+["Contexto","Ler situação.","formal","informal","trabalho","amigo","atendimento","grupo"],
+["Pedido","Regular abordagem.","pedir","por favor","precisar","poder","ajudar","obrigado"],
+["Correção","Ajustar interação.","desculpa","corrigir","explicar","repetir","respeito","calma"],
+["Adequação","Escolher estratégia.","contexto","depende","melhor","claro","direto","cuidado"]]},
+{n:59,c:15,t:"Conversa em grupo",m:"Acompanhar turnos, mudanças de interlocutor e referências em interação com várias pessoas.",th:["Grupo muda a ecologia visual","Atenção, posicionamento, olhar e turnos ficam mais complexos com vários participantes.","Treine entrar, sair e retomar uma conversa sem perder o tópico."],st:["Quatro pessoas, uma decisão","Um grupo discute opções, interrompe, retoma e chega a uma decisão.","Rastreie quem propôs cada ideia e como o grupo convergiu."],p:[
+["Turnos","Gerenciar participação.","falar","esperar","continuar","interromper","responder","perguntar"],
+["Atenção","Direcionar foco.","olhar","chamar","grupo","todos","pessoa","atenção"],
+["Retomada","Voltar ao tópico.","assunto","antes","você disse","lembrar","continuar","então"],
+["Decisão coletiva","Fechar discussão.","concordar","discordar","votar","escolher","combinar","decidir"]]},
+{n:60,c:15,t:"Capstone: autonomia em Libras",m:"Integrar compreensão, produção, narrativa, interação e estratégias para continuar aprendendo fora do curso.",th:["O curso termina, a língua não","Autonomia significa participar de interações reais, reconhecer limites, buscar modelos confiáveis e continuar aprendendo com a comunidade e com materiais autênticos.","O objetivo final não é perfeição, mas comunicação avançada, consciente e sustentável."],st:["Do zero à autonomia","O aluno revisita situações do início do curso agora em versões mais rápidas, longas e imprevisíveis.","Compare sua produção atual com uma gravação antiga e defina próximos objetivos."],p:[
+["Autonomia","Gerenciar aprendizagem.","aprender","praticar","revisar","dúvida","pesquisar","comparar"],
+["Interação real","Sustentar conversa.","conversar","perguntar","responder","reformular","explicar","entender"],
+["Comunidade","Continuar conectado.","surdo","comunidade","cultura","Libras","respeito","participar"],
+["Próximos passos","Planejar desenvolvimento.","objetivo","melhorar","continuar","experiência","fluência","futuro"]]}
 ];
+
+const EXPANSION={
+1:["saudação","cumprimento","bem-vindo","bem-vinda","até amanhã","até depois","desculpar","gentileza"],
+2:["sobrenome","apelido","idade","nascimento","brasileiro","endereço","estado","país"],
+3:["dúvida","atenção","lento","calma","compreender","exemplo","confirmar","informação"],
+4:["conversa","pergunta","resposta","informação","confirmar","começar","terminar","comunicar"],
+5:["mamãe","papai","cunhado","cunhada","sogro","sogra","padrasto","madrasta"],
+6:["conhecido","desconhecido","parente","chefe","cliente","atendente","visitante","grupo"],
+7:["barba","bigode","loiro","moreno","careca","magro","gordo","jovem"],
+8:["terceiro","quarto","perto","longe","direita","esquerda","frente","atrás"],
+9:["pente","escova","roupa","sapato","meia","pressa","relógio","atraso"],
+10:["seis","sete","oito","nove","onze","doze","meia-noite","relógio"],
+11:["janeiro","fevereiro","março","abril","maio","junho","julho","agosto"],
+12:["metrô","trânsito","reunião","jantar","passeio","exercício","descanso","compromisso"],
+13:["apartamento","varanda","quintal","corredor","lavanderia","escritório","televisão","microondas"],
+14:["acima","abaixo","ao lado","centro","canto","esquerda","direita","distância"],
+15:["banana","maçã","laranja","bolo","biscoito","macarrão","refrigerante","fruta"],
+16:["colher","garfo","faca","forno","tempero","cebola","alho","legume"],
+17:["igreja","teatro","museu","padaria","correio","delegacia","academia","biblioteca"],
+18:["mapa","avenida","ponte","túnel","ponto","metrô","atravessar","seguir"],
+19:["desconto","promoção","parcela","moeda","caixa","recibo","nota","troco"],
+20:["cadastro","formulário","protocolo","assinatura","identidade","cpf","comprovante","carteira"],
+21:["este","aquele","primeiro","segundo","terceiro","outro","mesmo","diferente"],
+22:["mandar","buscar","trazer","levar","trocar","oferecer","aceitar","recusar"],
+23:["agradecer","ensinar","indicar","oferecer","pedir","telefonar","enviar","convidar"],
+24:["mochila","carteira","livro","copo","controle","carregador","fone","chave"],
+25:["próxima semana","próximo mês","férias","horário","livre","ocupado","disponível","agenda"],
+26:["presente","música","bolo","decoração","convidado","surpresa","salão","reunião"],
+27:["turismo","turista","reserva","hospedagem","desembarque","fronteira","rodoviária","aeroporto"],
+28:["voo","remarcar","atraso","cancelado","lotado","disponível","alternativa","solução"],
+29:["garganta","dente","língua","ombro","cintura","quadril","tornozelo","pele"],
+30:["enjoo","vômito","tontura","alergia","inflamação","dor de cabeça","pressão","fraqueza"],
+31:["receita","exame","retorno","diagnóstico","cirurgia","emergência","especialista","saúde"],
+32:["desmaiar","quebrar","ferimento","queimadura","fogo","fumaça","urgente","perigo"],
+33:["disciplina","matéria","nota","pesquisa","grupo","apresentação","biblioteca","tarefa"],
+34:["profissão","emprego","currículo","entrevista","salário","férias","reunião","cliente"],
+35:["arquivo","pasta","baixar","instalar","atualizar","carregar","bateria","tela"],
+36:["reiniciar","configurar","conexão","senha","atualização","suporte","teste","solução"],
+37:["oval","triângulo","grosso","profundo","raso","longo","estreito","altura"],
+38:["centro","canto","distância","fileira","coluna","pilha","posição","organizar"],
+39:["aproximar","afastar","cruzar","ultrapassar","seguir","retornar","trajeto","curva"],
+40:["entidade","instrumento","superfície","forma","tamanho","movimento","localização","trajetória"],
+41:["início","meio","fim","enquanto","de repente","sequência","evento","conclusão"],
+42:["personagem","perspectiva","imaginar","perceber","observar","versão","memória","narrador"],
+43:["agir","reagir","empurrar","puxar","tentar","conseguir","reação","movimento"],
+44:["introdução","desenvolvimento","conflito","solução","conclusão","narrador","cena","capítulo"],
+45:["alegria","tristeza","ansiedade","ciúme","saudade","vergonha","esperança","medo"],
+46:["opinião","escolha","preferência","vantagem","desvantagem","motivo","razão","exemplo"],
+47:["argumento","acordo","desacordo","sugestão","alternativa","negociar","decisão","respeito"],
+48:["mal-entendido","engano","intenção","paciência","perdão","reformular","negociar","solução"],
+49:["contexto","detalhe","ideia geral","assunto","tema","velocidade","ritmo","pausa"],
+50:["região","geração","estilo","contexto","hábito","comunidade","identidade","variação"],
+51:["espontâneo","surpresa","dúvida","confirmar","reformular","continuar","inferir","contexto"],
+52:["simultâneo","posição","trajetória","referência","espaço","mudança","direção","relação"],
+53:["frequência","duração","repetição","intensidade","contínuo","maneira","ritmo","intervalo"],
+54:["narrador","personagem","cenário","conflito","clímax","conclusão","perspectiva","transição"],
+55:["educação","tecnologia","acessibilidade","sociedade","direito","cultura","comunidade","inclusão"],
+56:["causa","consequência","condição","hipótese","possibilidade","resultado","motivo","decisão"],
+57:["etapa","instrução","material","ferramenta","procedimento","processo","resultado","verificar"],
+58:["formal","informal","respeito","contexto","relação","atendimento","reunião","desconhecido"],
+59:["grupo","turno","atenção","interrupção","opinião","votação","consenso","decisão"],
+60:["autonomia","fluência","objetivo","prática","comunidade","cultura","experiência","progresso"]
+};
+
+const EXAMPLE_PHRASES={
+1:"Bom dia",
+3:"Não entendi",
+5:"Eu amo minha família",
+9:"Fica em casa",
+15:"Estou com fome",
+25:"Eu vou",
+28:"Vamos embora",
+32:"Me ajuda",
+48:"Não se preocupe"
+};
+
+const KINDS={
+signals:["👐","Prática"],
+scene:["🎬","Cena"],
+theory:["💡","Microteoria"],
+comprehension:["👀","Compreensão"],
+production:["🎥","Produção"],
+story:["📖","Storytelling"],
+checkpoint:["🏁","Checkpoint"]
+};
+function slug(s){return String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")}
+function uniq(a){return [...new Set((a||[]).filter(Boolean))]}
+function cycleOf(id){return CYCLES.find(x=>x.id===id)}
+function flatSigns(u){return uniq(u.p.flatMap(x=>x.slice(2)))}
+function lesson(id,unit,kind,order,title,summary,extra={}){
+  const k=KINDS[kind]||KINDS.signals;
+  return {id,unit:unit.n,cycle:unit.c,module:unit.t,kind,icon:k[0],level:k[1],order,title,summary,...extra};
+}
+const content=[];
+for(const unit of U){
+  const cyc=cycleOf(unit.c),all=flatSigns(unit);
+  unit.p.forEach((p,i)=>{
+    content.push(lesson("u"+unit.n+"-p"+(i+1),unit,"signals",i===0?1:(i===1?3:(i===2?5:7)),p[0],p[1],{
+      signs:p.slice(2),expansion:(EXPANSION[unit.n]||[]).slice(i*2,i*2+2),practice:"Use estes sinais para cumprir a missão da unidade: "+unit.m,
+      take:["Observe o vídeo completo, não apenas a mão.","Produza cada sinal e depois recombine em uma situação.","Reutilize pelo menos dois sinais de aulas anteriores."]
+    }));
+    if(i===0){
+      content.push(lesson("u"+unit.n+"-scene",unit,"scene",2,unit.st[0],unit.st[1],{
+        signs:uniq([...unit.p[0].slice(2),...unit.p[1].slice(2)]).slice(0,10),
+        scene:unit.st[1],storyline:storyArc(unit.c).summary,cast:storyArc(unit.c).characters,chapter:"Capítulo "+unit.n,phraseExample:EXAMPLE_PHRASES[unit.n]||"",questions:[unit.st[2],"Quem participa da cena?","Qual informação é necessária para entender o resultado?"],
+        practice:"Assista aos sinais necessários e reconstrua mentalmente a cena antes de responder."
+      }));
+    }
+    if(i===1){
+      content.push(lesson("u"+unit.n+"-theory",unit,"theory",4,unit.th[0],unit.th[1],{
+        sections:[[unit.th[0],unit.th[1]],["O que observar",unit.th[2]]],
+        practice:"Volte à cena anterior e procure exatamente o fenômeno explicado nesta microaula.",
+        take:["Teoria serve à comunicação.","Compare exemplos reais sempre que possível.","Não transforme uma observação em regra absoluta sem evidência."]
+      }));
+    }
+    if(i===2){
+      content.push(lesson("u"+unit.n+"-understand",unit,"comprehension",6,"Entenda em contexto","Compreensão guiada usando conteúdo novo e reciclado.",{
+        signs:uniq([...unit.p[0].slice(2,5),...unit.p[1].slice(2,5),...unit.p[2].slice(2)]),
+        questions:["Qual é a ideia principal?","Que informação de uma aula anterior reaparece aqui?","Qual detalhe muda o sentido da situação?"],
+        recycle:uniq([...unit.p[0].slice(2,5),...unit.p[1].slice(2,5)]),
+        practice:"Tente compreender primeiro sem abrir cada sinal. Use os vídeos individuais apenas para conferir dúvidas."
+      }));
+    }
+    if(i===3){
+      content.push(lesson("u"+unit.n+"-produce",unit,"production",8,"Agora é com você","Produza uma mensagem própria que resolva a missão comunicativa da unidade.",{
+        signs:all.slice(0,16),challenge:unit.m,
+        practice:"Grave de 30 a 90 segundos. Reveja sem som e verifique se participantes, tempo e objetivo continuam claros.",
+        take:["Priorize clareza antes de velocidade.","Se travar, reformule com recursos que você já domina.","Depois compare sua produção com modelos reais."]
+      }));
+      content.push(lesson("u"+unit.n+"-story",unit,"story",9,unit.st[0]+" · história",unit.st[1],{
+        signs:all.slice(0,18),scene:unit.st[1],storyline:storyArc(unit.c).summary,cast:storyArc(unit.c).characters,chapter:"Capítulo "+unit.n,questions:[unit.st[2],"Reconte a história de outro ponto de vista.","Mude um detalhe e adapte o restante da narrativa."],
+        practice:"Use o vocabulário como ferramenta para reconstruir a história, não como lista obrigatória."
+      }));
+      content.push(lesson("u"+unit.n+"-checkpoint",unit,"checkpoint",10,"Missão da unidade","Integre compreensão e produção antes de avançar.",{
+        signs:all.slice(0,20),challenge:unit.m,
+        questions:["Consigo entender a ideia principal sem traduzir cada sinal?","Consigo produzir a situação sem roteiro palavra por palavra?","Consigo pedir esclarecimento se faltar vocabulário?"],
+        practice:"Complete a missão duas vezes: primeiro com apoio da lista; depois sem olhar os sinais.",
+        take:["Marque a aula como concluída quando conseguir comunicar a missão.","Erros viram itens de revisão.","O próximo ciclo reutilizará parte deste conteúdo."]
+      }));
+    }
+  });
+}
+window.LIBRAS_STUDY_CHARACTERS=CHARACTERS;
+window.LIBRAS_STUDY_STORY_ARCS=STORY_ARCS;
+window.LIBRAS_STUDY_CYCLES=CYCLES;
+window.LIBRAS_STUDY_UNITS=U.map(u=>({id:u.n,cycle:u.c,title:u.t,subtitle:u.m,mission:u.m,band:cycleOf(u.c).range,icon:KINDS.story[0]}));
+window.LIBRAS_STUDY_CONTENT=content.sort((a,b)=>a.unit-b.unit||a.order-b.order);
+window.LIBRAS_STUDY_KIND_META=KINDS;
+window.LIBRAS_STUDY_STATS={
+  cycles:CYCLES.length,
+  units:U.length,
+  lessons:content.length,
+  practical:content.filter(x=>x.kind!=="theory").length,
+  theory:content.filter(x=>x.kind==="theory").length,
+  signalSlots:content.reduce((n,x)=>n+(x.signs?.length||0),0),
+  uniqueSigns:new Set(content.flatMap(x=>x.signs||[]).map(slug)).size,
+  expansionSlots:content.reduce((n,x)=>n+(x.expansion?.length||0),0),
+  uniqueExpansion:new Set(content.flatMap(x=>x.expansion||[]).map(slug)).size,
+  totalSequencedUnique:new Set(content.flatMap(x=>[...(x.signs||[]),...(x.expansion||[])]).map(slug)).size
+};
+})();
