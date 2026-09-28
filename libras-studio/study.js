@@ -14,43 +14,13 @@ const CYCLES=[
 [8,"Saúde e segurança","68–75","Descrever corpo, sintomas, atendimento e emergências."],
 [9,"Estudo, trabalho e tecnologia","75–80","Explicar atividades, funções, processos e problemas."],
 [10,"Descrição visual","80–85","Construir descrições espaciais e introduzir classificadores."],
-[11,"Contar histórias","85–90","Organizar sequência, personagens, perspectiva e narrativa."],
+[11,"Narrativa e relato","85–90","Organizar sequência, referentes, perspectiva e relatos em Libras."],
 [12,"Emoção e opinião","90–93","Expressar sentimentos, preferências, opinião e desacordo."],
 [13,"Compreensão natural","93–95","Entender velocidade, estilos e sinalizantes diferentes."],
 [14,"Discurso avançado","95–98","Narrar, explicar, hipotetizar e discutir temas abstratos."],
 [15,"Autonomia e fluência","98–100","Interagir em grupos, ajustar registro e seguir aprendendo fora do curso."]
 ].map(x=>({id:x[0],title:x[1],range:x[2],goal:x[3]}));
 
-
-const CHARACTERS=[
-{id:"ana",name:"Ana",role:"personagem central; sinalizante experiente"},
-{id:"lucas",name:"Lucas",role:"novo colega; começa a ampliar sua comunicação em Libras"},
-{id:"rafa",name:"Rafa",role:"amigo de Ana; aparece em situações de trabalho e tecnologia"},
-{id:"bia",name:"Bia",role:"irmã de Ana; conecta família, rotina e estudos"},
-{id:"davi",name:"Davi",role:"amigo do grupo; participa de viagens, cidade e narrativas"},
-{id:"luiza",name:"Luiza",role:"colega que amplia as interações em grupo e os pontos de vista"}
-];
-const STORY_ARCS=[
-[1,["ana","lucas"],"Ana e Lucas se conhecem. O aluno acompanha os primeiros contatos, pequenos ruídos de compreensão e a construção da primeira conversa."],
-[2,["ana","lucas","bia"],"A conversa se expande para família, amigos e descrições. Lucas conhece pessoas importantes para Ana e aprende a manter referentes claros."],
-[3,["ana","lucas","bia"],"A rotina dos personagens começa a se cruzar: manhã, horários, compromissos e dias que nem sempre saem como planejado."],
-[4,["ana","bia","lucas"],"O grupo passa mais tempo em casa. Objetos somem, refeições são preparadas e o espaço doméstico vira parte da narrativa."],
-[5,["ana","lucas","rafa"],"Ana apresenta Rafa e os três atravessam a cidade resolvendo compras, caminhos, serviços e pequenos imprevistos."],
-[6,["ana","lucas","rafa"],"Com mais personagens em cena, quem fez o quê começa a importar. Um celular desaparecido conecta referentes, direção e coesão espacial."],
-[7,["ana","lucas","rafa","davi"],"O grupo organiza encontros e uma viagem. Planos mudam, horários se chocam e as decisões precisam ser renegociadas."],
-[8,["ana","bia","lucas","davi"],"Um problema de saúde interrompe a rotina e obriga o grupo a descrever sintomas, pedir ajuda e reconstruir o que aconteceu."],
-[9,["lucas","rafa","ana"],"Estudo, trabalho e tecnologia se encontram quando Lucas precisa resolver uma tarefa e Rafa ajuda a diagnosticar um problema."],
-[10,["rafa","ana","davi"],"Uma situação na rua exige descrição visual precisa de objetos, trajetórias e movimento. O espaço passa a contar parte da história."],
-[11,["ana","lucas","davi","luiza"],"Um mesmo acontecimento é contado por pessoas diferentes. Perspectiva, ação construída e memória começam a mudar a narrativa."],
-[12,["ana","lucas","luiza"],"Opiniões e emoções entram no centro da conversa. Um desacordo obriga os personagens a explicar, reformular e negociar."],
-[13,["ana","rafa","luiza","davi"],"O aluno encontra estilos e ritmos diferentes dentro do mesmo grupo e precisa acompanhar conversas menos didáticas e mais espontâneas."],
-[14,["ana","lucas","rafa","luiza"],"O grupo passa a discutir ideias, hipóteses e consequências, transformando experiências anteriores em narrativas e argumentos mais longos."],
-[15,["ana","lucas","rafa","bia","davi","luiza"],"Todos se reencontram em uma atividade coletiva. O aluno precisa acompanhar o grupo, explicar, narrar, negociar e demonstrar autonomia para continuar aprendendo."]
-].map(x=>({cycle:x[0],cast:x[1],summary:x[2]}));
-function storyArc(cycle){
- const a=STORY_ARCS.find(x=>x.cycle===cycle)||{cast:[],summary:""};
- return {...a,characters:a.cast.map(id=>CHARACTERS.find(x=>x.id===id)).filter(Boolean)};
-}
 
 const U=[
 {n:1,c:1,t:"O primeiro encontro",m:"Cumprimentar, chamar atenção visualmente e encerrar uma interação.",th:["Libras é visual-espacial","A mensagem não está apenas nas mãos. Olhar, rosto, corpo e espaço participam da comunicação.","Observe o conjunto da sinalização antes de tentar traduzir palavra por palavra."],st:["Duas pessoas se encontram","Uma pessoa chega, estabelece contato visual, cumprimenta, troca uma informação curta e se despede.","Reconheça onde a interação começa, como a atenção é estabelecida e como termina."],p:[
@@ -278,7 +248,7 @@ const U=[
 ["Reações","Resposta corporal.","surpresa","medo","raiva","rir","cansado","alívio"],
 ["Tentativas","Progressão.","tentar","de novo","não conseguir","força","devagar","rápido"],
 ["Resultado","Fechar ação.","conseguir","quebrar","chamar","ajudar","resolver","fim"]]},
-{n:44,c:11,t:"Storytelling I",m:"Produzir histórias de 1 a 2 minutos com cenário, personagens, problema e conclusão.",th:["Revisão narrativa","Fluência narrativa combina coesão, espaço, perspectiva, expressão e seleção lexical.","Grave, reveja e procure ambiguidades antes de buscar velocidade."],st:["A história completa","O aluno recebe um cenário, personagens e um problema, mas precisa construir a narrativa.","Mantenha referentes, tempo e conclusão claros durante toda a produção."],p:[
+{n:44,c:11,t:"Narrativa em Libras I",m:"Produzir relatos de 1 a 2 minutos com cenário, referentes, acontecimentos e conclusão.",th:["Revisão narrativa","Fluência narrativa combina coesão, espaço, perspectiva, expressão e seleção lexical.","Grave, reveja e procure ambiguidades antes de buscar velocidade."],st:["A história completa","O aluno recebe um cenário, personagens e um problema, mas precisa construir a narrativa.","Mantenha referentes, tempo e conclusão claros durante toda a produção."],p:[
 ["Abrir história","Estabelecer contexto.","quando","onde","pessoa","dia","lugar","começar"],
 ["Criar problema","Introduzir conflito.","problema","perder","esquecer","atrasar","procurar","preocupar"],
 ["Desenvolver","Construir tentativa.","tentar","pedir ajuda","encontrar","explicar","esperar","mudar"],
@@ -331,7 +301,7 @@ const U=[
 ["Duração","Tempo da ação.","rápido","devagar","demorar","continuar","parar","tempo"],
 ["Intensidade","Grau.","muito","pouco","forte","fraco","mais","menos"],
 ["Maneira","Como ocorre.","calmo","nervoso","cuidado","pressa","fácil","difícil"]]},
-{n:54,c:14,t:"Storytelling II",m:"Narrar por 3 a 5 minutos com perspectiva, ação construída e coesão.",th:["Narrativa longa precisa de gerenciamento","Quanto maior a história, mais importante é reativar referentes, controlar tempo e sinalizar mudanças de cena.","Planeje blocos narrativos em vez de memorizar frases."],st:["Três cenas, um conflito","Uma história passa por três lugares e envolve versões diferentes do mesmo problema.","Produza uma narrativa com transições claras entre cenas."],p:[
+{n:54,c:14,t:"Narrativa em Libras II",m:"Produzir relatos de 3 a 5 minutos com perspectiva, ação construída e coesão.",th:["Narrativa longa precisa de gerenciamento","Quanto maior a história, mais importante é reativar referentes, controlar tempo e sinalizar mudanças de cena.","Planeje blocos narrativos em vez de memorizar frases."],st:["Três cenas, um conflito","Uma história passa por três lugares e envolve versões diferentes do mesmo problema.","Produza uma narrativa com transições claras entre cenas."],p:[
 ["Cena 1","Estabelecer contexto.","lugar","tempo","pessoa","objetivo","começar","acontecer"],
 ["Cena 2","Desenvolver conflito.","problema","tentar","mudar","encontrar","perguntar","descobrir"],
 ["Cena 3","Resolver.","explicar","decidir","ajudar","resolver","voltar","finalmente"],
@@ -413,7 +383,7 @@ const EXPANSION={
 41:["início","meio","fim","enquanto","de repente","sequência","evento","conclusão"],
 42:["personagem","perspectiva","imaginar","perceber","observar","versão","memória","narrador"],
 43:["agir","reagir","empurrar","puxar","tentar","conseguir","reação","movimento"],
-44:["introdução","desenvolvimento","conflito","solução","conclusão","narrador","cena","capítulo"],
+44:["introdução","desenvolvimento","conflito","solução","conclusão","narrador","cena","sequência"],
 45:["alegria","tristeza","ansiedade","ciúme","saudade","vergonha","esperança","medo"],
 46:["opinião","escolha","preferência","vantagem","desvantagem","motivo","razão","exemplo"],
 47:["argumento","acordo","desacordo","sugestão","alternativa","negociar","decisão","respeito"],
@@ -446,12 +416,12 @@ const EXAMPLE_PHRASES={
 
 const KINDS={
 signals:["👐","Prática"],
-scene:["🎬","Cena"],
-theory:["💡","Microteoria"],
+scene:["🎯","Situação"],
+theory:["💡","Conceito"],
 comprehension:["👀","Compreensão"],
-production:["🎥","Produção"],
-story:["📖","Storytelling"],
-checkpoint:["🏁","Checkpoint"]
+production:["✋","Pratique"],
+story:["🎮","Prática mista"],
+checkpoint:["🏁","Desafio"]
 };
 function slug(s){return String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")}
 function uniq(a){return [...new Set((a||[]).filter(Boolean))]}
@@ -472,7 +442,7 @@ for(const unit of U){
     if(i===0){
       content.push(lesson("u"+unit.n+"-scene",unit,"scene",2,unit.st[0],unit.st[1],{
         signs:uniq([...unit.p[0].slice(2),...unit.p[1].slice(2)]).slice(0,10),
-        scene:unit.st[1],storyline:storyArc(unit.c).summary,cast:storyArc(unit.c).characters,chapter:"Capítulo "+unit.n,phraseExample:EXAMPLE_PHRASES[unit.n]||"",questions:[unit.st[2],"Quem participa da cena?","Qual informação é necessária para entender o resultado?"],
+        scene:unit.st[1],phraseExample:EXAMPLE_PHRASES[unit.n]||"",questions:[unit.st[2],"Quem participa da cena?","Qual informação é necessária para entender o resultado?"],
         practice:"Assista aos sinais necessários e reconstrua mentalmente a cena antes de responder."
       }));
     }
@@ -497,9 +467,9 @@ for(const unit of U){
         practice:"Grave de 30 a 90 segundos. Reveja sem som e verifique se participantes, tempo e objetivo continuam claros.",
         take:["Priorize clareza antes de velocidade.","Se travar, reformule com recursos que você já domina.","Depois compare sua produção com modelos reais."]
       }));
-      content.push(lesson("u"+unit.n+"-story",unit,"story",9,unit.st[0]+" · história",unit.st[1],{
-        signs:all.slice(0,18),scene:unit.st[1],storyline:storyArc(unit.c).summary,cast:storyArc(unit.c).characters,chapter:"Capítulo "+unit.n,questions:[unit.st[2],"Reconte a história de outro ponto de vista.","Mude um detalhe e adapte o restante da narrativa."],
-        practice:"Use o vocabulário como ferramenta para reconstruir a história, não como lista obrigatória."
+      content.push(lesson("u"+unit.n+"-story",unit,"story",9,"Prática mista","Misture reconhecimento, produção e revisão antes do desafio final.",{
+        signs:all.slice(0,18),scene:unit.st[1],questions:[unit.st[2],"Reconheça os sinais principais sem abrir a lista.","Faça uma nova tentativa sem ajuda."],
+        practice:"Alterne entre reconhecer e produzir sinais sem consultar a lista completa."
       }));
       content.push(lesson("u"+unit.n+"-checkpoint",unit,"checkpoint",10,"Missão da unidade","Integre compreensão e produção antes de avançar.",{
         signs:all.slice(0,20),challenge:unit.m,
@@ -510,8 +480,6 @@ for(const unit of U){
     }
   });
 }
-window.LIBRAS_STUDY_CHARACTERS=CHARACTERS;
-window.LIBRAS_STUDY_STORY_ARCS=STORY_ARCS;
 window.LIBRAS_STUDY_CYCLES=CYCLES;
 window.LIBRAS_STUDY_UNITS=U.map(u=>({id:u.n,cycle:u.c,title:u.t,subtitle:u.m,mission:u.m,band:cycleOf(u.c).range,icon:KINDS.story[0]}));
 window.LIBRAS_STUDY_CONTENT=content.sort((a,b)=>a.unit-b.unit||a.order-b.order);
