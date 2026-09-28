@@ -1,4 +1,4 @@
-const APP_VERSION="0.5.70";
+const APP_VERSION="0.5.72";
 const cfg=window.LIBRAS_STUDIO_CONFIG||{},$=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const nativeParams=new URLSearchParams(location.search);
 const IS_NATIVE_ANDROID=nativeParams.get("native")==="android";
@@ -255,7 +255,7 @@ function openStudyLesson(id){
   let snap=studySnapshot(),lesson=snap.L.find(x=>x.id===id);
   if(lesson){let mods=$("#study-modules"),unit=studyUnitMeta(lesson.unit);if(mods)mods.dataset.activeCycle=String(lesson.cycle||unit.cycle||1)}
   go("study");study();
-  requestAnimationFrame(()=>document.getElementById("lesson-"+id)?.scrollIntoView({behavior:"smooth",block:"start"}));
+  requestAnimationFrame(()=>lesson&&openInteractiveLesson(id));
 }
 function openHomeCategory(cat){go("explore");S.explore=cat;exploreCats();setTimeout(()=>openCat(cat),0)}
 function home(){
@@ -539,21 +539,174 @@ function studyKindMeta(kind){
   let m=window.LIBRAS_STUDY_KIND_META||{},x=m[kind];
   return Array.isArray(x)?{icon:x[0]||"👐",label:x[1]||"Aula"}:{icon:"👐",label:"Aula"};
 }
-function studyPhraseExampleHtml(text){
-  if(!text)return"";
-  let p=(window.LIBRAS_PHRASE_DATA||[]).find(x=>norm(x.text)===norm(text));
-  if(!p?.url)return"";
-  return '<div class="study-phrase-example"><button type="button" class="soft" data-study-phrase="'+esc(text)+'">▶ Ver frase completa: <b>'+esc(text)+'</b></button><small>Exemplo em vídeo completo</small></div>';
+function studyLessonPool(lesson){
+  let unit=Number(lesson?.unit||1),all=window.LIBRAS_STUDY_CONTENT||[],out=[];
+  const add=a=>(a||[]).forEach(x=>{if(x&&!out.some(y=>norm(y)===norm(x)))out.push(x)});
+  add(lesson?.signs);add(lesson?.expansion);
+  all.filter(x=>Number(x.unit||1)===unit).forEach(x=>{add(x.signs);add(x.expansion)});
+  return out.filter(Boolean);
 }
-function studySupportSigns(signs,learned,compact=false){
-  let list=[...new Set((signs||[]).filter(Boolean))].slice(0,compact?10:30);
-  if(!list.length)return"";
-  let learnedCount=list.filter(s=>learned.has(norm(s))).length;
-  return '<div class="study-signal-progress '+(compact?"compact":"")+'"><b>'+learnedCount+' de '+list.length+'</b><span>'+(compact?"sinais de apoio na biblioteca":"sinais na biblioteca")+'</span></div><div class="study-sign-grid '+(compact?"compact":"")+'">'+list.map(s=>{let saved=S.signs.find(v=>signNormKey(v)===norm(s));return '<div class="study-sign-chip '+(saved?"learned":"")+'"><button type="button" data-study-play="'+esc(s)+'" data-studio-id="'+esc(saved?.studio_id||"")+'">▶ <b>'+esc(title(s))+'</b></button><button type="button" class="study-sign-add" data-study-add="'+esc(s)+'" '+(saved?"disabled":"")+' title="'+(saved?"Já está na biblioteca":"Adicionar à biblioteca")+'">'+(saved?"✓":"＋")+'</button></div>'}).join("")+'</div>';
+function studyChoiceOrder(target,pool,seed=0){
+  let list=[target,...pool.filter(x=>norm(x)!==norm(target))];
+  let seen=new Set,list2=list.filter(x=>{let k=norm(x);if(!k||seen.has(k))return false;seen.add(k);return true}).slice(0,4);
+  if(list2.length<2)return list2;
+  let shift=(seed%list2.length+list2.length)%list2.length;
+  return [...list2.slice(shift),...list2.slice(0,shift)];
 }
-function studyExpansionSigns(signs,learned){
-  if(!(signs||[]).length)return"";
-  return '<div class="study-expansion"><div class="study-expansion-title"><b>✨ Expansão opcional</b><span>Amplie o repertório sem bloquear seu avanço</span></div>'+studySupportSigns(signs,learned,true)+'</div>';
+function studyPhraseChoices(target,seed=0){
+  let all=(window.LIBRAS_PHRASE_DATA||[]).map(x=>x.text).filter(Boolean),pool=[target,...all.filter(x=>norm(x)!==norm(target))];
+  let seen=new Set,items=pool.filter(x=>{let k=norm(x);if(!k||seen.has(k))return false;seen.add(k);return true}).slice(0,4);
+  let shift=items.length?(seed%items.length):0;
+  return [...items.slice(shift),...items.slice(0,shift)];
+}
+function studyBuildSteps(lesson){
+  let pool=studyLessonPool(lesson),core=[...new Set((lesson.signs||[]).filter(Boolean))].slice(0,6),steps=[];
+  steps.push({type:"intro",title:lesson.title,text:lesson.summary||studyUnitMeta(lesson.unit).mission||"",kind:lesson.kind});
+  if(lesson.kind==="theory"){
+    (lesson.sections||[]).forEach((sec,i)=>steps.push({type:"concept",title:sec[0],text:sec[1],n:i+1}));
+    if(pool.length)steps.push({type:"produce",target:pool[0],prompt:"Faça o sinal e depois confira o modelo."});
+    steps.push({type:"reflect",title:"Aplique agora",text:lesson.practice||"Volte à prática e procure este conceito nos sinais."});
+    return steps;
+  }
+  if(lesson.phraseExample){
+    steps.push({type:"phrase",target:lesson.phraseExample,choices:studyPhraseChoices(lesson.phraseExample,lesson.unit)});
+  }
+  let learnCount=lesson.kind==="signals"?Math.min(2,core.length):Math.min(1,core.length);
+  core.slice(0,learnCount).forEach(s=>steps.push({type:"learn",target:s}));
+  let recognition=core.slice(learnCount,learnCount+3);
+  if(!recognition.length)recognition=core.slice(0,Math.min(3,core.length));
+  recognition.forEach((s,i)=>steps.push({type:"recognize",target:s,choices:studyChoiceOrder(s,pool,lesson.unit+i)}));
+  if(core.length)steps.push({type:"produce",target:core[Math.min(core.length-1,3)],prompt:"Faça este sinal antes de revelar o vídeo."});
+  if((lesson.expansion||[]).length)steps.push({type:"expansion",signs:lesson.expansion.slice(0,2)});
+  if(lesson.kind==="scene"||lesson.kind==="comprehension"||lesson.kind==="story"||lesson.kind==="checkpoint"){
+    let mix=core.slice(0,Math.min(3,core.length));
+    mix.forEach((s,i)=>steps.push({type:i%2?"produce":"recognize",target:s,choices:studyChoiceOrder(s,pool,lesson.unit+i+7),prompt:"Faça o sinal antes de conferir."}));
+  }
+  steps.push({type:"reflect",title:lesson.kind==="checkpoint"?"Desafio concluído":"Fechando a aula",text:lesson.practice||studyUnitMeta(lesson.unit).mission||"Use o que aprendeu em uma situação real."});
+  return steps;
+}
+let STUDY_PLAY=null;
+function studySessionSaved(){
+  try{return JSON.parse(localStorage.getItem("ls-study-session")||"null")}catch{return null}
+}
+function studySaveSession(){
+  if(!STUDY_PLAY)return;
+  try{localStorage.setItem("ls-study-session",JSON.stringify({lessonId:STUDY_PLAY.lesson.id,index:STUDY_PLAY.index}))}catch{}
+}
+function studyClearSession(){try{localStorage.removeItem("ls-study-session")}catch{}}
+async function openInteractiveLesson(id,{fresh=false}={}){
+  let lesson=(window.LIBRAS_STUDY_CONTENT||[]).find(x=>x.id===id);if(!lesson)return;
+  localStorage.setItem("ls-last-lesson",id);
+  let steps=studyBuildSteps(lesson),saved=fresh?null:studySessionSaved(),index=saved?.lessonId===id?Math.min(Math.max(0,Number(saved.index||0)),Math.max(0,steps.length-1)):0;
+  STUDY_PLAY={lesson,steps,index,answer:null,revealed:false,score:0,errors:0,token:0,media:new Map};
+  modal('<div id="study-player" class="study-player"></div>');$("#modal").classList.add("study-session-open");
+  await renderStudyPlayer();
+}
+function studyPlayerProgress(){
+  if(!STUDY_PLAY)return 0;
+  return Math.round((STUDY_PLAY.index/Math.max(1,STUDY_PLAY.steps.length))*100);
+}
+async function studyGetMedia(name){
+  if(!STUDY_PLAY)return null;
+  let key=norm(name);if(STUDY_PLAY.media.has(key))return STUDY_PLAY.media.get(key);
+  let p=preferredSignMedia(name).catch(()=>null);STUDY_PLAY.media.set(key,p);return p;
+}
+function studyPlayerShell(body){
+  let p=STUDY_PLAY,lesson=p.lesson,meta=studyKindMeta(lesson.kind),pct=studyPlayerProgress();
+  return '<div class="study-player-top"><button type="button" class="study-player-close" data-study-exit aria-label="Fechar">×</button><div class="study-player-track"><span style="width:'+pct+'%"></span></div><small>'+Math.min(p.index+1,p.steps.length)+' / '+p.steps.length+'</small></div>'+
+    '<div class="study-player-heading"><span>'+esc(meta.icon)+'</span><div><small>'+esc(meta.label)+' · Unidade '+lesson.unit+'</small><b>'+esc(lesson.title)+'</b></div></div>'+
+    '<div class="study-player-stage">'+body+'</div>';
+}
+function studyBindBase(){
+  let root=$("#study-player");if(!root)return;
+  root.querySelector("[data-study-exit]")?.addEventListener("click",()=>{$("#modal").classList.add("hidden");$("#modal").classList.remove("study-session-open");STUDY_PLAY=null});
+  root.querySelectorAll("[data-study-next]").forEach(b=>b.onclick=()=>studyPlayerNext());
+}
+async function renderStudyPlayer(){
+  let p=STUDY_PLAY,root=$("#study-player");if(!p||!root)return;
+  let step=p.steps[p.index];if(!step)return finishInteractiveLesson();
+  p.answer=null;p.revealed=false;p.token++;let token=p.token,body="";
+  if(step.type==="intro"){
+    body='<div class="study-task intro"><div class="study-task-badge">Comece por aqui</div><h2>'+esc(step.title)+'</h2><p>'+esc(step.text)+'</p><div class="study-task-tip">Você vai ver, responder, produzir e receber feedback. Uma etapa por vez.</div><button class="primary wide" data-study-next>Começar</button></div>';
+    root.innerHTML=studyPlayerShell(body);studyBindBase();return;
+  }
+  if(step.type==="concept"){
+    body='<div class="study-task concept"><div class="study-task-badge">💡 Conceito rápido</div><h2>'+esc(step.title)+'</h2><p>'+esc(step.text)+'</p><button class="primary wide" data-study-next>Entendi, aplicar</button></div>';
+    root.innerHTML=studyPlayerShell(body);studyBindBase();return;
+  }
+  if(step.type==="reflect"){
+    body='<div class="study-task reflect"><div class="study-task-badge">✓ Aplicação</div><h2>'+esc(step.title)+'</h2><p>'+esc(step.text)+'</p><button class="primary wide" data-study-next>'+(p.index===p.steps.length-1?"Concluir aula":"Continuar")+'</button></div>';
+    root.innerHTML=studyPlayerShell(body);studyBindBase();return;
+  }
+  if(step.type==="expansion"){
+    body='<div class="study-task expansion"><div class="study-task-badge">✨ Opcional</div><h2>Quer ampliar?</h2><p>Dois sinais relacionados, sem bloquear seu avanço.</p><div class="study-expansion-actions">'+step.signs.map(s=>'<button class="soft" data-study-extra="'+esc(s)+'">▶ '+esc(title(s))+'</button>').join("")+'</div><button class="primary wide" data-study-next>Continuar</button></div>';
+    root.innerHTML=studyPlayerShell(body);studyBindBase();
+    root.querySelectorAll("[data-study-extra]").forEach(b=>b.onclick=()=>playPreferredSign(b.dataset.studyExtra));
+    return;
+  }
+  if(step.type==="phrase"){
+    let ph=(window.LIBRAS_PHRASE_DATA||[]).find(x=>norm(x.text)===norm(step.target)),vid="study-phrase-"+Date.now();
+    body='<div class="study-task quiz"><div class="study-task-badge">👀 Compreensão</div><h2>Qual frase está sendo sinalizada?</h2>'+(ph?.url?'<video class="study-task-video" data-video-id="'+vid+'" controls autoplay loop playsinline preload="metadata" src="'+esc(ph.url)+'"></video>'+speedTools(vid):'<div class="study-video-loading">Vídeo indisponível nesta etapa.</div>')+'<div class="study-answer-grid">'+step.choices.map(x=>'<button data-study-answer="'+esc(x)+'">'+esc(x)+'</button>').join("")+'</div><div class="study-feedback" id="study-feedback"></div></div>';
+    root.innerHTML=studyPlayerShell(body);studyBindBase();bindSpeeds(root);bindStudyAnswers(step.target);return;
+  }
+    if(step.type==="learn"){
+    body='<div class="study-task learn"><div class="study-task-badge">👐 Observe</div><h2>'+esc(title(step.target))+'</h2><div class="study-video-loading">Carregando o sinal…</div><button class="primary wide hidden" data-study-next>Continuar</button></div>';
+    root.innerHTML=studyPlayerShell(body);studyBindBase();
+    let media=await studyGetMedia(step.target);if(!STUDY_PLAY||token!==STUDY_PLAY.token)return;
+    let holder=root.querySelector(".study-video-loading"),next=root.querySelector("[data-study-next]"),vid="study-learn-"+Date.now();
+    holder.innerHTML=media?.url?'<video class="study-task-video" data-video-id="'+vid+'" controls autoplay loop playsinline preload="metadata" src="'+esc(media.url)+'"></video>'+speedTools(vid):'<p>Não encontrei vídeo agora. Você pode pular esta etapa.</p>';
+    next?.classList.remove("hidden");bindSpeeds(root);return;
+  }
+    if(step.type==="recognize"){
+    body='<div class="study-task quiz"><div class="study-task-badge">👀 Reconheça</div><h2>O que este sinal significa?</h2><div class="study-video-loading">Carregando o sinal…</div><div class="study-answer-grid hidden">'+step.choices.map(x=>'<button data-study-answer="'+esc(x)+'">'+esc(title(x))+'</button>').join("")+'</div><div class="study-feedback" id="study-feedback"></div></div>';
+    root.innerHTML=studyPlayerShell(body);studyBindBase();
+    let media=await studyGetMedia(step.target);if(!STUDY_PLAY||token!==STUDY_PLAY.token)return;
+    let holder=root.querySelector(".study-video-loading"),answers=root.querySelector(".study-answer-grid"),vid="study-recognize-"+Date.now();
+    holder.innerHTML=media?.url?'<video class="study-task-video" data-video-id="'+vid+'" controls autoplay loop playsinline preload="metadata" src="'+esc(media.url)+'"></video>'+speedTools(vid):'<p>Não encontrei vídeo agora. Passe para a próxima.</p>';
+    answers?.classList.remove("hidden");bindSpeeds(root);bindStudyAnswers(step.target);return;
+  }
+    if(step.type==="produce"){
+    body='<div class="study-task produce"><div class="study-task-badge">✋ Sua vez</div><h2>'+esc(step.prompt||"Faça o sinal")+'</h2><div class="study-production-word">'+esc(title(step.target))+'</div><p>Faça o sinal antes de conferir o modelo.</p><button class="primary wide" data-study-reveal>Já fiz · conferir</button></div>';
+    root.innerHTML=studyPlayerShell(body);studyBindBase();
+    root.querySelector("[data-study-reveal]").onclick=()=>studyRevealProduction(step.target);return;
+  }
+}
+function bindStudyAnswers(correct){
+  let root=$("#study-player");if(!root)return;
+  root.querySelectorAll("[data-study-answer]").forEach(b=>b.onclick=()=>{
+    if(STUDY_PLAY?.answer)return;
+    let ok=norm(b.dataset.studyAnswer)===norm(correct);STUDY_PLAY.answer={choice:b.dataset.studyAnswer,correct:ok};
+    if(ok)STUDY_PLAY.score++;else STUDY_PLAY.errors++;
+    root.querySelectorAll("[data-study-answer]").forEach(x=>{x.disabled=true;x.classList.toggle("correct",norm(x.dataset.studyAnswer)===norm(correct));if(x===b&&!ok)x.classList.add("wrong")});
+    let fb=$("#study-feedback");if(fb)fb.innerHTML='<b>'+(ok?"✅ Certo!":"↻ Quase.")+'</b><span>'+(ok?"Você reconheceu o sinal.":"A resposta é "+esc(title(correct))+".")+'</span><button class="primary" data-study-next>Continuar</button>';
+    root.querySelector("[data-study-next]")?.addEventListener("click",()=>studyPlayerNext());
+  });
+}
+async function studyRevealProduction(target){
+  let root=$("#study-player");if(!root||!STUDY_PLAY)return;
+  let token=++STUDY_PLAY.token;
+  root.querySelector(".study-task").innerHTML='<div class="study-task-badge">✋ Confira</div><h2>'+esc(title(target))+'</h2><div class="study-video-loading">Carregando o modelo…</div><div class="study-production-actions hidden"><button class="soft" data-study-again>Quero repetir</button><button class="primary" data-study-next>Consegui · continuar</button></div>';
+  let media=await studyGetMedia(target);if(!STUDY_PLAY||token!==STUDY_PLAY.token)return;
+  let holder=root.querySelector(".study-video-loading"),actions=root.querySelector(".study-production-actions"),vid="study-produce-"+Date.now();
+  holder.innerHTML=media?.url?'<video class="study-task-video" data-video-id="'+vid+'" controls autoplay loop playsinline preload="metadata" src="'+esc(media.url)+'"></video>'+speedTools(vid):'<p>Vídeo indisponível agora.</p>';
+  actions?.classList.remove("hidden");bindSpeeds(root);
+  root.querySelector("[data-study-again]")?.addEventListener("click",()=>{let v=root.querySelector("video");if(v){try{v.currentTime=0;v.play()}catch{}}});
+  root.querySelector("[data-study-next]")?.addEventListener("click",()=>{STUDY_PLAY.score++;studyPlayerNext()});
+}
+async function studyPlayerNext(){
+  if(!STUDY_PLAY)return;
+  if(STUDY_PLAY.index>=STUDY_PLAY.steps.length-1)return finishInteractiveLesson();
+  STUDY_PLAY.index++;STUDY_PLAY.answer=null;STUDY_PLAY.revealed=false;studySaveSession();await renderStudyPlayer();
+}
+async function finishInteractiveLesson(){
+  let p=STUDY_PLAY;if(!p)return;
+  let lesson=p.lesson,score=p.score,errors=p.errors,total=p.steps.length;
+  studyClearSession();await saveLesson(lesson.id,true);
+  STUDY_PLAY=null;$("#modal").classList.add("study-session-open");
+  let snap=studySnapshot(),idx=snap.L.findIndex(x=>x.id===lesson.id),map=smap(),next=snap.L.slice(idx+1).find(x=>!map[x.id]?.completed)||snap.L.find(x=>!map[x.id]?.completed)||null;
+  $("#modal-body").innerHTML='<div class="study-player study-complete"><div class="study-complete-icon">✓</div><h2>Aula concluída</h2><p>'+esc(lesson.title)+'</p><div class="study-complete-stats"><div><b>'+score+'</b><span>acertos/ações</span></div><div><b>'+errors+'</b><span>erros</span></div><div><b>'+total+'</b><span>etapas</span></div></div><div class="study-complete-actions">'+(next?'<button class="primary" data-study-next-lesson="'+esc(next.id)+'">Próxima aula</button>':'')+'<button class="soft" data-study-done>Voltar à trilha</button></div></div>';
+  $("#modal-body").querySelector("[data-study-next-lesson]")?.addEventListener("click",e=>openInteractiveLesson(e.currentTarget.dataset.studyNextLesson,{fresh:true}));
+  $("#modal-body").querySelector("[data-study-done]")?.addEventListener("click",()=>{$("#modal").classList.add("hidden");$("#modal").classList.remove("study-session-open")});
 }
 function study(){
   let L=window.LIBRAS_STUDY_CONTENT||[],m=smap(),done=L.filter(x=>m[x.id]?.completed).length,snap=studySnapshot();
@@ -567,52 +720,21 @@ function study(){
   mods.dataset.activeCycle=String(active);
   mods.innerHTML=snap.cycleRows.map(x=>'<button data-cycle="'+x.cycle+'" class="'+(active===x.cycle?"active":"")+'"><b>Ciclo '+x.cycle+'</b><span>'+esc(x.name)+'</span><small>'+esc(x.range)+'</small></button>').join("");
   $$("[data-cycle]").forEach(b=>b.onclick=()=>{mods.dataset.activeCycle=b.dataset.cycle;study()});
-  let q=norm(search.value),learned=new Set(S.signs.map(x=>signNormKey(x))),currentId=snap.current?.id||"";
-  let base=L.filter(x=>Number(x.cycle||studyUnitMeta(x.unit).cycle||1)===active);
-  let F=base.filter(x=>!q||norm([x.title,x.summary,x.module,x.scene,x.challenge,...(x.signs||[]),...(x.questions||[])].join(" ")).includes(q));
-  let grouped=new Map;
-  F.forEach(x=>{let key=Number(x.unit||1);if(!grouped.has(key))grouped.set(key,[]);grouped.get(key).push(x)});
+  let q=norm(search.value),currentId=snap.current?.id||"",base=L.filter(x=>Number(x.cycle||studyUnitMeta(x.unit).cycle||1)===active);
+  let F=base.filter(x=>!q||norm([x.title,x.summary,x.module,x.scene,x.challenge,...(x.signs||[])].join(" ")).includes(q));
+  let grouped=new Map;F.forEach(x=>{let key=Number(x.unit||1);if(!grouped.has(key))grouped.set(key,[]);grouped.get(key).push(x)});
   let cyc=studyCycleMeta(active),cyRow=snap.cycleRows.find(x=>x.cycle===active),cyPct=Math.round((cyRow?.done||0)/Math.max(1,cyRow?.total||1)*100);
   let cycleHead='<section class="study-cycle-head"><div><small>CICLO '+cyc.id+' · NÍVEL '+esc(cyc.range||"")+'</small><h2>'+esc(cyc.title)+'</h2><p>'+esc(cyc.goal||"")+'</p></div><div class="study-cycle-progress"><b>'+cyPct+'%</b><span>'+(cyRow?.done||0)+'/'+(cyRow?.total||0)+' aulas</span></div></section>';
   let units=[...grouped.entries()].map(([unit,lessons])=>{
     let meta=studyUnitMeta(unit),row=snap.moduleRows.find(x=>x.unit===unit),upct=Math.round((row?.done||0)/Math.max(1,row?.total||1)*100);
     let cards=lessons.map(x=>{
-      let globalIndex=L.filter(y=>Number(y.unit||1)===unit).findIndex(y=>y.id===x.id)+1,isDone=!!m[x.id]?.completed,isCurrent=x.id===currentId,km=studyKindMeta(x.kind);
-      let signalHtml=x.kind==="signals"?studySupportSigns(x.signs,learned,false):(x.kind==="theory"?"":studySupportSigns(x.signs,learned,true)),expansionHtml=studyExpansionSigns(x.expansion,learned);
-      let theory=(x.sections||[]).map(sec=>'<div class="study-theory-block"><h4>'+esc(sec[0])+'</h4><p>'+esc(sec[1])+'</p></div>').join("");
-      let scene=x.scene?'<div class="study-scene"><b>🎬 Situação</b><p>'+esc(x.scene)+'</p></div>':"",phraseHtml=studyPhraseExampleHtml(x.phraseExample);
-      let storyline=x.storyline?'<div class="study-storyline"><div class="study-storyline-head"><small>'+esc(x.chapter||"História contínua")+'</small><b>📚 História contínua</b></div><p>'+esc(x.storyline)+'</p>'+(x.cast?.length?'<div class="study-cast">'+x.cast.map(ch=>'<span title="'+esc(ch.role||"")+'">'+esc(ch.name)+'</span>').join("")+'</div>':"")+'</div>':"";
-      let challenge=x.challenge?'<div class="study-challenge"><b>🎯 Missão</b><p>'+esc(x.challenge)+'</p></div>':"";
-      let questions=x.questions?.length?'<div class="study-questions"><b>Observe e responda</b><ol>'+x.questions.map(t=>"<li>"+esc(t)+"</li>").join("")+"</ol></div>":"";
-      let recycle=x.recycle?.length?'<div class="study-recycle"><small>♻️ Reaparecem nesta aula</small><div>'+x.recycle.map(s=>'<span>'+esc(title(s))+'</span>').join("")+'</div></div>':"";
-      let take=x.take?.length?'<ul class="study-take">'+x.take.map(t=>"<li>"+esc(t)+"</li>").join("")+"</ul>":"";
-      let resources=(x.resources||[]).map(r=>'<a class="resource" href="'+esc(r[1])+'" target="_blank" rel="noopener">↗ '+esc(r[0])+"</a>").join("");
-      return '<details class="lesson study-lesson-card kind-'+esc(x.kind||"signals")+' '+(isDone?"done ":"")+(isCurrent?"current":"")+'" id="lesson-'+x.id+'" '+(isCurrent?"open":"")+'><summary><span class="study-lesson-no">'+globalIndex+'</span><span class="study-kind-icon">'+esc(km.icon)+'</span><span class="study-lesson-copy"><small>'+esc(km.label)+'</small><b>'+esc(x.title)+'</b><span>'+esc(x.summary||"")+'</span></span><span class="study-lesson-state">'+(isDone?"✓":"›")+'</span></summary><div class="study-lesson-body">'+scene+storyline+phraseHtml+challenge+signalHtml+expansionHtml+theory+questions+recycle+'<div class="practice"><b>Prática</b><p>'+esc(x.practice||"Use o conteúdo desta aula em contexto.")+'</p></div>'+take+resources+'<div class="continue-actions"><button class="soft" data-focus-lesson="'+x.id+'">Continuar desta aula</button><label class="complete"><input type="checkbox" data-lesson="'+x.id+'" '+(isDone?"checked":"")+'> Aula concluída</label></div></div></details>';
+      let pos=L.filter(y=>Number(y.unit||1)===unit).findIndex(y=>y.id===x.id)+1,isDone=!!m[x.id]?.completed,isCurrent=x.id===currentId,km=studyKindMeta(x.kind);
+      return '<button type="button" class="study-lesson-launch '+(isDone?"done ":"")+(isCurrent?"current":"")+'" data-study-open="'+esc(x.id)+'"><span class="study-lesson-no">'+pos+'</span><span class="study-kind-icon">'+esc(km.icon)+'</span><span class="study-lesson-copy"><small>'+esc(km.label)+'</small><b>'+esc(x.title)+'</b><span>'+esc(x.summary||"")+'</span></span><span class="study-lesson-state">'+(isDone?"✓":"▶")+'</span></button>';
     }).join("");
-    return '<section class="study-unit" data-study-unit="'+unit+'"><div class="study-unit-head"><div class="study-unit-badge">'+esc(meta.icon||"📖")+'</div><div><small>UNIDADE '+unit+' · '+esc(meta.band||cyc.range||"")+'</small><h3>'+esc(meta.title)+'</h3><p>'+esc(meta.mission||meta.subtitle||"")+'</p></div><div class="study-unit-progress"><b>'+upct+'%</b><span>'+(row?.done||0)+'/'+(row?.total||0)+' aulas</span></div></div>'+cards+'</section>';
+    return '<section class="study-unit" data-study-unit="'+unit+'"><div class="study-unit-head"><div class="study-unit-badge">👐</div><div><small>UNIDADE '+unit+' · '+esc(meta.band||cyc.range||"")+'</small><h3>'+esc(meta.title)+'</h3><p>'+esc(meta.mission||meta.subtitle||"")+'</p></div><div class="study-unit-progress"><b>'+upct+'%</b><span>'+(row?.done||0)+'/'+(row?.total||0)+' aulas</span></div></div><div class="study-lesson-launch-list">'+cards+'</div></section>';
   }).join("");
   list.innerHTML=cycleHead+(units||'<div class="surface center"><p>Nenhuma aula encontrada neste ciclo.</p></div>');
-  $$("[data-focus-lesson]").forEach(b=>b.onclick=()=>{localStorage.setItem("ls-last-lesson",b.dataset.focusLesson);toast("Aula marcada para continuar depois.");study()});
-  $$("[data-lesson]").forEach(ch=>ch.onchange=()=>saveLesson(ch.dataset.lesson,ch.checked));
-  $$("[data-study-play]").forEach(b=>b.onclick=()=>playPreferredSign(b.dataset.studyPlay,b.dataset.studioId||""));
-  $$("[data-study-phrase]").forEach(b=>b.onclick=()=>{
-    let p=(window.LIBRAS_PHRASE_DATA||[]).find(x=>norm(x.text)===norm(b.dataset.studyPhrase));
-    if(!p?.url)return toast("Exemplo completo indisponível agora.");
-    let id="study-phrase-"+Date.now();
-    modal('<h2>'+esc(p.text)+'</h2><video data-video-id="'+id+'" controls autoplay loop playsinline preload="metadata" src="'+esc(p.url)+'"></video>'+speedTools(id));
-    bindSpeeds($("#modal-body"));
-  });
-  $$("[data-study-add]").forEach(b=>b.onclick=async()=>{
-    let name=b.dataset.studyAdd;if(!name||b.disabled)return;
-    b.disabled=true;b.textContent="…";
-    try{
-      let picked=await preferredSignMedia(name);
-      if(!picked){toast("Não encontrei um vídeo disponível para "+title(name)+".");return}
-      await save(name,picked,null,"study_path");
-      toast(title(name)+" adicionado à biblioteca.");
-    }catch(e){console.error("trilha: adicionar sinal",e);toast("Não consegui adicionar este sinal agora.")}
-    finally{study()}
-  });
+  $$("[data-study-open]").forEach(b=>b.onclick=()=>openInteractiveLesson(b.dataset.studyOpen));
   if(window.LSHydrateIcons)LSHydrateIcons($("#study"));
 }
 async function saveLesson(id,v){let now=new Date().toISOString(),row={user_id:S.session.user.id,lesson_id:id,completed:v,completed_at:v?now:null,updated_at:now},i=S.study.findIndex(x=>x.lesson_id===id);if(i>=0)S.study[i]=row;else S.study.push(row);let L=window.LIBRAS_STUDY_CONTENT||[],idx=L.findIndex(x=>x.id===id);if(v){let nx=L.slice(idx+1).find(x=>!smap()[x.id]?.completed);if(nx)localStorage.setItem("ls-last-lesson",nx.id)}else localStorage.setItem("ls-last-lesson",id);cache();render();localStatus("📱 alterações locais · sincronize quando quiser")}
@@ -733,7 +855,7 @@ function next(rate,c){let reps=c?.reps||0,e=c?.ease||2.5,iv=+c?.interval_days||0
 function queue(){let c=$("#review-cat").value,mode=$("#review-mode").value,m=rmap(),now=Date.now(),due=[],fresh=[];unique().filter(s=>!c||s.category_name===c).forEach(s=>{let r=m[s.norm];if(!r)fresh.push(s);else if(r.due_at&&new Date(r.due_at).getTime()<=now)due.push(s)});let out=mode==="due"?due:mode==="new"?fresh:[...due,...fresh],lim=$("#review-limit").value;return lim==="all"?out:out.slice(0,+lim)}
 function card(){let s=S.queue[S.i];if(!s){$("#review-card").classList.add("hidden");$("#review-done").classList.remove("hidden");return}$("#review-card").classList.remove("hidden");$("#review-done").classList.add("hidden");$("#review-name").textContent=s.name;$("#review-media").classList.add("hidden");$("#ratings").classList.add("hidden");$("#reveal").classList.remove("hidden");let current=rmap()[s.norm];["again","hard","good","easy"].forEach(k=>{let el=document.querySelector('[data-time="'+k+'"]');if(el)el.textContent=fmtInterval(next(k,current).interval_days)});let vs=S.signs.filter(x=>x.norm===s.norm&&libraryVideoUrl(x));$("#review-media").innerHTML=vs.length?vs.map((v,i)=>{let id="rev-"+S.i+"-"+i;return '<video data-video-id="'+id+'" data-studio-id="'+esc(v.studio_id)+'" controls loop playsinline preload="metadata" src="'+esc(libraryVideoUrl(v))+'"></video>'+speedTools(id)+'<small>'+(vs.length>1?"Variação "+(i+1)+" · ":"")+esc(v.source_name||"")+"</small>"}).join(""):"<p>Vídeo indisponível.</p>";bindSpeeds($("#review-media"));bindVideoFallbacks($("#review-media"),s.name)}
 async function rate(r){let item=S.queue[S.i],now=new Date().toISOString(),old=rmap()[item.norm],row={user_id:S.session.user.id,norm:item.norm,...next(r,old),last_rating:r,last_reviewed_at:now,created_at:old?.created_at||now,updated_at:now,deleted_at:null},i=S.reviews.findIndex(x=>x.norm===item.norm);if(i>=0)S.reviews[i]=row;else S.reviews.push(row);S.i++;cache();render();card();localStatus("📱 alterações locais · sincronize quando quiser")}
-function modal(h){$("#modal-body").innerHTML=h;$("#modal").classList.remove("hidden")}
+function modal(h){$("#modal").classList.remove("study-session-open");$("#modal-body").innerHTML=h;$("#modal").classList.remove("hidden")}
 async function clearStudioRuntime(){if("caches"in window){let ks=await caches.keys();await Promise.all(ks.filter(k=>k.startsWith("libras-studio-mobile-")||k.startsWith("libras-studio-catalog-")).map(k=>caches.delete(k)))}if("serviceWorker"in navigator){let regs=await navigator.serviceWorker.getRegistrations();await Promise.all(regs.filter(r=>r.scope.includes("/libras-studio/")).map(r=>r.unregister()))}}
 function nativeUpdaterAvailable(){return !!(IS_NATIVE_ANDROID&&window.LibrasUpdater&&typeof window.LibrasUpdater.loadLatestWeb==="function")}
 function nativeFullUpdaterAvailable(){return !!(nativeUpdaterAvailable()&&(typeof window.LibrasUpdater.stageLocalStorageAndUpdateEverything==="function"||typeof window.LibrasUpdater.updateEverything==="function"))}
