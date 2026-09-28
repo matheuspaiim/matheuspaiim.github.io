@@ -138,11 +138,11 @@ const U=[
 ["Pergunta e resposta","Fluxo de informação.","perguntar","responder","explicar","contar","mostrar","avisar"],
 ["Ajudar","Ações interpessoais.","ajudar","chamar","esperar","acompanhar","encontrar","procurar"],
 ["Rastrear","Manter relações claras.","quem","qual","primeiro","segundo","outro","mesmo"]]},
-{n:23,c:6,t:"Direcionalidade",m:"Perceber como alguns verbos codificam relações entre participantes.",th:["Nem todo verbo é direcional","Alguns verbos permitem orientar o movimento de acordo com participantes; outros não seguem o mesmo padrão.","Aprenda por exemplos reais e evite generalizar uma regra para todos os verbos."],st:["Quem contou para quem?","Uma informação circula entre três pessoas e muda o plano do grupo.","Siga a direção das relações e identifique a origem da informação."],p:[
-["Comunicar","Relações de informação.","avisar","contar","perguntar","responder","mostrar","explicar"],
-["Trocar","Relações de objeto.","dar","receber","emprestar","devolver","enviar","pegar"],
-["Convidar","Relações sociais.","chamar","convidar","ajudar","acompanhar","encontrar","visitar"],
-["Comparar direção","Observar pares.","eu","você","ele","ela","nós","eles"]]},
+{n:23,c:6,t:"Direcionalidade",m:"Perceber como movimento e orientação podem marcar relações entre participantes e destinos.",th:["Nem todo verbo é direcional","Alguns verbos permitem orientar o movimento de acordo com participantes ou destinos; outros não seguem o mesmo padrão.","Aprenda por exemplos reais e evite generalizar uma regra para todos os verbos."],st:["De onde para onde?","Pessoas e objetos mudam de posição e destino enquanto a relação entre origem e chegada precisa continuar clara.","Siga a direção do movimento e identifique origem, destino e participante."],p:[
+["Origem e destino","Relações de deslocamento.","ir","vir","levar","trazer","enviar","buscar"],
+["Orientar relações","Direção entre participantes.","oferecer","pedir","convidar","ensinar","perguntar","responder"],
+["Pontos de referência","Participantes e localização.","eu","você","pessoa","grupo","aqui","ali"],
+["Trajetos","Mudança de direção.","aproximar","afastar","seguir","voltar","cruzar","passar"]]},
 {n:24,c:6,t:"Espaço conta histórias",m:"Combinar referentes, lugares e ações numa narrativa espacial curta.",th:["Coesão espacial","O espaço guarda informação ao longo de uma história. Mudá-lo sem motivo pode tornar a narrativa ambígua.","Planeje cenário e personagens antes de sinalizar."],st:["O celular desaparecido","Um celular passa por cômodos e pessoas até ser encontrado em um lugar inesperado.","Reconte a história mantendo os mesmos pontos espaciais."],p:[
 ["Montar cenário","Preparar ambiente.","casa","sala","quarto","mesa","sofá","porta"],
 ["Criar personagens","Definir participantes.","irmão","irmã","mãe","amigo","eu","ele"],
@@ -403,13 +403,9 @@ const EXPANSION={
 };
 
 const KINDS={
-signals:["👐","Prática"],
-scene:["🎯","Situação"],
-theory:["💡","Conceito"],
-comprehension:["👀","Compreensão"],
-production:["✋","Pratique"],
-story:["🎮","Prática mista"],
-checkpoint:["🏁","Desafio"]
+signals:["👐","Aprender"],
+integration:["🎯","Aplicar"],
+review:["🔁","Revisar"]
 };
 function slug(s){return String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")}
 function uniq(a){return [...new Set((a||[]).filter(Boolean))]}
@@ -419,65 +415,84 @@ function lesson(id,unit,kind,order,title,summary,extra={}){
   const k=KINDS[kind]||KINDS.signals;
   return {id,unit:unit.n,cycle:unit.c,module:unit.t,kind,icon:k[0],level:k[1],order,title,summary,...extra};
 }
+function spacedCycleReview(unit){
+  const members=U.filter(x=>x.c===unit.c&&x.n<=unit.n),picked=[];
+  for(const u of members){
+    const blocks=u.p||[];
+    const candidates=[
+      blocks[0]?.[2],blocks[1]?.[3],blocks[2]?.[4],blocks[3]?.[2]
+    ].filter(Boolean);
+    for(const s of candidates)if(!picked.some(x=>slug(x)===slug(s)))picked.push(s);
+  }
+  return picked.slice(0,12);
+}
 const content=[];
 for(const unit of U){
-  const cyc=cycleOf(unit.c),all=flatSigns(unit);
+  const all=flatSigns(unit);
   unit.p.forEach((p,i)=>{
-    content.push(lesson("u"+unit.n+"-p"+(i+1),unit,"signals",i===0?1:(i===1?3:(i===2?5:7)),p[0],p[1],{
-      signs:p.slice(2),expansion:(EXPANSION[unit.n]||[]).slice(i*2,i*2+2),practice:"Use estes sinais para cumprir a missão da unidade: "+unit.m,
-      take:["Observe o vídeo completo, não apenas a mão.","Produza cada sinal e depois recombine em uma situação.","Reutilize pelo menos dois sinais de aulas anteriores."]
+    const signs=uniq(p.slice(2)),micro=i===1?{
+      title:unit.th[0],
+      text:unit.th[1],
+      observe:unit.th[2]
+    }:null;
+    content.push(lesson("u"+unit.n+"-p"+(i+1),unit,"signals",i+1,p[0],p[1],{
+      signs,
+      expansion:(EXPANSION[unit.n]||[]).slice(i*2,i*2+2),
+      microtheory:micro,
+      context:i===0?unit.st[1]:p[1],
+      questions:i===0?[unit.st[2]]:[],
+      practice:"Aprenda este conjunto e use pelo menos dois sinais numa situação curta ligada a "+unit.t+".",
+      take:[
+        "Observe o sinal inteiro antes de responder.",
+        "Reconheça o significado pelo vídeo.",
+        "Produza sem olhar o modelo e só depois confira."
+      ]
     }));
-    if(i===0){
-      content.push(lesson("u"+unit.n+"-scene",unit,"scene",2,unit.st[0],unit.st[1],{
-        signs:uniq([...unit.p[0].slice(2),...unit.p[1].slice(2)]).slice(0,10),
-        scene:unit.st[1],questions:[unit.st[2],"Quem participa da cena?","Qual informação é necessária para entender o resultado?"],
-        practice:"Assista aos sinais necessários e reconstrua mentalmente a cena antes de responder."
-      }));
-    }
-    if(i===1){
-      content.push(lesson("u"+unit.n+"-theory",unit,"theory",4,unit.th[0],unit.th[1],{
-        sections:[[unit.th[0],unit.th[1]],["O que observar",unit.th[2]]],
-        practice:"Volte à cena anterior e procure exatamente o fenômeno explicado nesta microaula.",
-        take:["Teoria serve à comunicação.","Compare exemplos reais sempre que possível.","Não transforme uma observação em regra absoluta sem evidência."]
-      }));
-    }
-    if(i===2){
-      content.push(lesson("u"+unit.n+"-understand",unit,"comprehension",6,"Entenda em contexto","Compreensão guiada usando conteúdo novo e reciclado.",{
-        signs:uniq([...unit.p[0].slice(2,5),...unit.p[1].slice(2,5),...unit.p[2].slice(2)]),
-        questions:["Qual é a ideia principal?","Que informação de uma aula anterior reaparece aqui?","Qual detalhe muda o sentido da situação?"],
-        recycle:uniq([...unit.p[0].slice(2,5),...unit.p[1].slice(2,5)]),
-        practice:"Tente compreender primeiro sem abrir cada sinal. Use os vídeos individuais apenas para conferir dúvidas."
-      }));
-    }
-    if(i===3){
-      content.push(lesson("u"+unit.n+"-produce",unit,"production",8,"Agora é com você","Produza uma mensagem própria que resolva a missão comunicativa da unidade.",{
-        signs:all.slice(0,16),challenge:unit.m,
-        practice:"Grave de 30 a 90 segundos. Reveja sem som e verifique se participantes, tempo e objetivo continuam claros.",
-        take:["Priorize clareza antes de velocidade.","Se travar, reformule com recursos que você já domina.","Depois compare sua produção com modelos reais."]
-      }));
-      content.push(lesson("u"+unit.n+"-story",unit,"story",9,"Prática mista","Misture reconhecimento, produção e revisão antes do desafio final.",{
-        signs:all.slice(0,18),scene:unit.st[1],questions:[unit.st[2],"Reconheça os sinais principais sem abrir a lista.","Faça uma nova tentativa sem ajuda."],
-        practice:"Alterne entre reconhecer e produzir sinais sem consultar a lista completa."
-      }));
-      content.push(lesson("u"+unit.n+"-checkpoint",unit,"checkpoint",10,"Missão da unidade","Integre compreensão e produção antes de avançar.",{
-        signs:all.slice(0,20),challenge:unit.m,
-        questions:["Consigo entender a ideia principal sem traduzir cada sinal?","Consigo produzir a situação sem roteiro palavra por palavra?","Consigo pedir esclarecimento se faltar vocabulário?"],
-        practice:"Complete a missão duas vezes: primeiro com apoio da lista; depois sem olhar os sinais.",
-        take:["Marque a aula como concluída quando conseguir comunicar a missão.","Erros viram itens de revisão.","O próximo ciclo reutilizará parte deste conteúdo."]
-      }));
-    }
   });
+
+  const integrationSigns=uniq(unit.p.flatMap(p=>p.slice(2,4))).slice(0,8);
+  content.push(lesson("u"+unit.n+"-integrate",unit,"integration",5,"Missão: "+unit.t,unit.m,{
+    signs:integrationSigns,
+    scene:unit.st[1],
+    challenge:unit.m,
+    questions:[unit.st[2]],
+    practice:"Resolva a missão usando o que acabou de aprender. Não precisa repetir todos os sinais da unidade.",
+    take:[
+      "Priorize a intenção comunicativa.",
+      "Use somente os sinais necessários.",
+      "Se travar, reformule em vez de reiniciar tudo."
+    ]
+  }));
+
+  const cycleUnits=U.filter(x=>x.c===unit.c);
+  const isCycleEnd=unit.n===Math.max(...cycleUnits.map(x=>x.n));
+  if(isCycleEnd){
+    const reviewSigns=spacedCycleReview(unit);
+    content.push(lesson("c"+unit.c+"-review",unit,"review",6,"Revisão da Etapa "+unit.c,"Recupere pontos importantes das unidades anteriores sem refazer as mesmas aulas.",{
+      signs:reviewSigns,
+      challenge:"Reconheça e produza uma amostra do conteúdo da Etapa "+unit.c+".",
+      questions:["O que você ainda reconhece sem ajuda?","Quais sinais precisam voltar para a sua revisão?"],
+      practice:"Faça uma rodada curta. O objetivo é recuperar memória, não reaprender tudo do zero.",
+      take:[
+        "A revisão mistura unidades diferentes.",
+        "Errou? Salve o sinal na Biblioteca para revisar depois.",
+        "Acertou com facilidade? Siga em frente."
+      ]
+    }));
+  }
 }
 window.LIBRAS_STUDY_CYCLES=CYCLES;
-window.LIBRAS_STUDY_UNITS=U.map(u=>({id:u.n,cycle:u.c,title:u.t,subtitle:u.m,mission:u.m,band:cycleOf(u.c).range,icon:KINDS.story[0]}));
+window.LIBRAS_STUDY_UNITS=U.map(u=>({id:u.n,cycle:u.c,title:u.t,subtitle:u.m,mission:u.m,band:cycleOf(u.c).range,icon:"👐"}));
 window.LIBRAS_STUDY_CONTENT=content.sort((a,b)=>a.unit-b.unit||a.order-b.order);
 window.LIBRAS_STUDY_KIND_META=KINDS;
 window.LIBRAS_STUDY_STATS={
   cycles:CYCLES.length,
   units:U.length,
   lessons:content.length,
-  practical:content.filter(x=>x.kind!=="theory").length,
-  theory:content.filter(x=>x.kind==="theory").length,
+  newContentLessons:content.filter(x=>x.kind==="signals").length,
+  integrationLessons:content.filter(x=>x.kind==="integration").length,
+  spacedReviews:content.filter(x=>x.kind==="review").length,
+  microtheory:content.filter(x=>x.microtheory).length,
   signalSlots:content.reduce((n,x)=>n+(x.signs?.length||0),0),
   uniqueSigns:new Set(content.flatMap(x=>x.signs||[]).map(slug)).size,
   expansionSlots:content.reduce((n,x)=>n+(x.expansion?.length||0),0),
