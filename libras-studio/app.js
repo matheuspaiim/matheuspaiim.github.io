@@ -1,4 +1,4 @@
-const APP_VERSION="0.5.78";
+const APP_VERSION="0.5.79";
 const cfg=window.LIBRAS_STUDIO_CONFIG||{},$=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const nativeParams=new URLSearchParams(location.search);
 const IS_NATIVE_ANDROID=nativeParams.get("native")==="android";
@@ -1319,7 +1319,21 @@ function installDelegatedNavigation(){
   });
 }
 function wire(){$("#auth-form").onsubmit=async e=>{e.preventDefault();let{error}=await sb.auth.signInWithPassword({email:$("#email").value,password:$("#password").value});$("#auth-status").textContent=error?error.message:""};$("#signup").onclick=async()=>{let{error}=await sb.auth.signUp({email:$("#email").value,password:$("#password").value});$("#auth-status").textContent=error?error.message:"Conta criada. Confira seu e-mail."};$("#logout").onclick=logoutUser;$("#profile-logout").onclick=logoutUser;$("#profile-menu-toggle").onclick=e=>{e.stopPropagation();toggleProfileMenu()};$("#profile-change-photo").onclick=()=>$("#profile-photo-input").click();$("#profile-photo-input").onchange=e=>changeProfilePhoto(e.target.files?.[0]);$("#profile-remove-photo").onclick=()=>{saveProfilePrefs({photo:""});toast("Foto removida.")};$("#profile-edit-name").onclick=openProfileNameEditor;$$("[data-profile-go]").forEach(b=>b.onclick=()=>{closeProfileMenu();go(b.dataset.profileGo)});document.addEventListener("click",e=>{let menu=$("#profile-menu"),toggle=$("#profile-menu-toggle");if(menu&&!menu.classList.contains("hidden")&&!menu.contains(e.target)&&!toggle?.contains(e.target))closeProfileMenu()});document.addEventListener("keydown",e=>{if(e.key==="Escape")closeProfileMenu()});$("#sync").onclick=$("#sync-now").onclick=openSyncChoice;let ms=$("#mobile-sync-now");if(ms)ms.onclick=()=>{$("#more")?.classList.add("hidden");openSyncChoice()};$("#app-update").onclick=$("#update-now").onclick=forceAppUpdate;let mu=$("#mobile-update-now");if(mu)mu.onclick=forceAppUpdate;$("#ll-enable").onclick=llOpenAccessibility;$("#ll-start").onclick=llStart;$("#ll-open").onclick=llOpen;$("#ll-stop").onclick=llStop;$("#ll-refresh").onclick=refreshLibrasLab;$("#ll-import").onclick=llImport;$("#ll-clear").onclick=llClear;$$("nav [data-view]").forEach(b=>b.onclick=()=>{if(IS_NATIVE_ANDROID&&Date.now()-Number(b.dataset.nativeTapAt||0)<700)return;if(b.dataset.view==="more"){closeProfileMenu();let s=$("#more");if(s)s.classList.toggle("hidden")}else go(b.dataset.view)});$$(".side-nav [data-view]").forEach(b=>b.onclick=()=>go(b.dataset.view));$$("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go));$$("[data-mode]").forEach(b=>b.onclick=()=>{$$("[data-mode]").forEach(x=>x.classList.toggle("active",x===b));$("#sign-box").classList.toggle("hidden",b.dataset.mode!=="sign");$("#phrase-box").classList.toggle("hidden",b.dataset.mode!=="phrase")});$("#create-search").onclick=createSign;$("#variants").onclick=variants;$("#video-file").onchange=e=>uploadVideo(e.target.files[0]);$("#phrase-search")&&($("#phrase-search").onclick=phrase);$("#phrase-available")&&($("#phrase-available").onclick=showAvailablePhrases);$("#explore-search").oninput=exploreCats;$("#global-search").onkeydown=e=>{if(e.key==="Enter"){let q=e.currentTarget.value.trim();go("explore");$("#create-name").value=q;$("#create-name").focus()}};$("#study-search").oninput=study;$("#library-search").oninput=library;$("#library-cat").onchange=library;$("#new-cat")&&($("#new-cat").onclick=newCat);$("#library-refresh")&&($("#library-refresh").onclick=openSyncChoice);$("#review-start").onclick=()=>{S.queue=queue();S.i=0;$("#review-setup").classList.add("hidden");card()};$("#reveal").onclick=()=>{let media=$("#review-media");media.classList.remove("hidden");$("#ratings").classList.remove("hidden");$("#reveal").classList.add("hidden");let first=media.querySelector("video");if(first){try{first.currentTime=0}catch{}let p=first.play();if(p?.catch)p.catch(e=>console.warn("autoplay revisão",e))}};$$("[data-rate]").forEach(b=>b.onclick=()=>rate(b.dataset.rate));$("#again-session").onclick=()=>{$("#review-setup").classList.remove("hidden");$("#review-done").classList.add("hidden")};$("#close-modal").onclick=()=>$("#modal").classList.add("hidden");$("#modal").onclick=e=>{if(e.target===$("#modal"))$("#modal").classList.add("hidden")}}
-async function revalidateSessionAndSync(){if(!navigator.onLine){localStatus("📴 offline · dados locais");return}try{let{data:{session},error}=await sb.auth.getSession();if(error)throw error;if(session){S.session=session;rememberSession(session);cached(session.user.id);authUI();render();localStatus("☁️ online · sincronização manual")}else if(S.session?.offline){forgetRememberedUser();S.session=null;authUI()}}catch(e){console.warn("revalidar sessão",e);if(S.session)localStatus("📴 dados locais")}}
+const CLOUD_ACTIVITY_PREFIX="ls-cloud-activity-v1:";
+async function touchCloudActivity(){
+  if(!navigator.onLine||!S.session||S.session.offline||!S.session.user?.id||window.__lsCloudActivityTouching)return false;
+  const key=CLOUD_ACTIVITY_PREFIX+S.session.user.id,now=Date.now(),last=Number(localStorage.getItem(key)||0);
+  if(Number.isFinite(last)&&now-last<12*60*60*1000)return false;
+  window.__lsCloudActivityTouching=true;
+  try{
+    const{error}=await sb.from("categories").select("name").limit(1);
+    if(error)throw error;
+    localStorage.setItem(key,String(now));
+    return true;
+  }catch(e){console.warn("checagem da nuvem",e);return false}
+  finally{window.__lsCloudActivityTouching=false}
+}
+async function revalidateSessionAndSync(){if(!navigator.onLine){localStatus("📴 offline · dados locais");return}try{let{data:{session},error}=await sb.auth.getSession();if(error)throw error;if(session){S.session=session;rememberSession(session);cached(session.user.id);authUI();render();localStatus("☁️ online · sincronização manual");touchCloudActivity()}else if(S.session?.offline){forgetRememberedUser();S.session=null;authUI()}}catch(e){console.warn("revalidar sessão",e);if(S.session)localStatus("📴 dados locais")}}
 async function init(){
   let remembered=rememberedUser();
   if(remembered){
@@ -1333,7 +1347,7 @@ async function init(){
   sb.auth.onAuthStateChange((event,session)=>{
     if(session){
       S.session=session;rememberSession(session);cached(session.user.id);authUI();
-      if(navigator.onLine)localStatus("☁️ online · sincronização manual");
+      if(navigator.onLine){localStatus("☁️ online · sincronização manual");touchCloudActivity()}
     }else if(event==="SIGNED_OUT"){
       forgetRememberedUser();S.session=null;S.signs=[];S.cats=[];S.reviews=[];S.study=[];authUI();
     }
@@ -1341,7 +1355,7 @@ async function init(){
   try{
     let{data:{session},error}=await sb.auth.getSession();
     if(error)throw error;
-    if(session){S.session=session;rememberSession(session);cached(session.user.id);authUI();render();if(navigator.onLine)localStatus("☁️ online · sincronização manual");else localStatus("📴 offline · dados locais")}
+    if(session){S.session=session;rememberSession(session);cached(session.user.id);authUI();render();if(navigator.onLine){localStatus("☁️ online · sincronização manual");touchCloudActivity()}else localStatus("📴 offline · dados locais")}
     else if(!remembered){S.session=null;authUI()}
     else if(navigator.onLine){forgetRememberedUser();S.session=null;authUI()}
   }catch(e){console.warn("sessão inicial",e);if(S.session){cached();render();localStatus("📴 dados locais")}else authUI()}
