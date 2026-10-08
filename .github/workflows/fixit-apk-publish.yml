@@ -1,0 +1,66 @@
+name: Publish FixIt Android APK to GitHub Pages
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'fixit-updates/android-publish.json'
+permissions:
+  contents: write
+concurrency:
+  group: fixit-android-publication
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified release and publish immutable APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib, json, pathlib, urllib.request, zipfile, io, urllib.parse
+          root=pathlib.Path("fixit-updates")
+          req=json.loads((root/"android-publish.json").read_text())
+          url=req["sourceZip"]
+          parsed=urllib.parse.urlparse(url)
+          assert parsed.scheme=="https" and parsed.hostname.endswith(".oaiusercontent.com"), "unauthorized package source"
+          code=int(req["versionCode"])
+          assert code>=8
+          expected=req["sourceSha256"].lower()
+          assert len(expected)==64 and all(c in "0123456789abcdef" for c in expected)
+          data=urllib.request.urlopen(urllib.request.Request(url,headers={"User-Agent":"FixIt-Publisher/1"}),timeout=120).read()
+          if data[:2]==b"PK":
+            with zipfile.ZipFile(io.BytesIO(data)) as z:
+              matches=[n for n in z.namelist() if n.endswith(".apk")]
+              assert len(matches)==1, matches
+              data=z.read(matches[0])
+          digest=hashlib.sha256(data).hexdigest()
+          assert digest==expected, "APK SHA mismatch"
+          assert len(data)>1000000 and zipfile.is_zipfile(io.BytesIO(data))
+          target=root/"android"/f"fixit-v{code}.apk"
+          target.parent.mkdir(parents=True,exist_ok=True)
+          target.write_bytes(data)
+          manifest={"versionCode":code,"versionName":req.get("versionName","0.8-beta"),
+             "apkUrl":f"https://matheuspaiim.github.io/fixit-updates/android/fixit-v{code}.apk",
+             "sha256":digest,"bytes":len(data),"notes":req.get("notes","Atualização Fix It! 2D"),
+             "channel":"android-package","minAndroidSdk":24}
+          (root/"android.json").write_text(json.dumps(manifest,indent=2,ensure_ascii=False)+"\n")
+          print("FIXIT_PUBLIC_APK_READY",target,len(data),digest)
+          PY
+      - name: Commit public binary and manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add fixit-updates/android fixit-updates/android.json
+          if ! git diff --cached --quiet; then
+            git commit -m "release: public Fix It Android installer with verified SHA"
+            git push origin HEAD:main
+          fi
+      - name: Verify publication files
+        run: |
+          test -s fixit-updates/android.json
+          python3 -m json.tool fixit-updates/android.json >/dev/null
