@@ -1,19 +1,19 @@
 {
-  "revision": 702,
+  "revision": 703,
   "minShell": 7,
-  "notes": "Reconstrução Fix It!: 10 desafios iniciais novos, sala com circuitos interativos, bandeja acessível, retirar/desfazer, mapa com prédios clicáveis e oficina com melhorias.",
+  "notes": "Primeira fase 2D cartoon! Casa da Lila, com ilustração original, peças de energia, toque e arraste, dicas, desfazer, lâmpada e ventilador animados.",
   "files": {
     "engine.js": {
-      "path": "v702/engine.js",
+      "path": "v703/engine.js",
       "sha256": "bfc2163a7a58aeefdf181f272cbf06490a8f9be3a3c29bb54303d480c8f747dc"
     },
     "app.js": {
-      "path": "v702/app.js",
-      "sha256": "89c0a5bcddeb56a418784d86308b7572544413029eb3b12200d069c156d176a4"
+      "path": "v703/app.js",
+      "sha256": "e110bc177efac368ee41c1d1328cd10603207b8493181a606b7bd0f445c40a30"
     },
     "style.css": {
-      "path": "v702/style.css",
-      "sha256": "bb4119ff07bd17e6cc276308746542e111ec9a304f32020b6d829af53b59e7c4"
+      "path": "v703/style.css",
+      "sha256": "4b53e07865f9efc9168ed691d5fe8b10cdebdeec4dbf33dd54b8db8657a6c8cc"
     }
   }
 }
