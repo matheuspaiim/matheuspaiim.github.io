@@ -1,0 +1,48 @@
+name: Fix It Legacy OTA 711 Manifest
+on:
+  push:
+    branches: [main]
+    paths: ['fixit-updates/v711/**']
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate game update scripts
+        run: |
+          set -euo pipefail
+          node --check fixit-updates/v711/engine.js
+          node --check fixit-updates/v711/app.js
+          test "$(wc -c < fixit-updates/v711/style.css)" -lt 524288
+          test "$(wc -c < fixit-updates/v711/app.js)" -lt 524288
+      - name: Generate exactly matched SHA-256 manifest
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib,json
+          root=Path("fixit-updates")
+          entries={}
+          for name in ["engine.js","app.js","style.css"]:
+            p=root/"v711"/name
+            assert p.is_file() and 0<p.stat().st_size<512*1024
+            entries[name]={"path":"v711/"+name,"sha256":hashlib.sha256(p.read_bytes()).hexdigest()}
+          manifest={"revision":711,"minShell":7,
+            "notes":"Nova edição Fix It! 2D disponível. A atualização de engine exige instalar o APK Android uma vez. Abra Configurações após instalar a atualização de conteúdo V711 para copiar o endereço seguro do instalador; as próximas versões serão verificadas no novo jogo.",
+            "files":entries}
+          (root/"manifest.json").write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+          print("FIXIT_LEGACY_711_SHA256_OK")
+          PY
+      - name: Publish V711 to original in-app update channel
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add fixit-updates/manifest.json
+          if ! git diff --cached --quiet; then
+            git commit -m "ota: announce compatible Android migration through existing V711 updater"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
