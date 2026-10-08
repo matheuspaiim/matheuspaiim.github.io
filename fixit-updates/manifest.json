@@ -1,19 +1,19 @@
 {
-  "revision": 707,
+  "revision": 708,
   "minShell": 7,
-  "notes": "Fix It! 707: tabuleiro e bandeja independentes sem marcas duplicadas, visual 2D preservado, area segura Android, circuitos com arraste e rotação, luminaria e ventilador animados na vitoria.",
+  "notes": "V708: nova arte dos aparelhos, encaixes visíveis, canos sem emendas duplicadas, indicador de progresso cartoon, navegação Android corrigida e cenário disponível offline.",
   "files": {
     "engine.js": {
-      "path": "v707/engine.js",
+      "path": "v708/engine.js",
       "sha256": "bfc2163a7a58aeefdf181f272cbf06490a8f9be3a3c29bb54303d480c8f747dc"
     },
     "app.js": {
-      "path": "v707/app.js",
-      "sha256": "58bff41fd9f197e25214e4a215c6990c80e8731125f0ab0819d35668e2ac6d59"
+      "path": "v708/app.js",
+      "sha256": "0c0bd6fbf521b0725c5751f71a4af8d5b9409e4fc246329404f88b3a7dce9e7e"
     },
     "style.css": {
-      "path": "v707/style.css",
-      "sha256": "2ac19e6db839d97d3dfa1ca6dd4073ab04bd3193929a24332c3642bd3657242d"
+      "path": "v708/style.css",
+      "sha256": "5e7b2537989f19f834f1a4159eb1f71253a3ba0c7b2db32f10abc93b497e1f9a"
     }
   }
 }
