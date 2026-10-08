@@ -1,18 +1,18 @@
 {
-  "revision": 710,
+  "revision": 711,
   "minShell": 7,
-  "notes": "V710: 20 fases de instalações elétricas interativas, desbloqueio e salvamento por nível, cabos elétricos finos no lugar dos antigos canos, terminais reais, vida e moedas separadas sem sobreposição, mapa da cidade e auditoria de jogabilidade com 800 cenários recuperáveis.",
+  "notes": "Nova edição Fix It! 2D disponível. A atualização de engine exige instalar o APK Android uma vez. Abra Configurações após instalar a atualização de conteúdo V711 para copiar o endereço seguro do instalador; as próximas versões serão verificadas no novo jogo.",
   "files": {
     "engine.js": {
-      "path": "v710/engine.js",
+      "path": "v711/engine.js",
       "sha256": "bfc2163a7a58aeefdf181f272cbf06490a8f9be3a3c29bb54303d480c8f747dc"
     },
     "app.js": {
-      "path": "v710/app.js",
-      "sha256": "63d18263d9c2b72816876aeb56cde212ed87b2810d55eb341cd150ce3286ae62"
+      "path": "v711/app.js",
+      "sha256": "1decd1c29b65388467480b57b03e454edf0b32e76596fbd2e9e3cf65132d6abe"
     },
     "style.css": {
-      "path": "v710/style.css",
+      "path": "v711/style.css",
       "sha256": "13e1e870a2a3d45e431a3e99d13eacca45253e1e90fc5b2426125ea086295b94"
     }
   }
