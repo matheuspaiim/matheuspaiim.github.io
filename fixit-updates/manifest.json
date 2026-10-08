@@ -1,19 +1,19 @@
 {
-  "revision": 709,
+  "revision": 710,
   "minShell": 7,
-  "notes": "V709: jogabilidade revisada de ponta a ponta! Cinco conduítes elétricos amarelos úteis, terminais claros, dois aparelhos com status 0/2 a 2/2, cabos arrastáveis/móveis, dicas e erros explicados; playtest de partida completa aprovado.",
+  "notes": "V710: 20 fases de instalações elétricas interativas, desbloqueio e salvamento por nível, cabos elétricos finos no lugar dos antigos canos, terminais reais, vida e moedas separadas sem sobreposição, mapa da cidade e auditoria de jogabilidade com 800 cenários recuperáveis.",
   "files": {
     "engine.js": {
-      "path": "v709/engine.js",
+      "path": "v710/engine.js",
       "sha256": "bfc2163a7a58aeefdf181f272cbf06490a8f9be3a3c29bb54303d480c8f747dc"
     },
     "app.js": {
-      "path": "v709/app.js",
-      "sha256": "d626e06d7af595eac2762819e8cb606d50e72012b7c719e13f37da52e0cfc02d"
+      "path": "v710/app.js",
+      "sha256": "63d18263d9c2b72816876aeb56cde212ed87b2810d55eb341cd150ce3286ae62"
     },
     "style.css": {
-      "path": "v709/style.css",
-      "sha256": "f3f69e726f116c5f6bec80ca60e6a7965fa3d149a237223083cf418480a9968b"
+      "path": "v710/style.css",
+      "sha256": "13e1e870a2a3d45e431a3e99d13eacca45253e1e90fc5b2426125ea086295b94"
     }
   }
 }
