@@ -1,19 +1,19 @@
 {
-  "revision": 704,
+  "revision": 705,
   "minShell": 7,
-  "notes": "Versão 704: Casa da Lila redesenhada com a imagem aprovada. Arte cartoon fiel, cinco encaixes, seis peças, dicas, desfazer, vitória animada e cena completa.",
+  "notes": "Visual aprovado aplicado à Casa da Lila: arte cartoon fiel, peças interativas, vidas e moedas dinâmicas, teste de energia, desfazer, dicas e vitória com animações.",
   "files": {
     "engine.js": {
-      "path": "v704/engine.js",
+      "path": "v705/engine.js",
       "sha256": "bfc2163a7a58aeefdf181f272cbf06490a8f9be3a3c29bb54303d480c8f747dc"
     },
     "app.js": {
-      "path": "v704/app.js",
-      "sha256": "280be19d7a2d81cdc1c743eb96812e4211d30286bbcf263cd700ee78886dfe34"
+      "path": "v705/app.js",
+      "sha256": "135ea99a2dfc69cf1028da45893bd9049d69a363a076da7e1e24fd9b1e468302"
     },
     "style.css": {
-      "path": "v704/style.css",
-      "sha256": "ee8e0fc20c4e86c7dc118d64caec611bedf95bb72a80751a6f752507e116b41b"
+      "path": "v705/style.css",
+      "sha256": "3f9f7ca4550da99d8e4278d5d8b21313a2fd6e9b2d450954a8011979acf6f6bd"
     }
   }
 }
