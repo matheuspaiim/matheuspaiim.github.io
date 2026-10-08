@@ -449,3 +449,6 @@ box-sizing:border-box;padding:4px;border-radius:10px;border:2px solid #b68555;ba
 
 /* V710 collision fix: celebration must not cover the girl's face. */
 .r707-character-reaction{left:66%!important;top:27%!important;transform:translate(-50%,-50%) rotate(-5deg)!important;max-width:32%;text-align:center}
+
+/* Short Android viewports: keep only three readable HUD rows; all 20 levels stay in the City map. */
+@media(max-height:790px){.r710-city-progress,.r710-campaign-pips{display:none!important}.r707-info-bottom .r708-hud{gap:4px;justify-content:center}}
