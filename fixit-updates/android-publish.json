@@ -1,7 +1,7 @@
 {
-  "versionCode": 34,
-  "versionName": "0.8.0-beta",
-  "notes": "Fix It! 2D: novo ícone cartoon, 20 puzzles progressivos, capítulos preparados, verificações e atualização dentro do jogo.",
-  "sourceSha256": "eb22e5d047ec4eb4292a2455f3df661462071e0d43cdacb35ea7d3d5ccf3c895",
-  "sourceZip": "https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-5abc-820e-8eed-f69483640f3a/raw?se=2026-10-08T23%3A23%3A33Z&sp=r&sv=2026-02-06&sr=b&scid=521eed1e-cd4d-52c7-a185-1255fdbe82a2&skoid=bdd24bd8-9af5-4138-bfb1-19fba97a8611&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-10-08T10%3A50%3A01Z&ske=2026-10-09T10%3A50%3A01Z&sks=b&skv=2026-02-06&sig=v7l9SSz6VN2my1qEULKjWtroU27Mf1OjTB7/3yn1Bn8%3D"
+  "versionCode": 35,
+  "versionName": "0.8.1-restored",
+  "notes": "RESTAURAÇÃO: Fix It! original de volta, mantendo a Casa da Lila, personagens, visual, menus e cabos clássicos; novo ícone cartoon. Esta versão substitui o protótipo 2D Godot que não foi aprovado. Progresso preservado quando possível, sem desinstalar.",
+  "sourceSha256": "84ab7dad658e8a15506f07c15f3516a5472bf845544b16ae2bd936b62f1c55c7",
+  "sourceZip": "https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-3400-820e-a639-3b140bfafb8e/raw?se=2026-10-08T23%3A51%3A59Z&sp=r&sv=2026-02-06&sr=b&scid=7e41025a-a590-5188-95cc-a4981de40f47&skoid=bdd24bd8-9af5-4138-bfb1-19fba97a8611&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-10-08T23%3A01%3A21Z&ske=2026-10-09T23%3A01%3A21Z&sks=b&skv=2026-02-06&sig=zc4fB3v9/R7yb4wYb6tWrVwvhsNplY4HhzVHj2lOWM8%3D"
 }
