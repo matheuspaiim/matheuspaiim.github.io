@@ -1,19 +1,19 @@
 {
-  "revision": 705,
+  "revision": 706,
   "minShell": 7,
-  "notes": "Visual aprovado aplicado à Casa da Lila: arte cartoon fiel, peças interativas, vidas e moedas dinâmicas, teste de energia, desfazer, dicas e vitória com animações.",
+  "notes": "Tela aprovada da Casa da Lila com qualidade de arte reproduzida, cinco encaixes, seis peças, controles por toque, moedas e vidas reais e animações de vitória.",
   "files": {
     "engine.js": {
-      "path": "v705/engine.js",
+      "path": "v706/engine.js",
       "sha256": "bfc2163a7a58aeefdf181f272cbf06490a8f9be3a3c29bb54303d480c8f747dc"
     },
     "app.js": {
-      "path": "v705/app.js",
+      "path": "v706/app.js",
       "sha256": "135ea99a2dfc69cf1028da45893bd9049d69a363a076da7e1e24fd9b1e468302"
     },
     "style.css": {
-      "path": "v705/style.css",
-      "sha256": "3f9f7ca4550da99d8e4278d5d8b21313a2fd6e9b2d450954a8011979acf6f6bd"
+      "path": "v706/style.css",
+      "sha256": "f34f2bc723884705c5625369db6703e4ff56eb8b3b29a04019e44e58866cd199"
     }
   }
 }
