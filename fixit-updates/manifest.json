@@ -1,7 +1,7 @@
 {
   "revision": 702,
   "minShell": 7,
-  "notes": "Reconstrução V2: sala interativa, 10 puzzles desenhados, mapa de prédios clicáveis, oficina com ferramentas, bandeja acessível e controles de desfazer/retirar.",
+  "notes": "Reconstrução Fix It!: 10 desafios iniciais novos, sala com circuitos interativos, bandeja acessível, retirar/desfazer, mapa com prédios clicáveis e oficina com melhorias.",
   "files": {
     "engine.js": {
       "path": "v702/engine.js",
@@ -9,11 +9,11 @@
     },
     "app.js": {
       "path": "v702/app.js",
-      "sha256": "51a277d9910339af7611132f03b458cbb08999768f7965fc69a3a977088dc765"
+      "sha256": "89c0a5bcddeb56a418784d86308b7572544413029eb3b12200d069c156d176a4"
     },
     "style.css": {
       "path": "v702/style.css",
-      "sha256": "f3b336292278c0077793310ea638644e2bcb533b938d7bc0c9ee57268cd8e532"
+      "sha256": "bb4119ff07bd17e6cc276308746542e111ec9a304f32020b6d829af53b59e7c4"
     }
   }
 }
