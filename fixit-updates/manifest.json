@@ -1,19 +1,19 @@
 {
-  "revision": 500,
-  "minShell": 5,
-  "notes": "Primeira atualização dentro do próprio Fix It!; sem reinstalação.",
+  "revision": 701,
+  "minShell": 7,
+  "notes": "Nova versão 701: arraste peças diretamente com o dedo; bandeja destacada e indicador v701 no topo.",
   "files": {
     "engine.js": {
-      "path": "v500/engine.js",
-      "sha256": "63ac1283114accfccea551ed9ccd45489e30f9315bb80cbbc215c6d3ab772d66"
+      "path": "v701/engine.js",
+      "sha256": "859939c945c4ca4628edea2a55562fd7bcda90ce105bdaece5918697c3f34650"
     },
     "app.js": {
-      "path": "v500/app.js",
-      "sha256": "8afed6de8d50b4d25cee342f275cc2313f72586d3894dc670ce9a270f6e3590e"
+      "path": "v701/app.js",
+      "sha256": "bd9c1cad56d3098d048bd82596ad271906982440cb42962101a1e8d99bc30f2e"
     },
     "style.css": {
-      "path": "v500/style.css",
-      "sha256": "64c5d11eef8300e00c634fb4e30585249d082dbb983ed74bed097ee46fbb2de9"
+      "path": "v701/style.css",
+      "sha256": "1c5808391a402663346ad0ef7a4d8e042eb8d2dec3755de69efe0f67d9878cba"
     }
   }
 }
