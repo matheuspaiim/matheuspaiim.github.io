@@ -1,12 +1,13 @@
-name: Fix It Legacy OTA 711 Manifest
+name: Archived Fix It V711 migration workflow - DO NOT RUN
 on:
   push:
     branches: [main]
-    paths: ['fixit-updates/v711/**']
+    paths: ['fixit-updates/__archived_v711_never/**']
 permissions:
   contents: write
 jobs:
   publish:
+    if: false  # Superseded by V712, intentionally permanently disabled.
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
