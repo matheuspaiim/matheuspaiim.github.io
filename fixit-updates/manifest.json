@@ -1,0 +1,19 @@
+{
+  "revision": 500,
+  "minShell": 5,
+  "notes": "Primeira atualização dentro do próprio Fix It!; sem reinstalação.",
+  "files": {
+    "engine.js": {
+      "path": "v500/engine.js",
+      "sha256": "63ac1283114accfccea551ed9ccd45489e30f9315bb80cbbc215c6d3ab772d66"
+    },
+    "app.js": {
+      "path": "v500/app.js",
+      "sha256": "8afed6de8d50b4d25cee342f275cc2313f72586d3894dc670ce9a270f6e3590e"
+    },
+    "style.css": {
+      "path": "v500/style.css",
+      "sha256": "64c5d11eef8300e00c634fb4e30585249d082dbb983ed74bed097ee46fbb2de9"
+    }
+  }
+}
