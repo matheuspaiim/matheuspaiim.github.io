@@ -1,0 +1,45 @@
+name: Validate Live FixIt Android and OTA Channels
+on:
+  push:
+    branches: [main]
+    paths: ['fixit-updates/check-live.txt']
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Verify both published HTTPS feeds and installer
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import urllib.request, json, hashlib, time
+          base="https://matheuspaiim.github.io/fixit-updates/"
+          def get(path):
+            exc=None
+            for i in range(10):
+              try:
+                req=urllib.request.Request(base+path+"?probe="+str(time.time_ns()),headers={"Cache-Control":"no-cache","User-Agent":"FixItLiveCheck/1"})
+                return urllib.request.urlopen(req,timeout=45).read()
+              except Exception as e:
+                exc=e
+                time.sleep(8)
+            raise exc
+          legacy=json.loads(get("manifest.json"))
+          assert legacy["revision"]==711 and legacy["minShell"]<=7
+          for name in ("engine.js","app.js","style.css"):
+            entry=legacy["files"][name]
+            data=get(entry["path"])
+            assert hashlib.sha256(data).hexdigest()==entry["sha256"], name
+          latest=json.loads(get("android.json"))
+          assert latest["versionCode"]>=34
+          assert latest["apkUrl"].startswith(base+"android/")
+          data=get(latest["apkUrl"][len(base):])
+          assert len(data)==latest["bytes"] and len(data)>20000000
+          assert hashlib.sha256(data).hexdigest()==latest["sha256"]
+          assert data[:2]==b"PK"
+          print("FIXIT_LIVE_OTA_V711_SHA256_OK")
+          print("FIXIT_LIVE_ANDROID_APK_SHA256_OK",len(data))
+          PY
