@@ -1,0 +1,10 @@
+{
+  "versionCode": 34,
+  "versionName": "0.8.0-beta",
+  "apkUrl": "https://matheuspaiim.github.io/fixit-updates/android/fixit-v34.apk",
+  "sha256": "eb22e5d047ec4eb4292a2455f3df661462071e0d43cdacb35ea7d3d5ccf3c895",
+  "bytes": 28101494,
+  "notes": "Fix It! 2D: novo ícone cartoon, 20 puzzles progressivos, capítulos preparados, verificações e atualização dentro do jogo.",
+  "channel": "android-package",
+  "minAndroidSdk": 24
+}
