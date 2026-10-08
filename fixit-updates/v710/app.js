@@ -332,10 +332,10 @@ if(dirs.length===2&&!opposite){
  const u=ends[dirs[0]],v=ends[dirs[1]];path='M'+u[0]+' '+u[1]+'L'+v[0]+' '+v[1];
 }else path=dirs.map(d=>'M50 50L'+ends[d][0]+' '+ends[d][1]).join('');
 let svg='<svg viewBox="0 0 100 100" class="r710-cable" aria-hidden="true">';
-svg+='<path d="'+path+'" fill="none" stroke="#53372f" stroke-width="26" stroke-linecap="butt" stroke-linejoin="round"/>';
-svg+='<path d="'+path+'" fill="none" stroke="#b66b21" stroke-width="22" stroke-linecap="butt" stroke-linejoin="round"/>';
-svg+='<path d="'+path+'" fill="none" stroke="#ffcd32" stroke-width="17" stroke-linecap="butt" stroke-linejoin="round"/>';
-svg+='<path d="'+path+'" fill="none" stroke="#fff3ab" stroke-width="6" stroke-linecap="butt" opacity=".8"/>';
+svg+='<path d="'+path+'" fill="none" stroke="#53372f" stroke-width="18" stroke-linecap="butt" stroke-linejoin="round"/>';
+svg+='<path d="'+path+'" fill="none" stroke="#b66b21" stroke-width="15" stroke-linecap="butt" stroke-linejoin="round"/>';
+svg+='<path d="'+path+'" fill="none" stroke="#ffcd32" stroke-width="11" stroke-linecap="butt" stroke-linejoin="round"/>';
+svg+='<path d="'+path+'" fill="none" stroke="#fff3ab" stroke-width="4" stroke-linecap="butt" opacity=".8"/>';
 svg+='<path class="r709-current" d="'+path+'" fill="none" stroke="#ffffff" stroke-width="4" stroke-dasharray="7 11"/>';
 for(const d of dirs){
  if(neighborConnected(index,d))continue;
