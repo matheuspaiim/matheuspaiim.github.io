@@ -1,19 +1,19 @@
 {
-  "revision": 708,
+  "revision": 709,
   "minShell": 7,
-  "notes": "V708: nova arte dos aparelhos, encaixes visíveis, canos sem emendas duplicadas, indicador de progresso cartoon, navegação Android corrigida e cenário disponível offline.",
+  "notes": "V709: jogabilidade revisada de ponta a ponta! Cinco conduítes elétricos amarelos úteis, terminais claros, dois aparelhos com status 0/2 a 2/2, cabos arrastáveis/móveis, dicas e erros explicados; playtest de partida completa aprovado.",
   "files": {
     "engine.js": {
-      "path": "v708/engine.js",
+      "path": "v709/engine.js",
       "sha256": "bfc2163a7a58aeefdf181f272cbf06490a8f9be3a3c29bb54303d480c8f747dc"
     },
     "app.js": {
-      "path": "v708/app.js",
-      "sha256": "0c0bd6fbf521b0725c5751f71a4af8d5b9409e4fc246329404f88b3a7dce9e7e"
+      "path": "v709/app.js",
+      "sha256": "d626e06d7af595eac2762819e8cb606d50e72012b7c719e13f37da52e0cfc02d"
     },
     "style.css": {
-      "path": "v708/style.css",
-      "sha256": "5e7b2537989f19f834f1a4159eb1f71253a3ba0c7b2db32f10abc93b497e1f9a"
+      "path": "v709/style.css",
+      "sha256": "f3f69e726f116c5f6bec80ca60e6a7965fa3d149a237223083cf418480a9968b"
     }
   }
 }
