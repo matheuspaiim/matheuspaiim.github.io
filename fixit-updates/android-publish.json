@@ -1,7 +1,7 @@
 {
-  "versionCode": 35,
-  "versionName": "0.8.1-restored",
-  "notes": "RESTAURAÇÃO: Fix It! original de volta, mantendo a Casa da Lila, personagens, visual, menus e cabos clássicos; novo ícone cartoon. Esta versão substitui o protótipo 2D Godot que não foi aprovado. Progresso preservado quando possível, sem desinstalar.",
-  "sourceSha256": "84ab7dad658e8a15506f07c15f3516a5472bf845544b16ae2bd936b62f1c55c7",
-  "sourceZip": "https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-3400-820e-a639-3b140bfafb8e/raw?se=2026-10-08T23%3A51%3A59Z&sp=r&sv=2026-02-06&sr=b&scid=7e41025a-a590-5188-95cc-a4981de40f47&skoid=bdd24bd8-9af5-4138-bfb1-19fba97a8611&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-10-08T23%3A01%3A21Z&ske=2026-10-09T23%3A01%3A21Z&sks=b&skv=2026-02-06&sig=zc4fB3v9/R7yb4wYb6tWrVwvhsNplY4HhzVHj2lOWM8%3D"
+  "versionCode": 36,
+  "versionName": "0.8.2-gameplay",
+  "notes": "Fix It! original V713: jogabilidade progressiva no cenário e interface originais, com disjuntores, diodos, fusíveis, relés e reparos. Ícone alterado somente para a imagem aprovada pelo usuário.",
+  "sourceSha256": "c082f0d4d05a15f5fba029f88aa562a729d233df320f70c63aec2d480e434ad4",
+  "sourceZip": "https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-65f8-820e-875a-4b0dacab9426/raw?se=2026-10-09T00%3A20%3A39Z&sp=r&sv=2026-02-06&sr=b&scid=d9ac383a-96b6-5d16-bb3b-e3d682db990b&skoid=bdd24bd8-9af5-4138-bfb1-19fba97a8611&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-10-08T10%3A50%3A01Z&ske=2026-10-09T10%3A50%3A01Z&sks=b&skv=2026-02-06&sig=mUzGQtN/RkZcADXO1jZWIghNYIGrOugfzYf2KWegrMg%3D"
 }
