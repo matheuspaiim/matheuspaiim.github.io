@@ -1,0 +1,62 @@
+name: Fix It! OTA V715 - Original Gameplay Only
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'fixit-updates/v715/**'
+permissions:
+  contents: write
+concurrency:
+  group: fixit-v715-manifest-publish
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check game files and unmodified visual baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check fixit-updates/v715/engine.js
+          node --check fixit-updates/v715/app.js
+          cmp fixit-updates/v714/engine.js fixit-updates/v715/engine.js
+          cmp fixit-updates/v714/style.css fixit-updates/v715/style.css
+          grep -q 'FIXIT_FOUNDATION_V715' fixit-updates/v715/app.js
+          grep -q 'TOTAL=4' fixit-updates/v715/app.js
+          grep -q 'function finish()' fixit-updates/v715/app.js
+          if grep -q 'data-action="test"' fixit-updates/v715/app.js; then echo 'Unexpected Testar control' >&2; exit 1; fi
+          grep -q 'FixCampaign710' fixit-updates/v715/app.js
+          echo 'FIXIT_V715_ORIGINAL_VISUAL_IDENTICAL'
+      - name: Generate SHA-256 manifest for in-app updater
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import json,hashlib
+          root=Path('fixit-updates')
+          entries={}
+          for name in ('engine.js','app.js','style.css'):
+              file=root/'v715'/name
+              assert 0<file.stat().st_size<524288
+              entries[name]={'path':'v715/'+name,'sha256':hashlib.sha256(file.read_bytes()).hexdigest()}
+          out={'revision':715,'minShell':7,
+               'notes':'V715: Fundação da Casa da Lila recomeçada com quatro circuitos inéditos, fios fixos e giráveis, progresso novo e vitória automática, sem botão Testar. Mesmo app e visual.',
+               'files':entries}
+          (root/'manifest.json').write_text(json.dumps(out,ensure_ascii=False,indent=2)+'\n')
+          print('FIXIT_V715_OTA_VALIDATED')
+          PY
+      - name: Publish only checked original-game content
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add fixit-updates/manifest.json
+          if ! git diff --cached --quiet; then
+            git commit -m "ota: update original Fix It! to V715 gameplay"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
