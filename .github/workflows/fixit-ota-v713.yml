@@ -1,0 +1,59 @@
+name: Fix It! OTA V713 - Original Gameplay Only
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'fixit-updates/v713/**'
+permissions:
+  contents: write
+concurrency:
+  group: fixit-v713-manifest-publish
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check game files and unmodified visual baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check fixit-updates/v713/engine.js
+          node --check fixit-updates/v713/app.js
+          cmp fixit-updates/v712/engine.js fixit-updates/v713/engine.js
+          cmp fixit-updates/v712/style.css fixit-updates/v713/style.css
+          grep -q 'MECHANIC_PLANS' fixit-updates/v713/app.js
+          grep -q 'FixCampaign710' fixit-updates/v713/app.js
+          echo 'FIXIT_V713_ORIGINAL_VISUAL_IDENTICAL'
+      - name: Generate SHA-256 manifest for in-app updater
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import json,hashlib
+          root=Path('fixit-updates')
+          entries={}
+          for name in ('engine.js','app.js','style.css'):
+              file=root/'v713'/name
+              assert 0<file.stat().st_size<524288
+              entries[name]={'path':'v713/'+name,'sha256':hashlib.sha256(file.read_bytes()).hexdigest()}
+          out={'revision':713,'minShell':7,
+               'notes':'V713: novas mecânicas de eletricidade nos mesmos 20 puzzles: disjuntores, diodos, fusíveis, relés temporizados e reparos. Visual original, Casa da Lila, menus e navegação preservados.',
+               'files':entries}
+          (root/'manifest.json').write_text(json.dumps(out,ensure_ascii=False,indent=2)+'\n')
+          print('FIXIT_V713_OTA_VALIDATED')
+          PY
+      - name: Publish only checked original-game content
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add fixit-updates/manifest.json
+          if ! git diff --cached --quiet; then
+            git commit -m "ota: update original Fix It! to V713 gameplay"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
