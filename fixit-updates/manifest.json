@@ -1,18 +1,18 @@
 {
-  "revision": 713,
+  "revision": 714,
   "minShell": 7,
-  "notes": "V713: novas mecânicas de eletricidade nos mesmos 20 puzzles: disjuntores, diodos, fusíveis, relés temporizados e reparos. Visual original, Casa da Lila, menus e navegação preservados.",
+  "notes": "V714: jogos visuais novos nas fases 5–20: unir fios rompidos, mover caixas, estender divisores em T, deslizar tomadas e abrir portinholas. Fix It original preservado.",
   "files": {
     "engine.js": {
-      "path": "v713/engine.js",
+      "path": "v714/engine.js",
       "sha256": "bfc2163a7a58aeefdf181f272cbf06490a8f9be3a3c29bb54303d480c8f747dc"
     },
     "app.js": {
-      "path": "v713/app.js",
-      "sha256": "56f8a58c0ba8977b5a35f657884f165477323c0868a420eb859b8b790d4b0398"
+      "path": "v714/app.js",
+      "sha256": "1b8f8069f81af69513bc58fefcbb6ad4690bc0d02d9bcf3e396c9fd703599537"
     },
     "style.css": {
-      "path": "v713/style.css",
+      "path": "v714/style.css",
       "sha256": "13e1e870a2a3d45e431a3e99d13eacca45253e1e90fc5b2426125ea086295b94"
     }
   }
