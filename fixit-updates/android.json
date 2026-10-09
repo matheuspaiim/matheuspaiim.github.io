@@ -1,10 +1,10 @@
 {
-  "versionCode": 36,
-  "versionName": "0.8.2-gameplay",
-  "apkUrl": "https://matheuspaiim.github.io/fixit-updates/android/fixit-v36.apk",
-  "sha256": "c082f0d4d05a15f5fba029f88aa562a729d233df320f70c63aec2d480e434ad4",
-  "bytes": 5776172,
-  "notes": "Fix It! original V713: jogabilidade progressiva no cenário e interface originais, com disjuntores, diodos, fusíveis, relés e reparos. Ícone alterado somente para a imagem aprovada pelo usuário.",
+  "versionCode": 37,
+  "versionName": "0.8.3-visual-puzzles",
+  "apkUrl": "https://matheuspaiim.github.io/fixit-updates/android/fixit-v37.apk",
+  "sha256": "99aafe0d9983c8d3570fd69514223e427691a5c74856ffd3bb7031c28d747965",
+  "bytes": 5779684,
+  "notes": "Fix It! original V714: 5 novos puzzles visuais com gestos reais. Ícone atualizado com a casinha, plugue e ferramenta. Mesmo aplicativo, mesmos cenários e mesma engine.",
   "channel": "android-package",
   "minAndroidSdk": 24
 }
