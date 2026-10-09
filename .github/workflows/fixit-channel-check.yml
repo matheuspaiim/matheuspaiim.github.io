@@ -28,15 +28,16 @@ jobs:
                 time.sleep(8)
             raise exc
           legacy=json.loads(get("manifest.json"))
-          assert legacy["revision"]==714 and legacy["minShell"]<=7
+          assert legacy["revision"]==715 and legacy["minShell"]<=7
           for name in ("engine.js","app.js","style.css"):
             entry=legacy["files"][name]
             data=get(entry["path"])
             assert hashlib.sha256(data).hexdigest()==entry["sha256"], name
             if name=="app.js":
-              assert b"MECHANIC_PLANS" in data
-              for token in (b"r714-splice",b"r714-crate",b"r714-split-zone",b"r714-rail",b"r714-shutter"):
-                assert token in data, token
+              assert b"FIXIT_FOUNDATION_V715" in data
+              assert b"TOTAL=4" in data
+              assert b"function finish()" in data
+              assert b'data-action="test"' not in data
           latest=json.loads(get("android.json"))
           assert latest["versionCode"]==37
           assert latest["apkUrl"].startswith(base+"android/")
@@ -44,6 +45,6 @@ jobs:
           assert len(data)==latest["bytes"] and len(data)>2000000
           assert hashlib.sha256(data).hexdigest()==latest["sha256"]
           assert data[:2]==b"PK"
-          print("FIXIT_LIVE_OTA_V714_VISUAL_GAMEPLAY_SHA256_OK")
+          print("FIXIT_LIVE_OTA_V715_FOUNDATION_AUTO_WIN_SHA256_OK")
           print("FIXIT_LIVE_ORIGINAL_ANDROID_V37_ICON_OK",len(data))
           PY
