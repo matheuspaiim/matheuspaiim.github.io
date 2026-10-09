@@ -1,7 +1,7 @@
 {
-  "versionCode": 36,
-  "versionName": "0.8.2-gameplay",
-  "notes": "Fix It! original V713: jogabilidade progressiva no cenário e interface originais, com disjuntores, diodos, fusíveis, relés e reparos. Ícone alterado somente para a imagem aprovada pelo usuário.",
-  "sourceSha256": "c082f0d4d05a15f5fba029f88aa562a729d233df320f70c63aec2d480e434ad4",
-  "sourceZip": "https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-65f8-820e-875a-4b0dacab9426/raw?se=2026-10-09T00%3A20%3A39Z&sp=r&sv=2026-02-06&sr=b&scid=d9ac383a-96b6-5d16-bb3b-e3d682db990b&skoid=bdd24bd8-9af5-4138-bfb1-19fba97a8611&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-10-08T10%3A50%3A01Z&ske=2026-10-09T10%3A50%3A01Z&sks=b&skv=2026-02-06&sig=mUzGQtN/RkZcADXO1jZWIghNYIGrOugfzYf2KWegrMg%3D"
+  "versionCode": 37,
+  "versionName": "0.8.3-visual-puzzles",
+  "notes": "Fix It! original V714: 5 novos puzzles visuais com gestos reais. Ícone atualizado com a casinha, plugue e ferramenta. Mesmo aplicativo, mesmos cenários e mesma engine.",
+  "sourceSha256": "99aafe0d9983c8d3570fd69514223e427691a5c74856ffd3bb7031c28d747965",
+  "sourceZip": "https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-fbdc-820e-9067-57585815c667/raw?se=2026-10-09T01%3A14%3A15Z&sp=r&sv=2026-02-06&sr=b&scid=51b554b6-bce2-5771-b502-32488063493c&skoid=bdd24bd8-9af5-4138-bfb1-19fba97a8611&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-10-08T22%3A47%3A12Z&ske=2026-10-09T22%3A47%3A12Z&sks=b&skv=2026-02-06&sig=L1Rr/JbjcXcGStX7l4wC2sR0SxftV4NNpOnLY4cRHIg%3D"
 }
