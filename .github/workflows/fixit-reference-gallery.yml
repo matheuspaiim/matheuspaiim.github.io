@@ -1,0 +1,198 @@
+name: Fix It - Game Puzzle Reference Screenshots (Research Only)
+on:
+  push:
+    branches: [research/fixit-gameplay-images-20261009]
+    paths:
+      - .github/workflows/fixit-reference-gallery.yml
+permissions:
+  contents: read
+jobs:
+  gallery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Install free image tools
+        run: python3 -m pip install --quiet requests pillow beautifulsoup4 google-play-scraper
+      - name: Build offline puzzle screenshot reference gallery
+        env:
+          PYTHONUNBUFFERED: "1"
+        shell: bash
+        run: |
+          mkdir -p out
+          cat > /tmp/build_gallery.py <<'PY'
+          import os,io,re,json,time,html,hashlib,random
+          from pathlib import Path
+          from urllib.parse import quote
+          import requests
+          from PIL import Image,ImageOps,ImageDraw,ImageFont
+          from bs4 import BeautifulSoup
+          from google_play_scraper import app
+          OUT=Path("out")
+          sessions=requests.Session()
+          sessions.headers.update({"User-Agent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0 Safari/537.36"})
+          raw_games=[
+           ("01_Energy","Energy: Anti-Stress Loops","com.infinitygames.loopenergy","eletricidade","Girar segmentos para formar circuitos e acender lâmpadas. Estudar brilho de fluxo, leitura do percurso e redes com vários terminais.",
+            ["https://play-lh.googleusercontent.com/nEoFrmdmK04_GkBRy2WrfVeOVLz_DX_JlPTlJtLv4nA8kELHI2-_Z_ZRIYVkjF3Zcj8EzdgrjAwtwefg1kQ3oOo=w526-h296","https://play-lh.googleusercontent.com/0vhamnHUqsi9DJKtsjoSPyhjsZpa5HSeUmzT4HWBXt-ARwjOm0ODgF86YXgp0WR6Xg-k2t6mi9BlOJQPGTsb=w526-h296"]),
+           ("02_Powerline","Powerline: Logic Puzzles","com.leaflock.connecthomes","eletricidade","Conectar a usina a muitas casas. Estudar múltiplos destinos, restrição de giros e variação de tabuleiro.",
+            ["https://play-lh.googleusercontent.com/JAsoOXlTWQhK21aY2cAml00S1bZVBsxHV3B1PxXl4esw-9Wvpoh2YOLnR5uVI7yQ6ExmeVzVuSXCfaP9HuwDzA=w526-h296"]),
+           ("03_Netwalk","Netwalk - Network Logic","", "rede","Peças rotativas: retas, curvas, T e cruzes; cada ponta precisa casar. Aprender nós travados, bifurcação, limites e ausência de loop.",
+            ["https://randomboo.com/arcade/netwalk/preview.png","https://itsallwidgets.com/screenshots/app-4007.png?updated_at=2024-12-29+01%3A12%3A29"]),
+           ("04_Water_Connect_Flow","Water Connect Flow","com.gma.water.connect.flow","água","Girar canos para irrigar todas as árvores. Analisar o fluxo como feedback imediato e o planejamento de bifurcações.",
+            ["https://play-lh.googleusercontent.com/ksMFvee-ex8lK78Dc8E3zOxeHmm35Q0kUTwMOyrFTE5qq0bjQA0oSYHx-AFIa4CXOELfN0OR1CpuhekeME4wEww=w526-h296"]),
+           ("05_Water_Connect_Puzzle","Water Connect Puzzle","com.gma.water.connect.puzzle","água e cores","Direcionar água colorida à planta correta. Analisar múltiplas fontes e proibição de mistura entre rotas.",
+            ["https://imag.malavida.com/mvimgbig/download-fs/water-connect-puzzle-30477-6.jpg"]),
+           ("06_Pipe_Connect_Plumbing","Pipe Connect: Plumbing Puzzle","com.kasuncreations.pipeconnect","encanamento dinâmico","Modo rotação e modo construção enquanto água corre. Capas, válvulas, vazamentos e pressão.",
+            []),
+           ("07_Pipe_Connect_Color_Flow","Pipe Connect: Connect Color Pairs","com.frontplayers.pipeconnect","rotas simultâneas","Ligar pares de pontos da mesma cor, sem cruzamentos e preenchendo toda grade.",
+            ["https://codeshopstudio.com/public/storage/product/sun-jun-2-2024-847-am64405.jpg"]),
+           ("08_Plumber_Pipes","Plumber Pipes","", "encanamento com peças T","Tubos retos, curvas e T, conexões por rotação e fluxo. Referência suplementar.",
+            ["https://ffapps.danielherr.software/app/plumber-pipes/screenshots/169034.png"]),
+           ("09_Plumber_3","Plumber 3","", "óleo/tubulações e orçamento","Tubulação subterrânea com restrição de custo, peças especiais e plantas de solução. Referência suplementar.",
+            ["https://imag.malavida.com/mvimgbig/download-fs/plumber-3-29779-4.jpg",
+             "https://imag.malavida.com/mvimgbig/download-fs/plumber-3-29779-10.jpg",
+             "https://cdn.aptoide.com/imgs/f/b/d/fbd3395846285f1aa592cbb3ff8bdb61_screen.jpg"])
+          ]
+          page_netwalk="https://playnetwalk.com/"
+          records=[]
+          hashes=set()
+          def clean_url(url):
+            return html.unescape(url).replace("\\u003d","=").replace("\\u0026","&").strip()
+          def get_official(app_id):
+            urls=[]
+            try:
+              meta=app(app_id,lang="en",country="us")
+              urls=meta.get("screenshots",[]) or []
+              print("SCRAPER",app_id,len(urls))
+            except Exception as exc:print("SCRAPER_ERR",app_id,type(exc).__name__,str(exc)[:160])
+            if len(urls)<2:
+              try:
+                text=sessions.get("https://play.google.com/store/apps/details",params={"id":app_id,"hl":"en"},timeout=18).text
+                soup=BeautifulSoup(text,"html.parser")
+                for img in soup.select("img"):
+                  alt=(img.get("alt","") or "").lower()
+                  if "screenshot" not in alt:continue
+                  src=img.get("src") or img.get("data-src") or ""
+                  if src.startswith("https://play-lh.googleusercontent.com/"):urls.append(clean_url(src))
+                print("PAGE_EXTRA",app_id,len(urls))
+              except Exception as exc:print("PAGE_ERR",app_id,type(exc).__name__,str(exc)[:140])
+            out=[];seen=set()
+            for u in urls:
+              u=clean_url(u)
+              if not u.startswith("https://play-lh.googleusercontent.com/"):continue
+              k=u.split("=")[0]
+              if k not in seen:seen.add(k);out.append(u)
+            return out
+          def download(url):
+            r=sessions.get(url,timeout=18)
+            r.raise_for_status()
+            if len(r.content)>8_000_000:raise ValueError("image oversized")
+            image=Image.open(io.BytesIO(r.content))
+            image.load()
+            if min(image.size)<180:raise ValueError("low resolution")
+            return image.convert("RGB")
+          for prefix,title,appid,theme,note,backups in raw_games:
+            folder=OUT/prefix;folder.mkdir(parents=True,exist_ok=True)
+            official=get_official(appid) if appid else []
+            candidates=[(u,"Google Play • captura publicada pelo desenvolvedor") for u in official[:18]]
+            candidates +=[(u,"Página pública de terceiro • conferir origem") for u in backups]
+            copied=0
+            for u,provenance in candidates:
+              if copied>=6:break
+              try:
+                im=download(u)
+                h=hashlib.sha1(im.resize((96,96)).tobytes()).hexdigest()
+                if h in hashes:continue
+                hashes.add(h)
+                copied+=1
+                name=f"{copied:02d}.jpg"
+                im.save(folder/name,quality=91,optimize=True)
+                records.append(dict(game=title,folder=prefix,filename=name,source=u,from_page=(
+                   "https://play.google.com/store/apps/details?id="+appid if appid else
+                   (page_netwalk if prefix=="03_Netwalk" else
+                    "https://ffapps.danielherr.software/app/plumber-pipes/" if prefix=="08_Plumber_Pipes" else
+                    "https://plumber3.en.aptoide.com/app")),
+                   provenance=provenance,theme=theme,note=note,
+                   width=im.width,height=im.height))
+              except Exception as exc:print("IMAGE_ERR",title,type(exc).__name__,str(exc)[:130])
+            print("GAME_FINISHED",prefix,copied)
+          if len(records)<12:raise RuntimeError(f"Not enough genuine screenshots for visual study: {len(records)}")
+          (OUT/"fontes_e_creditos.json").write_text(json.dumps(records,ensure_ascii=False,indent=2),encoding="utf-8")
+          readme=("REFERÊNCIAS VISUAIS REAIS PARA FIX IT!\n"
+          "===================================\n\n"
+          "Abra GALERIA.html para navegar pelas capturas, sem internet.\n"
+          "Ou abra MOSAICO.jpg para visualizar todas em uma única imagem.\n"
+          "As pastas numeradas têm telas originais dos jogos, não mockups do Fix It.\n"
+          "Fonte individual (URL) de cada screenshot: fontes_e_creditos.json.\n\n"
+          "Nota: algumas imagens do Google Play contêm textos promocionais, "
+          "por serem imagens publicadas pelos desenvolvedores. "
+          "Imagens de terceiros estão marcadas separadamente.\n"
+          "Comparar as regras do puzzle, não reproduzir arte protegida por direitos autorais.\n\n"
+          "O que observar:\n"
+          "01-02 Circuito: caminhos, múltiplos destinos, feedback energizado.\n"
+          "03 Rede: casamentos entre pontas, peças fixas e bifurcações.\n"
+          "04-05 Água: fluxo direcional, cor correta, fontes variadas.\n"
+          "06 Água com urgência: válvulas, vazamentos, água corrente.\n"
+          "07 Rotas: pares coloridos, cruzamentos proibidos, uso de espaço.\n"
+          "08-09 Extras: junções em T, nível e restrição de recursos.\n")
+          (OUT/"LEIA-ME.txt").write_text(readme,encoding="utf-8")
+          # Offline gallery for easy browsing
+          data=json.dumps(records,ensure_ascii=False).replace("</","<\\/")
+          page="""<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"/>
+          <meta name="viewport" content="width=device-width,initial-scale=1"><title>Fix It - Referências Reais</title>
+          <style>body{font-family:system-ui,Arial;background:#111927;color:#f0f5fc;margin:0;padding:22px}h1{font-size:26px}
+          .intro{color:#adbed2;max-width:850px;line-height:1.6}
+          nav{display:flex;flex-wrap:wrap;gap:9px;margin:20px 0;position:sticky;top:0;background:#111927ee;padding:8px}
+          button{background:#2b405a;color:white;border:1px solid #446080;padding:9px 13px;border-radius:9px;cursor:pointer}
+          button.active{background:#58c4c2;color:#091822}
+          .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:20px;max-width:1450px}
+          figure{margin:0;background:#1e2d3e;border:1px solid #31465f;border-radius:14px;padding:13px}
+          img{display:block;width:100%;height:330px;object-fit:contain;background:#0c1220;border-radius:9px}
+          figcaption{line-height:1.4;font-size:14px}small{color:#adc1d3}a{color:#76d8e6}
+          .group{padding:4px 7px;background:#364c63;border-radius:8px;color:#d0dfed}
+          </style></head><body><h1>🔌 Fix It! | Biblioteca de puzzles reais</h1>
+          <p class="intro">Capturas de jogos já existentes, agrupadas para comparação de mecânicas.
+          Esta galeria é totalmente offline. Clique na imagem para abrir no tamanho original.
+          As imagens são referências, não propostas de alteração do visual do Fix It.</p>
+          <nav id="filters"></nav><main class="grid" id="gallery"></main>
+          <script>const data=__DATA__;
+          const gameNames=[...new Set(data.map(x=>x.game))], nav=document.getElementById('filters');
+          let active='Tudo';
+          function render(){
+          nav.innerHTML=''; for(const name of ['Tudo',...gameNames]){
+            let b=document.createElement('button');b.textContent=name;b.className=active===name?'active':'';
+            b.onclick=()=>{active=name;render()};nav.appendChild(b)
+          }
+          let root=document.getElementById('gallery');root.innerHTML='';
+          for(let item of data.filter(x=>active==='Tudo'||x.game===active)){
+           let f=document.createElement('figure'); let img=document.createElement('img');
+           img.src=item.folder+'/'+item.filename;img.loading='lazy';img.alt='Captura do jogo '+item.game;
+           let a=document.createElement('a');a.href=img.src;a.target='_blank';a.appendChild(img);f.appendChild(a);
+           let c=document.createElement('figcaption');c.innerHTML='<h3>'+item.game+'</h3><small>'+item.theme+' | '+item.provenance+'</small><p>'+item.note+'</p><a href="'+item.from_page+'" target="_blank">Página de origem ↗</a>';
+           f.appendChild(c);root.appendChild(f)
+          }}render()</script></body></html>""".replace("__DATA__",data)
+          (OUT/"GALERIA.html").write_text(page,encoding="utf-8")
+          # Contact mosaic
+          W,H=282,260; per_row=4
+          lines=(len(records)+per_row-1)//per_row
+          img=Image.new("RGB",(per_row*W,lines*H+70),"#101827")
+          draw=ImageDraw.Draw(img)
+          fontpath="/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+          f1=ImageFont.truetype(fontpath,25);f2=ImageFont.truetype(fontpath,13)
+          draw.text((16,13),f"FIX IT | {len(records)} REFERENCIAS DE PUZZLES",font=f1,fill="#e3fbf9")
+          for index,rec in enumerate(records):
+             im=Image.open(OUT/rec["folder"]/rec["filename"]);im.thumbnail((W-20,200))
+             x=(index%per_row)*W+(W-im.width)//2;y=(index//per_row)*H+55
+             img.paste(im,(x,y));tag=rec["folder"].split("_",1)[1].replace("_"," ")
+             draw.text(((index%per_row)*W+8,(index//per_row)*H+256),f"{rec['game'][:27]} · {rec['filename']}",font=f2,fill="#d6e5ef")
+          img.save(OUT/"MOSAICO.jpg",quality=89)
+          print("SUCCESS_REFERENCE_SCREENSHOTS",len(records),"GAME_COUNT",len(set(r["game"] for r in records)))
+          PY
+          python3 /tmp/build_gallery.py
+          find out -type f | wc -l
+      - name: Upload offline visual reference pack
+        uses: actions/upload-artifact@v4
+        with:
+          name: FixIt-Referencia-Jogos-Reais-Capturas
+          path: out/**
+          retention-days: 14
+          if-no-files-found: error
