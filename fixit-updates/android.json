@@ -1,10 +1,10 @@
 {
-  "versionCode": 37,
-  "versionName": "0.8.3-visual-puzzles",
-  "apkUrl": "https://matheuspaiim.github.io/fixit-updates/android/fixit-v37.apk",
-  "sha256": "99aafe0d9983c8d3570fd69514223e427691a5c74856ffd3bb7031c28d747965",
-  "bytes": 5779684,
-  "notes": "Fix It! original V714: 5 novos puzzles visuais com gestos reais. Ícone atualizado com a casinha, plugue e ferramenta. Mesmo aplicativo, mesmos cenários e mesma engine.",
+  "versionCode": 38,
+  "versionName": "0.8.4-ci-repair",
+  "apkUrl": "https://matheuspaiim.github.io/fixit-updates/android/fixit-v38.apk",
+  "sha256": "a31f8c3c8c7c20c11bf0b5f2ca025b1e11b6c90ecadb3bdaa0a3c2e09bc51d39",
+  "bytes": 5773668,
+  "notes": "Fix It! Android v38: correcoes no build, seguranca do pipeline e versao do APK nas Configuracoes. Mesmo jogo e mesmos visuais; as fases continuam em revisao de jogabilidade.",
   "channel": "android-package",
   "minAndroidSdk": 24
 }
