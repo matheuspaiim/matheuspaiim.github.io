@@ -1,1 +1,2 @@
 verify-live-FixIt-original-V716-win-choices-fresh-replay-20261009
+2026-10-09 verify Android v38 public bytes, SHA-256 and OTA 716, after verified publish 37943361994
