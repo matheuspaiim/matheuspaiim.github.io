@@ -1,18 +1,18 @@
 {
-  "revision": 712,
+  "revision": 713,
   "minShell": 7,
-  "notes": "V712: restauração do Fix It! original, com o visual, interface, menus e jogabilidade aprovados anteriormente. Removida a divulgação da migração para outro jogo. Seu progresso continua salvo.",
+  "notes": "V713: novas mecânicas de eletricidade nos mesmos 20 puzzles: disjuntores, diodos, fusíveis, relés temporizados e reparos. Visual original, Casa da Lila, menus e navegação preservados.",
   "files": {
     "engine.js": {
-      "path": "v712/engine.js",
+      "path": "v713/engine.js",
       "sha256": "bfc2163a7a58aeefdf181f272cbf06490a8f9be3a3c29bb54303d480c8f747dc"
     },
     "app.js": {
-      "path": "v712/app.js",
-      "sha256": "63d18263d9c2b72816876aeb56cde212ed87b2810d55eb341cd150ce3286ae62"
+      "path": "v713/app.js",
+      "sha256": "56f8a58c0ba8977b5a35f657884f165477323c0868a420eb859b8b790d4b0398"
     },
     "style.css": {
-      "path": "v712/style.css",
+      "path": "v713/style.css",
       "sha256": "13e1e870a2a3d45e431a3e99d13eacca45253e1e90fc5b2426125ea086295b94"
     }
   }
