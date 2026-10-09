@@ -1,7 +1,7 @@
 {
-  "versionCode": 37,
-  "versionName": "0.8.3-visual-puzzles",
-  "notes": "Fix It! original V714: 5 novos puzzles visuais com gestos reais. Ícone atualizado com a casinha, plugue e ferramenta. Mesmo aplicativo, mesmos cenários e mesma engine.",
-  "sourceSha256": "99aafe0d9983c8d3570fd69514223e427691a5c74856ffd3bb7031c28d747965",
-  "sourceZip": "https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-fbdc-820e-9067-57585815c667/raw?se=2026-10-09T01%3A14%3A15Z&sp=r&sv=2026-02-06&sr=b&scid=51b554b6-bce2-5771-b502-32488063493c&skoid=bdd24bd8-9af5-4138-bfb1-19fba97a8611&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-10-08T22%3A47%3A12Z&ske=2026-10-09T22%3A47%3A12Z&sks=b&skv=2026-02-06&sig=L1Rr/JbjcXcGStX7l4wC2sR0SxftV4NNpOnLY4cRHIg%3D"
+  "versionCode": 38,
+  "versionName": "0.8.4-ci-repair",
+  "notes": "Fix It! Android v38: correcoes no build, seguranca do pipeline e versao do APK nas Configuracoes. Mesmo jogo e mesmos visuais; as fases continuam em revisao de jogabilidade.",
+  "sourceSha256": "a31f8c3c8c7c20c11bf0b5f2ca025b1e11b6c90ecadb3bdaa0a3c2e09bc51d39",
+  "sourceZip": "https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-a960-820e-9f1a-fcb2e3530391/raw?se=2026-10-09T14%3A23%3A50Z&sp=r&sv=2026-02-06&sr=b&scid=d283075b-3aa0-515d-9ddf-5f58f33fda17&skoid=bdd24bd8-9af5-4138-bfb1-19fba97a8611&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-10-09T10%3A15%3A46Z&ske=2026-10-10T10%3A15%3A46Z&sks=b&skv=2026-02-06&sig=%2BnVpjg6qWUgqc1eNR9FQU/biol4OjMBYTmWD9RO0V34%3D"
 }
