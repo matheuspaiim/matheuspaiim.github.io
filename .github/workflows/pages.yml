@@ -1,8 +1,9 @@
 name: Deploy GitHub Pages
 
+# GitHub Pages already has a native branch-deployment workflow on every push.
+# Retain this second Actions-based publisher as manual fallback only to avoid
+# concurrent deploys for the same commit.
 on:
-  push:
-    branches: ["main"]
   workflow_dispatch:
 
 permissions:
