@@ -1,4 +1,4 @@
-const APP_VERSION="0.5.79";
+const APP_VERSION="0.5.80";
 const cfg=window.LIBRAS_STUDIO_CONFIG||{},$=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const nativeParams=new URLSearchParams(location.search);
 const IS_NATIVE_ANDROID=nativeParams.get("native")==="android";
@@ -11,6 +11,11 @@ let sb,S={session:null,signs:[],cats:[],reviews:[],study:[],catalog:null,catalog
 let trackingYear=new Date().getFullYear(),trackingMonth=new Date().getMonth();
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const norm=s=>String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
+function signIdentity(value){
+  let name=String(value||"").normalize("NFC").trim().toLocaleLowerCase("pt-BR");
+  if(["avô","avó","país","pais"].includes(name))return name;
+  return norm(name);
+}
 const title=s=>{s=String(s||"").trim().replace(/\s+/g," ");return s?s[0].toLocaleUpperCase("pt-BR")+s.slice(1).toLocaleLowerCase("pt-BR"):s};
 function toast(t){let x=$("#toast");x.textContent=t;x.classList.add("show");clearTimeout(x._t);x._t=setTimeout(()=>x.classList.remove("show"),2500)}
 function go(v){$$(".view").forEach(x=>x.classList.remove("active"));$("#"+v)?.classList.add("active");$$("nav [data-view]").forEach(x=>x.classList.toggle("active",x.dataset.view===v));$$(".side-nav [data-view]").forEach(x=>x.classList.toggle("active",x.dataset.view===v));$("#more")?.classList.add("hidden");window.scrollTo(0,0);if(v==="progress")renderProgressPage();if(v==="library")library();if(v==="explore")exploreCats();if(v==="libraslab")refreshLibrasLab()}
@@ -54,7 +59,7 @@ function openProfileNameEditor(){
 }
 function authUI(){let on=!!S.session;$("#auth").classList.toggle("hidden",on);$("#app").classList.toggle("hidden",!on);if(on){$("#account").textContent="☁️ "+(S.session.user.email||"Conta");renderProfileIdentity()}else closeProfileMenu()}
 function cache(){let key=userCacheKey();if(!key)return;try{localStorage.setItem(key,JSON.stringify({signs:S.signs,cats:S.cats,reviews:S.reviews,study:S.study,updated_at:new Date().toISOString()}))}catch(e){console.warn("cache local",e)}}
-function signNormKey(x){return String(x?.norm||norm(x?.name||"")).trim()}
+function signNormKey(x){return x?.name?signIdentity(x.name):String(x?.norm||"").trim()}
 function stableVariantIdentity(x){
   let n=signNormKey(x),vk=String(x?.variant_key||"").trim(),path=String(x?.media_path||"").trim(),url=String(x?.source_url||"").trim().replace(/^http:/,"https:");
   if(vk)return n+"|variant|"+vk;
@@ -96,7 +101,23 @@ async function upsertChunks(table,rows,onConflict){for(let i=0;i<rows.length;i+=
 function phoneCategoryRow(x,now){return{user_id:S.session.user.id,name:x.name||"Outros",emoji:x.emoji||"🧩",description:x.description||"",sort_order:Number(x.sort_order||999),is_custom:!!x.is_custom,is_hidden:!!x.is_hidden,updated_at:now,deleted_at:null}}
 function phoneSignRow(x,now){return{user_id:S.session.user.id,studio_id:x.studio_id||uuid(),name:x.name||"",norm:x.norm||norm(x.name),variant_no:Number(x.variant_no||1),variant_key:x.variant_key||("mobile|"+norm(x.name)+"|"+norm(x.source_url||x.media_url||x.studio_id||"")),category_name:x.category_name||"Outros",category_source:x.category_source||"auto",category_tags:typeof x.category_tags==="string"?x.category_tags:JSON.stringify(x.category_tags||[]),source_id:x.source_id||null,source_name:x.source_name||null,source_url:x.source_url||null,source_label:x.source_label||null,origin:x.origin||"catalog",lesson_url:x.lesson_url||null,lesson_start:x.lesson_start??null,lesson_end:x.lesson_end??null,media_path:x.media_path||null,media_sha1:x.media_sha1||null,created_at:x.created_at||now,updated_at:now,deleted_at:null}}
 function phoneReviewRow(x,now){return{user_id:S.session.user.id,norm:x.norm,due_at:x.due_at||null,interval_days:Number(x.interval_days||0),ease:Number(x.ease||2.5),reps:Number(x.reps||0),lapses:Number(x.lapses||0),last_rating:x.last_rating||null,last_reviewed_at:x.last_reviewed_at||null,created_at:x.created_at||now,updated_at:now,deleted_at:null}}
-function phoneStudyRows(remote,now){let local=new Map((S.study||[]).map(x=>[x.lesson_id,x])),ids=new Set([...(window.LIBRAS_STUDY_CONTENT||[]).map(x=>x.id),...(remote||[]).map(x=>x.lesson_id),...local.keys()]);return[...ids].filter(Boolean).map(id=>{let x=local.get(id);return{user_id:S.session.user.id,lesson_id:id,completed:!!x?.completed,completed_at:x?.completed?x.completed_at||now:null,updated_at:now}})}
+function phoneStudyRows(remote,now){
+  const local=new Map((S.study||[]).map(x=>[x.lesson_id,x]));
+  const archived=new Map((remote||[]).map(x=>[x.lesson_id,x]));
+  const currentIds=new Set((window.LIBRAS_STUDY_CONTENT||[]).map(x=>x.id));
+  const ids=new Set([...currentIds,...local.keys(),...archived.keys()]);
+  return [...ids].filter(Boolean).map(id=>{
+    // On a phone-authoritative sync, today's course follows the phone state.
+    // Historical IDs no longer in the curriculum must NEVER be cleared merely
+    // because this phone has no corresponding legacy record.
+    const historical=!currentIds.has(id);
+    const x=local.get(id)||(historical?archived.get(id):null);
+    return{
+      user_id:S.session.user.id,lesson_id:id,completed:!!x?.completed,
+      completed_at:x?.completed?(x.completed_at||now):null,updated_at:now
+    };
+  });
+}
 async function pushPhoneSnapshot(){
   if(!S.session||S.session.offline)throw new Error("Entre na conta antes de sincronizar.");
   if(!navigator.onLine)throw new Error("Conecte-se à internet para sincronizar.");
@@ -202,7 +223,7 @@ function cacheLibraryVideos(){return /* cache em massa desativado: prioriza repr
 function deleteCachedLibraryVideo(item){let id=item?.studio_id,url=vurl(item);MEDIA_CACHE_PENDING.delete(id);if(nativeMediaAvailable()&&id&&typeof window.LibrasMedia.deleteCachedVideo==="function"){try{window.LibrasMedia.deleteCachedVideo(String(id))}catch{}}if(url&&"caches"in window)caches.open(LIBRARY_MEDIA_CACHE).then(c=>c.delete(url,{ignoreVary:true})).catch(()=>{})}
 window.addEventListener("librasstudio-media-cache",e=>{let d=e.detail||{};if(d.studioId)MEDIA_CACHE_PENDING.delete(String(d.studioId))});
 function render(){const steps=[["home",home],["libraryCats",libraryCats],["library",library],["reviewCats",reviewCats],["study",study],["exploreCats",exploreCats],["progress",renderProgressPage]];let errors=[];for(const [name,fn] of steps){try{fn()}catch(e){errors.push({name,error:e});console.error("render:"+name,e)}}try{if(window.LSHydrateIcons)LSHydrateIcons(document)}catch(e){errors.push({name:"icons",error:e});console.error("render:icons",e)}return errors}
-function unique(){let m=new Map;S.signs.forEach(s=>{if(!m.has(s.norm))m.set(s.norm,s)});return[...m.values()]}
+function unique(){let m=new Map;S.signs.forEach(s=>{let key=signNormKey(s);if(key&&!m.has(key))m.set(key,s)});return[...m.values()]}
 function rmap(){return Object.fromEntries(S.reviews.map(x=>[x.norm,x]))}
 
 const HOME_CATS=[
@@ -350,7 +371,17 @@ const CURATED_SIGN_MEDIA={
 };
 function csvLine(l){let a=[],x="",q=false;for(let i=0;i<l.length;i++){let c=l[i];if(c=='"'){if(q&&l[i+1]=='"'){x+='"';i++}else q=!q}else if(c===","&&!q){a.push(x);x=""}else x+=c}a.push(x);return a}
 function catalogKeys(label){let raw=String(label||"").trim(),base=raw.replace(/\d+$/,"").trim(),keys=new Set;const add=x=>{let k=norm(String(x||"").replace(/\d+$/,""));if(k)keys.add(k)};add(base);add(base.replace(/\([^)]*\)/g," "));base.split(/\s+ou\s+|\/|:/i).forEach(add);return[...keys]}async function sourceText(url){try{if("caches"in window){let c=await caches.open("libras-studio-catalog-v2"),hit=await c.match(url);if(hit)return hit.text();let r=await fetch(url,{cache:"no-store"});if(!r.ok)throw new Error("HTTP "+r.status);await c.put(url,r.clone());return r.text()}}catch(e){console.warn("cache catálogo",e)}let r=await fetch(url);if(!r.ok)throw new Error("HTTP "+r.status);return r.text()}async function catalog(){if(S.catalog)return S.catalog;let map={},rows=0;const all=await Promise.all(SRC.map(async([id,name,url])=>{try{return{id,name,text:await sourceText(url)}}catch(e){console.warn(name,e);return{id,name,text:""}}}));for(let src of all){let ls=src.text.split(/\r?\n/);for(let i=1;i<ls.length;i++){if(!ls[i])continue;let a=csvLine(ls[i]),label=a[0]?.trim(),u=a[1]?.trim();if(!label||!u)continue;rows++;let opt={label,url:u.replace(/^http:/,"https:"),source_id:src.id,source_name:src.name},options=[opt];if(src.id==="ines"){let m=opt.url.match(/\/palavras\/videos\/([^?#]+)/i);if(m)options.unshift({label,url:"https://goiaslibras.educacao.go.gov.br/api/media/ines/palavras/videos/"+m[1],source_id:"goiasnacional",source_name:"GoiásLibras · base nacional"})}for(let k of catalogKeys(label)){let arr=map[k]??=[];for(let candidate of options)if(!arr.some(x=>x.url===candidate.url))arr.push(candidate);map[k]=arr}}}for(let k in map)map[k].sort((a,b)=>(SOURCE_RANK[a.source_id]??99)-(SOURCE_RANK[b.source_id]??99));S.catalog=map;S.catalogStats={rows,labels:Object.keys(map).length,multiword:Object.keys(map).filter(k=>k.includes(" ")).length,sources:all.filter(x=>x.text).length};return map}
-const opts=n=>{let k=norm(n),arr=[...((S.catalog||{})[k]||[]),...(CURATED_SIGN_MEDIA[k]||[])],seen=new Set;return arr.filter(x=>x.url&&!seen.has(x.url)&&seen.add(x.url)).sort((a,b)=>(SOURCE_RANK[a.source_id]??99)-(SOURCE_RANK[b.source_id]??99))};
+const opts=n=>{
+  let k=norm(n),semantic=signIdentity(n),ambiguous=["avô","avó","pais","país"].includes(semantic);
+  let arr=[...((S.catalog||{})[k]||[]),...(CURATED_SIGN_MEDIA[k]||[])],seen=new Set;
+  return arr.filter(x=>{
+    if(!x.url)return false;
+    // The source catalog is accent-insensitive: never show "avô" as "avó", or "pais" as "país".
+    if(ambiguous&&signIdentity(String(x.label||"").replace(/\s+\d+$/,""))!==semantic)return false;
+    if(seen.has(x.url))return false;
+    seen.add(x.url);return true;
+  }).sort((a,b)=>(SOURCE_RANK[a.source_id]??99)-(SOURCE_RANK[b.source_id]??99));
+};
 const MEDIA_HEALTH_KEY="ls-media-health-v1",MEDIA_OK_TTL=12*60*60*1000,MEDIA_FAIL_TTL=20*60*1000;
 function mediaHealth(){try{return JSON.parse(localStorage.getItem(MEDIA_HEALTH_KEY)||"{}")}catch{return{}}}
 function setMediaHealth(url,ok){if(!url)return;let h=mediaHealth();h[url]={ok:!!ok,at:Date.now()};let entries=Object.entries(h).sort((a,b)=>(b[1]?.at||0)-(a[1]?.at||0)).slice(0,600);try{localStorage.setItem(MEDIA_HEALTH_KEY,JSON.stringify(Object.fromEntries(entries)))}catch{}}
@@ -394,7 +425,7 @@ async function repairMedia(studioId,candidate){if(!studioId||!candidate?.url||!S
 function catFor(n){let k=norm(n);for(let[c,d]of Object.entries(window.LIBRAS_EXPLORE_DATA||{}))if(d.terms.some(x=>norm(x)===k))return c;return"Outros"}
 function uuid(){return crypto.randomUUID?crypto.randomUUID():Date.now()+"-"+Math.random()}
 async function save(name,o,cat=null,origin="catalog"){
-  let n=norm(name),url=String(o?.url||"").replace(/^http:/,"https:"),variantKey="mobile|"+n+"|"+norm(url);
+  let n=signIdentity(name),url=String(o?.url||"").replace(/^http:/,"https:"),variantKey="mobile|"+n+"|"+norm(url);
   let sameNorm=S.signs.filter(x=>signNormKey(x)===n),existing=sameNorm.find(x=>String(x.variant_key||"")===variantKey||(url&&String(x.source_url||"").replace(/^http:/,"https:")===url));
   if(existing)return existing;
   if(url&&sameNorm.length){
@@ -445,22 +476,22 @@ function renderExpandedPhraseLibrary(reset=false){
   }
   let grid=$("#phrase-generated-grid");if(grid)grid.innerHTML=phraseLibraryGeneratedRows(items)||'<div class="empty-note">Nenhuma frase encontrada neste filtro.</div>';
   let more=$("#phrase-load-more");if(more){more.classList.toggle("hidden",!!q||!items.length);more.textContent="Carregar mais frases"}
-  $("[data-phrase-generated]").forEach(b=>b.onclick=()=>{let p=lib.get(+b.dataset.phraseGenerated);if(!p)return;$("#phrase-name").value=p.text;previewVLibras(p.text)});
+  $$("[data-phrase-generated]").forEach(b=>b.onclick=()=>{let p=lib.get(+b.dataset.phraseGenerated);if(!p)return;$("#phrase-name").value=p.text;previewVLibras(p.text)});
 }
 function showAvailablePhrases(){
   let real=window.LIBRAS_PHRASE_DATA||[],lib=window.LIBRAS_PHRASE_LIBRARY,badge=$("#phrase-count-badge"),total=lib?.total||real.length;
-  if(badge)badge.textContent=total.toLocaleString("pt-BR")+" frases";
+  if(badge)badge.textContent=total.toLocaleString("pt-BR")+" modelos textuais";
   let cats=(lib?.categories||[]).map(c=>'<option value="'+esc(c)+'">'+esc(c)+'</option>').join("");
   $("#phrase-result").innerHTML=
-    '<div class="phrase-library-summary"><div><b>'+total.toLocaleString("pt-BR")+' frases pesquisáveis</b><small>'+real.length+' gravações humanas priorizadas · demais frases via VLibras</small></div><span>Biblioteca experimental</span></div>'+
+    '<div class="phrase-library-summary"><div><b>'+total.toLocaleString("pt-BR")+' modelos de frase</b><small>'+real.length+' registros humanos cadastrados (vídeos sujeitos a validação) · demais textos dependem do VLibras</small></div><span>Biblioteca experimental</span></div>'+
     '<div class="phrase-library-toolbar"><input id="phrase-library-filter" placeholder="Filtrar entre 50 mil frases"><select id="phrase-library-category"><option value="">Todos os temas</option>'+cats+'</select></div>'+
     '<div class="phrase-human-section"><div class="phrase-section-title"><b>Gravações humanas</b><small>'+real.length+' disponíveis</small></div><div class="phrase-library-grid">'+real.map((p,i)=>'<button type="button" data-phrase-pick="'+i+'"><b>'+esc(p.text)+'</b><small>Gravação real · buscar</small></button>').join("")+'</div></div>'+
     '<div class="phrase-generated-section"><div class="phrase-section-title"><b>Biblioteca ampliada</b><small>Tradução automática do VLibras</small></div><div id="phrase-generated-grid" class="phrase-library-grid"></div><button id="phrase-load-more" class="soft wide" style="margin-top:10px">Carregar mais frases</button></div>';
   PHRASE_LIBRARY_STATE={offset:0,category:"",query:""};renderExpandedPhraseLibrary(true);
-  $("[data-phrase-pick]").forEach(b=>b.onclick=()=>{let p=real[+b.dataset.phrasePick];if(!p)return;$("#phrase-name").value=p.text;phrase()});
-  $("#phrase-library-filter").oninput=()=>renderExpandedPhraseLibrary(true);
+  $$("[data-phrase-pick]").forEach(b=>b.onclick=()=>{let p=real[+b.dataset.phrasePick];if(!p)return;$("#phrase-name").value=p.text;phrase()});
+  let phraseFilterTimer=null;$("#phrase-library-filter").oninput=()=>{clearTimeout(phraseFilterTimer);phraseFilterTimer=setTimeout(()=>renderExpandedPhraseLibrary(true),220)};
   $("#phrase-library-category").onchange=()=>renderExpandedPhraseLibrary(true);
-  $("#phrase-load-more").onclick=()=>{PHRASE_LIBRARY_STATE.offset+=60;let lib=window.LIBRAS_PHRASE_LIBRARY,cat=PHRASE_LIBRARY_STATE.category||"";let items=lib.page(PHRASE_LIBRARY_STATE.offset,60,cat),grid=$("#phrase-generated-grid");if(grid)grid.insertAdjacentHTML("beforeend",phraseLibraryGeneratedRows(items));$("[data-phrase-generated]").forEach(b=>b.onclick=()=>{let p=lib.get(+b.dataset.phraseGenerated);if(!p)return;$("#phrase-name").value=p.text;previewVLibras(p.text)});if(!items.length)$("#phrase-load-more").classList.add("hidden")}
+  $("#phrase-load-more").onclick=()=>{PHRASE_LIBRARY_STATE.offset+=60;let lib=window.LIBRAS_PHRASE_LIBRARY,cat=PHRASE_LIBRARY_STATE.category||"";let items=lib.page(PHRASE_LIBRARY_STATE.offset,60,cat),grid=$("#phrase-generated-grid");if(grid)grid.insertAdjacentHTML("beforeend",phraseLibraryGeneratedRows(items));$$("[data-phrase-generated]").forEach(b=>b.onclick=()=>{let p=lib.get(+b.dataset.phraseGenerated);if(!p)return;$("#phrase-name").value=p.text;previewVLibras(p.text)});if(!items.length)$("#phrase-load-more").classList.add("hidden")}
 }
 async function batch(){let ns=$("#batch-text").value.split(/\n|,/).map(x=>x.trim()).filter(Boolean),ok=0,fail=[];await catalog();for(let n of ns){let o=opts(n);if(!o.length){fail.push(n);continue}try{await save(n,o[0],null,"batch");ok++}catch{fail.push(n)}}$("#batch-result").innerHTML='<div class="result"><b>✅ '+ok+' salvos</b>'+(fail.length?'<p>Não encontrados: '+esc(fail.join(", "))+'</p>':"")+"</div>"}
 function exploreCats(){let q=norm($("#explore-search")?.value),D=window.LIBRAS_EXPLORE_DATA||{};$("#explore-cats").innerHTML=Object.entries(D).filter(([c,d])=>!q||norm(c+" "+d.description).includes(q)).map(([c,d])=>'<button data-cat="'+esc(c)+'" class="'+(S.explore===c?"active":"")+'">'+LSCategoryIcon(c)+" "+esc(c)+"</button>").join("");$$("[data-cat]").forEach(b=>b.onclick=()=>openCat(b.dataset.cat))}
@@ -536,19 +567,22 @@ async function openCat(c){
 }
 function smap(){return Object.fromEntries(S.study.map(x=>[x.lesson_id,x]))}
 function studyKindMeta(kind){
-  let m=window.LIBRAS_STUDY_KIND_META||{},x=m[kind];
+  let lesson=typeof kind==="object"?kind:null;
+  if(lesson?.mode==="application")return{icon:"🎯",label:"Aplicar em contexto"};
+  if(lesson?.mode==="reinforcement")return{icon:"↻",label:"Reforçar"};
+  let m=window.LIBRAS_STUDY_KIND_META||{},x=m[lesson?.kind||kind];
   return Array.isArray(x)?{icon:x[0]||"👐",label:x[1]||"Aula"}:{icon:"👐",label:"Aula"};
 }
 function studyLessonPool(lesson){
   let unit=Number(lesson?.unit||1),all=window.LIBRAS_STUDY_CONTENT||[],out=[];
-  const add=a=>(a||[]).forEach(x=>{if(x&&!out.some(y=>norm(y)===norm(x)))out.push(x)});
+  const add=a=>(a||[]).forEach(x=>{if(x&&!out.some(y=>signIdentity(y)===signIdentity(x)))out.push(x)});
   add(lesson?.signs);add(lesson?.expansion);
   all.filter(x=>Number(x.unit||1)===unit).forEach(x=>{add(x.signs);add(x.expansion)});
   return out.filter(Boolean);
 }
 function studyChoiceOrder(target,pool,seed=0){
-  let list=[target,...(pool||[]).filter(x=>norm(x)!==norm(target))],seen=new Set;
-  list=list.filter(x=>{let k=norm(x);if(!k||seen.has(k))return false;seen.add(k);return true}).slice(0,4);
+  let list=[target,...(pool||[]).filter(x=>signIdentity(x)!==signIdentity(target))],seen=new Set;
+  list=list.filter(x=>{let k=signIdentity(x);if(!k||seen.has(k))return false;seen.add(k);return true}).slice(0,4);
   if(list.length<2)return list;
   let shift=(seed%list.length+list.length)%list.length;
   return [...list.slice(shift),...list.slice(0,shift)];
@@ -565,26 +599,56 @@ function studyBuildSteps(lesson){
   steps.push({type:"intro",title:lesson.title,text:lesson.summary||detail.mission,detail});
 
   if(lesson.kind==="signals"){
-    core.slice(0,6).forEach((s,i)=>{
-      steps.push({type:"learn",target:s});
-      steps.push({type:"recognize",target:s,seed:lesson.unit*31+lesson.order*7+i});
-      if(i===1&&lesson.microtheory){
-        steps.push({type:"concept",title:lesson.microtheory.title,text:lesson.microtheory.text+" "+(lesson.microtheory.observe||"")});
+    const known=new Set((lesson.freshSigns||core).map(signIdentity));
+    const fresh=core.filter(name=>known.has(signIdentity(name)));
+    const practiceOnly=lesson.mode==="application";
+    if(practiceOnly){
+      steps.push({type:"mission",title:"Aplicação em contexto",
+        text:lesson.context||lesson.summary||detail.mission,
+        prompt:lesson.practice||detail.mission,questions:detail.questions,signs:core});
+      if(lesson.microtheory)steps.push({
+        type:"concept",title:lesson.microtheory.title,
+        text:lesson.microtheory.text+" "+(lesson.microtheory.observe||"")
+      });
+    }else{
+      fresh.forEach((name,i)=>{
+        steps.push({type:"learn",target:name});
+        if(i===Math.min(1,fresh.length-1)&&lesson.microtheory){
+          steps.push({type:"concept",title:lesson.microtheory.title,
+            text:lesson.microtheory.text+" "+(lesson.microtheory.observe||"")});
+        }
+      });
+      if(!fresh.length&&lesson.microtheory){
+        steps.push({type:"concept",title:lesson.microtheory.title,text:lesson.microtheory.text});
       }
+    }
+    // Reconhecer so depois de observar o conjunto, nao imediatamente apos cada resposta.
+    const rotate=core.length?(lesson.unit+lesson.order)%core.length:0;
+    const assessment=[...core.slice(rotate),...core.slice(0,rotate)];
+    if(assessment.length>1&&fresh.length&&signIdentity(assessment[0])===signIdentity(fresh[fresh.length-1])){
+      assessment.push(assessment.shift());
+    }
+    assessment.slice(0,6).forEach((name,i)=>{
+      steps.push({type:"recognize",target:name,seed:lesson.unit*31+lesson.order*7+i});
     });
-    let production=core.slice(-2);
-    production.forEach((s,i)=>steps.push({
-      type:"produce",
-      target:s,
-      prompt:i?"Faça este sinal novamente sem olhar o modelo.":"Agora faça este sinal antes de revelar o modelo.",
+    const production=practiceOnly?core.slice(0,2):core.slice(-2);
+    production.forEach((name,i)=>steps.push({
+      type:"produce",target:name,
+      prompt:practiceOnly
+        ?"Utilize este sinal numa resposta adequada a situacao proposta."
+        :(i?"Produza outro sinal da aula sem olhar o modelo.":"Produza o sinal sem olhar e depois confira."),
       seed:lesson.unit*41+i
     }));
     if((lesson.expansion||[]).length)steps.push({type:"expansion",signs:lesson.expansion.slice(0,2)});
-    steps.push({type:"recap",title:"Aula concluída",text:lesson.practice||detail.mission,take:lesson.take||[],signs:core});
+    steps.push({type:"recap",title:practiceOnly?"Aplicação concluída":"Aula realizada",
+      text:lesson.practice||detail.mission,take:lesson.take||[],signs:core});
     return steps;
   }
 
   if(lesson.kind==="integration"){
+    steps.push({type:"mission",title:"Desafio da unidade",
+      text:lesson.scene||lesson.challenge||detail.mission,
+      prompt:lesson.practice||detail.mission,questions:detail.questions,signs:core});
     core.slice(0,4).forEach((s,i)=>steps.push({type:"recognize",target:s,seed:lesson.unit*53+i}));
     core.slice(4,6).forEach((s,i)=>steps.push({type:"produce",target:s,prompt:i?"Produza outro sinal da missão.":"Sua vez: produza antes de conferir.",seed:lesson.unit*59+i}));
     steps.push({type:"recap",title:"Missão concluída",text:lesson.practice||lesson.challenge||detail.mission,take:lesson.take||[],signs:core.slice(0,6)});
@@ -621,7 +685,7 @@ async function studyWarmUrl(url){
   try{await fetch(url,{mode:"no-cors",cache:"force-cache",credentials:"omit"})}catch{}
 }
 function studyCreateWarmVideo(name,media){
-  let key=norm(name),existing=STUDY_WARM_MEDIA.get(key);
+  let key=signIdentity(name),existing=STUDY_WARM_MEDIA.get(key);
   if(existing?.media?.url===media?.url&&existing.video)return existing;
   let video=document.createElement("video");
   video.preload="auto";video.muted=true;video.playsInline=true;video.loop=true;
@@ -639,7 +703,7 @@ function studyCreateWarmVideo(name,media){
   return studyRememberWarm(key,{name,media,video,ready,createdAt:Date.now()});
 }
 async function studyWarmSign(name){
-  let key=norm(name);if(!key)return null;
+  let key=signIdentity(name);if(!key)return null;
   let cached=STUDY_WARM_MEDIA.get(key);
   if(cached?.media?.url){
     try{await cached.ready}catch{}
@@ -671,7 +735,7 @@ function studyWarmUpcomingSteps(){
 function studyMountWarmVideo(root,name,media,vid){
   let holder=root?.querySelector("[data-study-video-slot]");
   if(!holder)return null;
-  let key=norm(name),row=STUDY_WARM_MEDIA.get(key),video=row?.media?.url===media?.url?row.video:null;
+  let key=signIdentity(name),row=STUDY_WARM_MEDIA.get(key),video=row?.media?.url===media?.url?row.video:null;
   if(!video){
     row=studyCreateWarmVideo(name,media);video=row.video;
   }
@@ -705,19 +769,28 @@ function bindStudyLibraryButtons(root){
   });
 }
 let STUDY_PLAY=null;
+function studySessionKey(){return "ls-study-session-v2:"+(activeUserId()||"anonymous")}
+function studyStepsSignature(steps){return (steps||[]).map(x=>x.type+":"+(x.target||"")).join("|")}
 function studySessionSaved(){
-  try{return JSON.parse(localStorage.getItem("ls-study-session")||"null")}catch{return null}
+  try{return JSON.parse(localStorage.getItem(studySessionKey())||"null")}catch{return null}
 }
 function studySaveSession(){
-  if(!STUDY_PLAY)return;
-  try{localStorage.setItem("ls-study-session",JSON.stringify({lessonId:STUDY_PLAY.lesson.id,index:STUDY_PLAY.index}))}catch{}
+  let p=STUDY_PLAY;if(!p)return;
+  try{localStorage.setItem(studySessionKey(),JSON.stringify({
+    version:2,lessonId:p.lesson.id,index:p.index,signature:studyStepsSignature(p.steps),
+    score:p.score,errors:p.errors,outcomes:p.outcomes||{}
+  }))}catch(e){console.warn("salvar aula em andamento",e)}
 }
-function studyClearSession(){try{localStorage.removeItem("ls-study-session")}catch{}}
+function studyClearSession(){try{localStorage.removeItem(studySessionKey());localStorage.removeItem("ls-study-session")}catch{}}
 async function openInteractiveLesson(id,{fresh=false}={}){
   let lesson=(window.LIBRAS_STUDY_CONTENT||[]).find(x=>x.id===id);if(!lesson)return;
   localStorage.setItem("ls-last-lesson",id);
-  let steps=studyBuildSteps(lesson),saved=fresh?null:studySessionSaved(),index=saved?.lessonId===id?Math.min(Math.max(0,Number(saved.index||0)),Math.max(0,steps.length-1)):0;
-  STUDY_PLAY={lesson,steps,index,answer:null,score:0,errors:0,token:0,media:new Map,failed:new Set};
+  let steps=studyBuildSteps(lesson),saved=fresh?null:studySessionSaved();
+  let resume=!!(saved?.version===2&&saved.lessonId===id&&saved.signature===studyStepsSignature(steps));
+  let index=resume?Math.min(Math.max(0,Number(saved.index||0)),Math.max(0,steps.length-1)):0;
+  STUDY_PLAY={lesson,steps,index,answer:null,score:resume?Number(saved.score||0):0,
+    errors:resume?Number(saved.errors||0):0,outcomes:resume?(saved.outcomes||{}):{},
+    token:0,media:new Map,failed:new Set,advancing:false};
   studyWarmLesson(lesson).catch(()=>{});
   modal('<div id="study-player" class="study-player"></div>');$("#modal").classList.add("study-session-open");
   await renderStudyPlayer();
@@ -727,7 +800,7 @@ function studyPlayerProgress(){
   return Math.round((STUDY_PLAY.index/Math.max(1,STUDY_PLAY.steps.length))*100);
 }
 async function preferredStudySignMedia(name){
-  let saved=S.signs.find(x=>signNormKey(x)===norm(name)),local=saved?nativeCachedVideoUrl(saved.studio_id):"";
+  let saved=S.signs.find(x=>signNormKey(x)===signIdentity(name)),local=saved?nativeCachedVideoUrl(saved.studio_id):"";
   if(local)return{url:local,source_id:saved.source_id||"saved",source_name:(saved.source_name||"Biblioteca")+" · offline"};
   if(!navigator.onLine){
     let url=saved?vurl(saved):"";
@@ -746,22 +819,20 @@ async function preferredStudySignMedia(name){
 }
 async function studyGetMedia(name){
   if(!STUDY_PLAY)return null;
-  let key=norm(name),warm=STUDY_WARM_MEDIA.get(key);
-  if(warm?.media?.url){try{await warm.ready}catch{}return warm.media;}
+  let key=signIdentity(name),warm=STUDY_WARM_MEDIA.get(key);
+  if(warm?.media?.url){let ready=false;try{ready=await warm.ready}catch{}if(ready)return warm.media;STUDY_WARM_MEDIA.delete(key);}
   if(STUDY_PLAY.media.has(key))return STUDY_PLAY.media.get(key);
   let p=preferredStudySignMedia(name).catch(()=>null);STUDY_PLAY.media.set(key,p);
   p.then(media=>{if(media?.url)studyCreateWarmVideo(name,media)}).catch(()=>{});
   return p;
 }
 async function studyResolveTarget(step){
-  if(!STUDY_PLAY)return null;
-  let pool=studyLessonPool(STUDY_PLAY.lesson),candidates=[step.target,...pool],seen=new Set;
-  candidates=candidates.filter(x=>{let k=norm(x);if(!k||seen.has(k)||STUDY_PLAY.failed.has(k))return false;seen.add(k);return true});
-  for(let name of candidates.slice(0,16)){
-    let media=await studyGetMedia(name);
-    if(media?.url)return{target:name,media};
-    STUDY_PLAY.failed.add(norm(name));
-  }
+  let session=STUDY_PLAY,target=step?.target;
+  if(!session||!target)return null;
+  let media=await studyGetMedia(target);
+  if(session!==STUDY_PLAY)return null;
+  if(media?.url)return{target,media};
+  session.media.delete(signIdentity(target));
   return null;
 }
 function studyPlayerShell(body){
@@ -795,7 +866,7 @@ function bindStudyVideoFallbacks(root,name){
       v.dataset.fallbackBusy="1";
       let bad=current();setMediaHealth(bad,false);
       try{
-        if(!navigator.onLine){STUDY_WARM_MEDIA.delete(norm(name));if(STUDY_PLAY)STUDY_PLAY.media.delete(norm(name));v.dispatchEvent(new CustomEvent("study-media-exhausted"));return}
+        if(!navigator.onLine){STUDY_WARM_MEDIA.delete(signIdentity(name));if(STUDY_PLAY)STUDY_PLAY.media.delete(signIdentity(name));v.dispatchEvent(new CustomEvent("study-media-exhausted"));return}
         let tried=new Set((v.dataset.tried||"").split("|").filter(Boolean));tried.add(bad);
         let candidates=[];
         try{candidates=await signOptions(name,{refresh:true})}catch{}
@@ -803,11 +874,11 @@ function bindStudyVideoFallbacks(root,name){
         let next=await firstPlayable(candidates,{timeout:3500,max:14});
         if(next){
           tried.add(next.url);v.dataset.tried=[...tried].join("|");
-          let key=norm(name),entry={name,media:next,video:v,ready:Promise.resolve(true),createdAt:Date.now()};
+          let key=signIdentity(name),entry={name,media:next,video:v,ready:Promise.resolve(true),createdAt:Date.now()};
           studyRememberWarm(key,entry);if(STUDY_PLAY)STUDY_PLAY.media.set(key,Promise.resolve(next));
           studyWarmUrl(next.url);v.src=next.url;v.load();v.dataset.fallbackBusy="0";return;
         }
-        STUDY_WARM_MEDIA.delete(norm(name));if(STUDY_PLAY)STUDY_PLAY.media.delete(norm(name));
+        STUDY_WARM_MEDIA.delete(signIdentity(name));if(STUDY_PLAY)STUDY_PLAY.media.delete(signIdentity(name));
         v.dispatchEvent(new CustomEvent("study-media-exhausted"));
       }finally{v.dataset.fallbackBusy="0"}
     };
@@ -816,27 +887,65 @@ function bindStudyVideoFallbacks(root,name){
 function studyArmQuestionVideo(root,target){
   let v=root?.querySelector("video"),question=root?.querySelector("[data-study-question]"),answers=root?.querySelector(".study-answer-grid"),feedback=root?.querySelector("#study-feedback");
   if(!v||!question||!answers)return;
-  v.addEventListener("study-media-exhausted",()=>{
-    question.classList.add("hidden");
-    answers.classList.add("hidden");
+  let buttons=[...answers.querySelectorAll("[data-study-answer]")],ready=false,finished=false;
+  let notice=document.createElement("p");notice.className="study-media-status";notice.setAttribute("role","status");
+  notice.textContent="Preparando vídeo para a pergunta…";answers.before(notice);
+  const release=()=>{
+    if(finished||v.error||v.readyState<2)return;
+    ready=true;notice.textContent="";
+    if(!STUDY_PLAY?.answer)buttons.forEach(b=>b.disabled=false);
+  };
+  const unavailable=()=>{
+    if(finished||ready)return;
+    finished=true;
+    notice.textContent="";
+    question.classList.add("hidden");answers.classList.add("hidden");
+    let p=STUDY_PLAY;
+    if(p?.steps[p.index]?.type==="recognize"&&!p.answer){
+      p.outcomes[p.index]={skipped:true};studySaveSession();
+    }
     if(feedback){
-      feedback.innerHTML='<b>↻ Vídeo indisponível</b><span>Esta pergunta foi retirada porque o vídeo não carregou.</span><button class="primary" data-study-next>Continuar</button>';
+      feedback.innerHTML='<b>↻ Vídeo indisponível</b><span>Esta pergunta não será cobrada sem vídeo reproduzível.</span><button class="primary" data-study-next>Continuar</button>';
       feedback.querySelector("[data-study-next]")?.addEventListener("click",()=>studyPlayerNext());
     }
-  });
+  };
+  buttons.forEach(b=>b.disabled=true);
+  v.addEventListener("loadeddata",release);
+  v.addEventListener("canplay",release);
+  v.addEventListener("study-media-exhausted",()=>{ready=false;unavailable()});
+  setTimeout(()=>{if(!ready&&!finished)unavailable()},12000);
+  release();
 }
 function studyUnavailableStep(message){
+  let p=STUDY_PLAY;
+  if(p?.steps[p.index]?.type==="recognize"&&!p.outcomes[p.index]){
+    p.outcomes[p.index]={skipped:true};studySaveSession();
+  }
   let root=$("#study-player");if(!root)return;
-  root.innerHTML=studyPlayerShell('<div class="study-task unavailable"><div class="study-task-badge">↻ Mídia indisponível</div><h2>Esta etapa foi ajustada</h2><p>'+esc(message||"Não encontrei um vídeo reproduzível para esta atividade.")+'</p><div class="study-task-tip">A pergunta não será exibida sem vídeo. Você pode continuar normalmente.</div><button class="primary wide" data-study-next>Continuar</button></div>');
+  root.innerHTML=studyPlayerShell('<div class="study-task unavailable"><div class="study-task-badge">↻ Mídia indisponível</div><h2>Esta etapa foi ajustada</h2><p>'+esc(message||"Não encontrei um vídeo reproduzível para esta atividade.")+'</p><div class="study-task-tip">Uma pergunta sem vídeo é registrada como indisponível, nunca como erro seu.</div><button class="primary wide" data-study-next>Continuar</button></div>');
   studyBindBase();
 }
 async function renderStudyPlayer(){
   let p=STUDY_PLAY,root=$("#study-player");if(!p||!root)return;
   let step=p.steps[p.index];if(!step)return finishInteractiveLesson();
-  p.answer=null;p.token++;let token=p.token,body="";
+  p.answer=p.outcomes?.[p.index]||null;p.token++;let token=p.token,body="";
   if(step.type==="intro"){
     body='<div class="study-task intro"><div class="study-task-badge">Sua próxima etapa</div><h2>'+esc(step.title)+'</h2><p>'+esc(step.text)+'</p>'+studyIntroDetails(step.detail)+'<button class="primary wide" data-study-next>Começar aula</button></div>';
     root.innerHTML=studyPlayerShell(body);studyBindBase();return;
+  }
+  if(step.type==="mission"){
+    const questions=(step.questions||[]).slice(0,3),signs=(step.signs||[]).slice(0,8);
+    body='<div class="study-task mission"><div class="study-task-badge">🎯 Situação prática</div><h2>'+esc(step.title)+'</h2><p>'+esc(step.text||"Aplique o que já aprendeu.")+'</p><p>'+esc(step.prompt||"")+'</p>'+
+      (questions.length?'<ul class="study-recap-list">'+questions.map(q=>'<li>'+esc(q)+'</li>').join("")+'</ul>':"")+
+      '<button type="button" class="soft wide" data-study-hints aria-expanded="false">Ver sinais de apoio</button>'+
+      '<div class="study-intro-signs hidden" data-study-hints-list>'+signs.map(x=>'<span>'+esc(title(x))+'</span>').join("")+'</div>'+
+      '<button type="button" class="primary wide" data-study-next>Praticar os sinais</button></div>';
+    root.innerHTML=studyPlayerShell(body);studyBindBase();
+    root.querySelector("[data-study-hints]")?.addEventListener("click",e=>{
+      let el=root.querySelector("[data-study-hints-list]");el?.classList.toggle("hidden");
+      e.currentTarget.setAttribute("aria-expanded",String(!el?.classList.contains("hidden")));
+    });
+    return;
   }
   if(step.type==="concept"){
     body='<div class="study-task concept"><div class="study-task-badge">💡 Conceito rápido</div><h2>'+esc(step.title)+'</h2><p>'+esc(step.text)+'</p><button class="primary wide" data-study-next>Aplicar na prática</button></div>';
@@ -869,8 +978,7 @@ async function renderStudyPlayer(){
     let resolved=await studyResolveTarget(step);
     if(!STUDY_PLAY||token!==STUDY_PLAY.token)return;
     if(!resolved)return studyUnavailableStep("Nenhum dos sinais desta atividade encontrou vídeo válido agora.");
-    step.target=resolved.target;
-    let target=resolved.target,media=resolved.media,vid="study-"+step.type+"-"+Date.now();
+    let target=step.target,media=resolved.media,vid="study-"+step.type+"-"+Date.now();
     if(step.type==="learn"){
       body='<div class="study-task learn"><div class="study-task-badge">👐 Observe</div><h2>'+esc(title(target))+'</h2><p>Observe configuração, movimento, orientação e expressão antes de repetir.</p><div data-study-video-slot></div>'+speedTools(vid)+'<div class="study-video-actions">'+studyLibraryButton(target)+'</div><button class="primary wide" data-study-next>Pratiquei · continuar</button></div>';
       root.innerHTML=studyPlayerShell(body);studyMountWarmVideo(root,target,media,vid);studyBindBase();bindSpeeds(root);bindStudyVideoFallbacks(root,target);bindStudyLibraryButtons(root);studyWarmUpcomingSteps();return;
@@ -887,16 +995,26 @@ async function renderStudyPlayer(){
     }
   }
 }
+function studyApplyAnswer(correct,choice,{restore=false}={}){
+  let p=STUDY_PLAY,root=$("#study-player");if(!p||!root||(!restore&&p.answer))return;
+  let ok=signIdentity(choice)===signIdentity(correct);
+  p.answer={choice,correct:ok};
+  p.outcomes[p.index]={choice,correct:ok};
+  if(!restore){if(ok)p.score++;else p.errors++;studySaveSession()}
+  root.querySelectorAll("[data-study-answer]").forEach(x=>{
+    x.disabled=true;
+    x.classList.toggle("correct",signIdentity(x.dataset.studyAnswer)===signIdentity(correct));
+    if(signIdentity(x.dataset.studyAnswer)===signIdentity(choice)&&!ok)x.classList.add("wrong");
+  });
+  let fb=$("#study-feedback");
+  if(fb)fb.innerHTML='<b>'+(ok?"✅ Certo!":"↻ Ainda não.")+'</b><span>'+(ok?"Você reconheceu o sinal.":"O sinal era "+esc(title(correct))+". Observe novamente antes de avançar.")+'</span><button class="primary" data-study-next>Continuar</button>';
+  root.querySelector("[data-study-next]")?.addEventListener("click",()=>studyPlayerNext());
+}
 function bindStudyAnswers(correct){
   let root=$("#study-player");if(!root)return;
-  root.querySelectorAll("[data-study-answer]").forEach(b=>b.onclick=()=>{
-    if(STUDY_PLAY?.answer)return;
-    let ok=norm(b.dataset.studyAnswer)===norm(correct);STUDY_PLAY.answer={choice:b.dataset.studyAnswer,correct:ok};
-    if(ok)STUDY_PLAY.score++;else STUDY_PLAY.errors++;
-    root.querySelectorAll("[data-study-answer]").forEach(x=>{x.disabled=true;x.classList.toggle("correct",norm(x.dataset.studyAnswer)===norm(correct));if(x===b&&!ok)x.classList.add("wrong")});
-    let fb=$("#study-feedback");if(fb)fb.innerHTML='<b>'+(ok?"✅ Certo!":"↻ Ainda não.")+'</b><span>'+(ok?"Você reconheceu o sinal.":"O sinal era "+esc(title(correct))+". Observe novamente antes de avançar.")+'</span><button class="primary" data-study-next>Continuar</button>';
-    root.querySelector("[data-study-next]")?.addEventListener("click",()=>studyPlayerNext());
-  });
+  root.querySelectorAll("[data-study-answer]").forEach(b=>b.onclick=()=>studyApplyAnswer(correct,b.dataset.studyAnswer));
+  let previous=STUDY_PLAY?.outcomes?.[STUDY_PLAY.index];
+  if(previous)studyApplyAnswer(correct,previous.choice,{restore:true});
 }
 async function studyRevealProduction(target,knownMedia=null){
   let root=$("#study-player");if(!root||!STUDY_PLAY)return;
@@ -910,19 +1028,39 @@ async function studyRevealProduction(target,knownMedia=null){
   root.querySelector("[data-study-next]")?.addEventListener("click",()=>{STUDY_PLAY.score++;studyPlayerNext()});
 }
 async function studyPlayerNext(){
-  if(!STUDY_PLAY)return;
-  if(STUDY_PLAY.index>=STUDY_PLAY.steps.length-1)return finishInteractiveLesson();
-  let next=STUDY_PLAY.steps[STUDY_PLAY.index+1];
-  if(["learn","recognize","produce"].includes(next?.type)&&next.target)studyWarmSign(next.target).catch(()=>null);
-  STUDY_PLAY.index++;STUDY_PLAY.answer=null;studySaveSession();await renderStudyPlayer();
+  let p=STUDY_PLAY;if(!p||p.advancing)return;
+  p.advancing=true;
+  try{
+    if(p.index>=p.steps.length-1)return await finishInteractiveLesson();
+    let next=p.steps[p.index+1];
+    if(["learn","recognize","produce"].includes(next?.type)&&next.target)studyWarmSign(next.target).catch(()=>null);
+    p.index++;p.answer=null;studySaveSession();await renderStudyPlayer();
+  }finally{if(STUDY_PLAY===p)p.advancing=false}
 }
 async function finishInteractiveLesson(){
-  let p=STUDY_PLAY;if(!p)return;
+  let p=STUDY_PLAY;if(!p||p.finishing)return;
+  p.finishing=true;
   let lesson=p.lesson,score=p.score,errors=p.errors,total=p.steps.length;
-  studyClearSession();await saveLesson(lesson.id,true);
+  let planned=p.steps.filter(x=>x.type==="recognize").length;
+  let answers=Object.values(p.outcomes||{}),skipped=answers.filter(x=>x.skipped).length;
+  let expected=Math.max(0,planned-skipped),answered=answers.filter(x=>!x.skipped).length;
+  let correct=answers.filter(x=>x.correct).length,required=Math.ceil(expected*0.7);
+  let sufficientMedia=planned===0||expected>=Math.ceil(planned*0.7);
+  let achieved=planned===0||(sufficientMedia&&expected>0&&answered===expected&&correct>=required);
+  let alreadyDone=!!smap()[lesson.id]?.completed;
+  studyClearSession();
+  if(achieved&&!alreadyDone)await saveLesson(lesson.id,true);
   STUDY_PLAY=null;$("#modal").classList.add("study-session-open");
-  let snap=studySnapshot(),idx=snap.L.findIndex(x=>x.id===lesson.id),map=smap(),next=snap.L.slice(idx+1).find(x=>!map[x.id]?.completed)||snap.L.find(x=>!map[x.id]?.completed)||null;
-  $("#modal-body").innerHTML='<div class="study-player study-complete"><div class="study-complete-icon">✓</div><h2>Aula concluída</h2><p>'+esc(lesson.title)+'</p><div class="study-complete-stats"><div><b>'+score+'</b><span>acertos/ações</span></div><div><b>'+errors+'</b><span>erros</span></div><div><b>'+total+'</b><span>etapas</span></div></div><div class="study-complete-actions">'+(next?'<button class="primary" data-study-next-lesson="'+esc(next.id)+'">Próxima aula</button>':'')+'<button class="soft" data-study-done>Voltar à trilha</button></div></div>';
+  let snap=studySnapshot(),idx=snap.L.findIndex(x=>x.id===lesson.id),map=smap();
+  let next=snap.L.slice(idx+1).find(x=>!map[x.id]?.completed)||snap.L.find(x=>!map[x.id]?.completed)||null;
+  const titleText=achieved?"Aula concluída":!sufficientMedia?"Vídeos indisponíveis":"Reforço necessário";
+  const message=achieved?"Você praticou e alcançou o mínimo de reconhecimento.":
+    !sufficientMedia?"Faltaram vídeos para avaliar a aula com segurança. Nenhum erro foi atribuído por isso. Tente novamente com a conexão disponível.":
+    "Você praticou, mas ainda não atingiu "+required+" acertos em "+expected+" perguntas disponíveis. Pode refazer sem perder o histórico anterior.";
+  $("#modal-body").innerHTML='<div class="study-player study-complete"><div class="study-complete-icon">'+(achieved?"✓":"↻")+'</div><h2>'+titleText+'</h2><p>'+esc(lesson.title)+'</p><p>'+esc(message)+'</p><div class="study-complete-stats"><div><b>'+correct+'/'+expected+'</b><span>reconhecimentos corretos</span></div><div><b>'+errors+'</b><span>erros</span></div><div><b>'+total+'</b><span>etapas</span></div></div><div class="study-complete-actions">'+
+    (!achieved?'<button class="primary" data-study-retry>Refazer aula</button>':next?'<button class="primary" data-study-next-lesson="'+esc(next.id)+'">Próxima aula</button>':'')+
+    '<button class="soft" data-study-done>Voltar à trilha</button></div></div>';
+  $("#modal-body").querySelector("[data-study-retry]")?.addEventListener("click",()=>openInteractiveLesson(lesson.id,{fresh:true}));
   $("#modal-body").querySelector("[data-study-next-lesson]")?.addEventListener("click",e=>openInteractiveLesson(e.currentTarget.dataset.studyNextLesson,{fresh:true}));
   $("#modal-body").querySelector("[data-study-done]")?.addEventListener("click",()=>{$("#modal").classList.add("hidden");$("#modal").classList.remove("study-session-open")});
 }
@@ -979,7 +1117,7 @@ function studyTrailPath(lessons,m,currentId){
   coords.forEach((p,i)=>{if(i===0)d="M "+p[0]+" "+p[1];else{let prev=coords[i-1],mid=(prev[1]+p[1])/2;d+=" C "+prev[0]+" "+mid+", "+p[0]+" "+mid+", "+p[0]+" "+p[1]}});
   let svg='<svg class="trail-route-svg" viewBox="0 0 100 '+height+'" preserveAspectRatio="none" aria-hidden="true"><path d="'+d+'"/></svg>';
   let nodes=lessons.map((x,i)=>{
-    let p=coords[i]||[50,startY+i*gap],isDone=!!m[x.id]?.completed,isCurrent=x.id===currentId,km=studyKindMeta(x.kind),state=isDone?"done":isCurrent?"current":"future",side=p[0]<45?"left":p[0]>55?"right":"center",icon=studyLessonSemanticIcon(x);
+    let p=coords[i]||[50,startY+i*gap],isDone=!!m[x.id]?.completed,isCurrent=x.id===currentId,km=studyKindMeta(x),state=isDone?"done":isCurrent?"current":"future",side=p[0]<45?"left":p[0]>55?"right":"center",icon=studyLessonSemanticIcon(x);
     return '<button type="button" class="trail-stop '+state+' side-'+side+'" data-study-open="'+esc(x.id)+'" style="--trail-x:'+p[0]+'%;--trail-y:'+p[1]+'px"><span class="trail-stop-node"><span class="trail-semantic-icon">'+icon+'</span><b>'+(isDone?"✓":i+1)+'</b></span><span class="trail-stop-label"><small>'+esc(km.label)+'</small><strong>'+esc(x.title)+'</strong></span></button>';
   }).join("");
   return '<div class="trail-map" style="--trail-height:'+height+'px">'+svg+nodes+'</div>';
@@ -988,13 +1126,15 @@ function study(){
   let L=window.LIBRAS_STUDY_CONTENT||[],m=smap(),done=L.filter(x=>m[x.id]?.completed).length,snap=studySnapshot();
   let count=$("#study-count"),pct=$("#study-pct"),mods=$("#study-modules"),search=$("#study-search"),list=$("#study-list");
   if(!count||!pct||!mods||!search||!list)return;
-  count.textContent=done+" de "+L.length+" aulas · "+snap.completedModules+" de "+snap.moduleRows.length+" unidades";
+  let history=S.study.filter(x=>x.completed&&!L.some(y=>y.id===x.lesson_id)).length;
+  count.textContent=done+" de "+L.length+" aulas · "+snap.completedModules+" de "+snap.moduleRows.length+" unidades"+(history?" · "+history+" registros antigos preservados":"");
   pct.textContent=Math.round(done/Math.max(1,L.length)*100)+"%";
   let q=norm(search.value),current=snap.current,currentCycle=Number(current?.cycle||studyUnitMeta(current?.unit||1).cycle||1);
   let activeCycle=Number(mods.dataset.activeCycle||currentCycle||1);
   if(q){
     let hit=L.find(x=>norm([x.title,x.summary,x.module,x.scene,x.challenge,...(x.signs||[])].join(" ")).includes(q));
-    if(hit){activeCycle=Number(hit.cycle||studyUnitMeta(hit.unit).cycle||1);mods.dataset.activeUnit=String(hit.unit)}
+    if(!hit){list.innerHTML='<div class="surface center" role="status"><p>Nenhuma aula encontrada nesta busca.</p></div>';return;}
+    activeCycle=Number(hit.cycle||studyUnitMeta(hit.unit).cycle||1);mods.dataset.activeUnit=String(hit.unit);
   }
   if(!snap.cycleRows.some(x=>x.cycle===activeCycle))activeCycle=snap.cycleRows[0]?.cycle||1;
   mods.dataset.activeCycle=String(activeCycle);
@@ -1063,8 +1203,8 @@ function library(){
   let grouped=[...byNorm.entries()].map(([key,variants])=>({key,variants,rep:libraryRepresentative(variants),category:libraryGroupCategory(variants)})).filter(x=>!cat||x.category===cat);
   let g={};for(let row of grouped)(g[row.category]??=[]).push(row);
   let total=$("#library-total-signs"),cats=$("#library-total-cats");
-  if(total)total.textContent=new Set(S.signs.map(signNormKey).filter(Boolean)).size;
-  if(cats)cats.textContent=new Set(S.signs.map(x=>x.category_name).filter(Boolean)).size;
+  if(total)total.textContent=grouped.length;
+  if(cats)cats.textContent=Object.keys(g).length;
   let categories=[...new Set([...S.cats.map(x=>x.name),...S.signs.map(x=>x.category_name)].filter(Boolean))].sort((a,b)=>a.localeCompare(b,"pt-BR"));
   let groups=Object.entries(g).sort((a,b)=>a[0].localeCompare(b[0],"pt-BR"));
   $("#library-list").innerHTML=groups.map(([c,it],groupIndex)=>{
@@ -1091,12 +1231,12 @@ async function openAvailableVariants(name,categoryName){
     if(!all.length){candidates=await signOptions(name,{refresh:true});all=await validateCandidates(candidates,{timeout:4200,max:30,keep:20})}
     if(!all.length)return modal('<h2>Variações de '+esc(title(name))+'</h2><p>Nenhum vídeo disponível foi encontrado agora.</p>');
     all=await dedupeVariantCandidates(all);
-    let saved=S.signs.filter(x=>signNormKey(x)===norm(name)),savedUrls=new Set(saved.map(vurl).filter(Boolean)),savedSigs=new Set;
+    let saved=S.signs.filter(x=>signNormKey(x)===signIdentity(name)),savedUrls=new Set(saved.map(vurl).filter(Boolean)),savedSigs=new Set;
     for(let item of saved){let u=vurl(item)||item.source_url||"";if(u){let sig=await mediaVariantSignature({url:u,source_id:item.source_id});if(sig)savedSigs.add(sig)}}
     let rows=[];
     for(let x of all){let sig=await mediaVariantSignature(x);rows.push({x,sig,saved:savedUrls.has(x.url)||(sig&&savedSigs.has(sig))})}
     modal('<h2>Variações de '+esc(title(name))+'</h2><div class="library-variants">'+rows.map((r,i)=>'<div class="library-variant"><video controls loop playsinline preload="metadata" src="'+esc(r.x.url)+'"></video><button type="button" class="soft wide" data-save-available-variant="'+i+'" '+(r.saved?'disabled':'')+'>'+(r.saved?'✓ Já salva':'＋ Salvar esta variação')+'</button></div>').join("")+'</div>');
-    $("[data-save-available-variant]").forEach(b=>b.onclick=async()=>{let row=rows[+b.dataset.saveAvailableVariant],candidate=row?.x;if(!candidate)return;b.disabled=true;try{let before=S.signs.length;await save(name,candidate,categoryName||catFor(name),"catalog");b.textContent=S.signs.length===before?"✓ Já existia":"✓ Salva";toast(S.signs.length===before?"Essa gravação já estava salva.":"Variação adicionada à biblioteca")}catch(e){console.error(e);b.disabled=false;toast("Não consegui salvar esta variação.")}})
+    $$("[data-save-available-variant]").forEach(b=>b.onclick=async()=>{let row=rows[+b.dataset.saveAvailableVariant],candidate=row?.x;if(!candidate)return;b.disabled=true;try{let before=S.signs.length;await save(name,candidate,categoryName||catFor(name),"catalog");b.textContent=S.signs.length===before?"✓ Já existia":"✓ Salva";toast(S.signs.length===before?"Essa gravação já estava salva.":"Variação adicionada à biblioteca")}catch(e){console.error(e);b.disabled=false;toast("Não consegui salvar esta variação.")}})
   }catch(e){console.error(e);modal('<h2>Variações de '+esc(title(name))+'</h2><p>Não consegui consultar as variações agora.</p>')}
 }
 async function openLibraryVariants(signNorm){let first=S.signs.find(x=>(x.norm||norm(x.name))===signNorm);if(first)await openAvailableVariants(first.name,first.category_name)}
@@ -1141,12 +1281,27 @@ async function deleteLibraryItem(signNorm){
   cache();render();localStatus("📱 alterações locais · sincronize quando quiser");toast("Sinal removido do celular.")
 }
 async function newCat(){let n=prompt("Nome da categoria:");if(!n)return;let e=prompt("Emoji:","🧩")||"🧩",now=new Date().toISOString(),row={user_id:S.session.user.id,name:title(n),emoji:e,description:"",sort_order:999,is_custom:true,is_hidden:false,created_at:now,updated_at:now,deleted_at:null};S.cats.push(row);cache();render();localStatus("📱 alterações locais · sincronize quando quiser")}
-function reviewCats(){let s=$("#review-cat");if(!s)return;let v=s.value,cs=[...new Set(S.signs.map(x=>x.category_name).filter(Boolean))].sort();s.innerHTML='<option value="">Todas</option>'+cs.map(x=>'<option>'+esc(x)+"</option>").join("");s.value=v;let m=rmap(),now=Date.now(),u=unique(),due=0,fresh=0,reviewed=0;u.forEach(x=>{let r=m[x.norm];if(!r)fresh++;else{if(r.last_reviewed_at)reviewed++;if(r.due_at&&new Date(r.due_at).getTime()<=now)due++}});let d=$("#review-due-metric"),n=$("#review-new-metric"),rv=$("#review-reviewed-metric");if(d)d.textContent=due;if(n)n.textContent=fresh;if(rv)rv.textContent=reviewed}
+function reviewCats(){let s=$("#review-cat");if(!s)return;let v=s.value,cs=[...new Set(S.signs.map(x=>x.category_name).filter(Boolean))].sort();s.innerHTML='<option value="">Todas</option>'+cs.map(x=>'<option>'+esc(x)+"</option>").join("");s.value=v;let m=rmap(),now=Date.now(),u=unique().filter(s=>S.signs.some(x=>signNormKey(x)===signNormKey(s)&&libraryVideoUrl(x))),due=0,fresh=0,reviewed=0;u.forEach(x=>{let r=m[signNormKey(x)];if(!r)fresh++;else{if(r.last_reviewed_at)reviewed++;if(r.due_at&&new Date(r.due_at).getTime()<=now)due++}});let d=$("#review-due-metric"),n=$("#review-new-metric"),rv=$("#review-reviewed-metric");if(d)d.textContent=due;if(n)n.textContent=fresh;if(rv)rv.textContent=reviewed}
 function next(rate,c){let reps=c?.reps||0,e=c?.ease||2.5,iv=+c?.interval_days||0,d=0,l=c?.lapses||0,n=reps;if(rate==="again"){d=10/1440;e=Math.max(1.3,e-.2);l++}if(rate==="hard"){d=reps?Math.max(1,iv*1.2):.25;e=Math.max(1.3,e-.15);n++}if(rate==="good"){d=reps===0?1:reps===1?3:Math.max(1,iv*e);n++}if(rate==="easy"){e=Math.min(3.5,e+.15);d=reps?Math.max(2,iv*(e+.3)):4;n++}return{interval_days:d,ease:e,reps:n,lapses:l,due_at:new Date(Date.now()+d*864e5).toISOString()}}
-function queue(){let c=$("#review-cat").value,mode=$("#review-mode").value,m=rmap(),now=Date.now(),due=[],fresh=[];unique().filter(s=>!c||s.category_name===c).forEach(s=>{let r=m[s.norm];if(!r)fresh.push(s);else if(r.due_at&&new Date(r.due_at).getTime()<=now)due.push(s)});let out=mode==="due"?due:mode==="new"?fresh:[...due,...fresh],lim=$("#review-limit").value;return lim==="all"?out:out.slice(0,+lim)}
-function card(){let s=S.queue[S.i];if(!s){$("#review-card").classList.add("hidden");$("#review-done").classList.remove("hidden");return}$("#review-card").classList.remove("hidden");$("#review-done").classList.add("hidden");$("#review-name").textContent=s.name;$("#review-media").classList.add("hidden");$("#ratings").classList.add("hidden");$("#reveal").classList.remove("hidden");let current=rmap()[s.norm];["again","hard","good","easy"].forEach(k=>{let el=document.querySelector('[data-time="'+k+'"]');if(el)el.textContent=fmtInterval(next(k,current).interval_days)});let vs=S.signs.filter(x=>x.norm===s.norm&&libraryVideoUrl(x));$("#review-media").innerHTML=vs.length?vs.map((v,i)=>{let id="rev-"+S.i+"-"+i;return '<video data-video-id="'+id+'" data-studio-id="'+esc(v.studio_id)+'" controls loop playsinline preload="metadata" src="'+esc(libraryVideoUrl(v))+'"></video>'+speedTools(id)+'<small>'+(vs.length>1?"Variação "+(i+1)+" · ":"")+esc(v.source_name||"")+"</small>"}).join(""):"<p>Vídeo indisponível.</p>";bindSpeeds($("#review-media"));bindVideoFallbacks($("#review-media"),s.name)}
-async function rate(r){let item=S.queue[S.i],now=new Date().toISOString(),old=rmap()[item.norm],row={user_id:S.session.user.id,norm:item.norm,...next(r,old),last_rating:r,last_reviewed_at:now,created_at:old?.created_at||now,updated_at:now,deleted_at:null},i=S.reviews.findIndex(x=>x.norm===item.norm);if(i>=0)S.reviews[i]=row;else S.reviews.push(row);S.i++;cache();render();card();localStatus("📱 alterações locais · sincronize quando quiser")}
-function modal(h){$("#modal").classList.remove("study-session-open");$("#modal-body").innerHTML=h;$("#modal").classList.remove("hidden")}
+function queue(){let c=$("#review-cat").value,mode=$("#review-mode").value,m=rmap(),now=Date.now(),due=[],fresh=[]; unique().filter(s=>(!c||s.category_name===c)&&S.signs.some(x=>signNormKey(x)===signNormKey(s)&&libraryVideoUrl(x))).forEach(s=>{let r=m[signNormKey(s)];if(!r)fresh.push(s);else if(r.due_at&&new Date(r.due_at).getTime()<=now)due.push(s)});let out=mode==="due"?due:mode==="new"?fresh:[...due,...fresh],lim=$("#review-limit").value;return lim==="all"?out:out.slice(0,+lim)}
+let REVIEW_MEDIA_READY=false,REVIEW_MEDIA_TOKEN=0;
+function card(){REVIEW_MEDIA_READY=false;REVIEW_MEDIA_TOKEN++;let s=S.queue[S.i];if(!s){$("#review-card").classList.add("hidden");$("#review-done").classList.remove("hidden");return}$("#review-card").classList.remove("hidden");$("#review-done").classList.add("hidden");$("#review-name").textContent=s.name;$("#review-media").classList.add("hidden");$("#ratings").classList.add("hidden");$("#reveal").classList.remove("hidden");let current=rmap()[signNormKey(s)];["again","hard","good","easy"].forEach(k=>{let el=document.querySelector('[data-time="'+k+'"]');if(el)el.textContent=fmtInterval(next(k,current).interval_days)});let vs=S.signs.filter(x=>signNormKey(x)===signNormKey(s)&&libraryVideoUrl(x));$("#review-media").innerHTML=vs.length?vs.map((v,i)=>{let id="rev-"+S.i+"-"+i;return '<video data-video-id="'+id+'" data-studio-id="'+esc(v.studio_id)+'" controls loop playsinline preload="metadata" src="'+esc(libraryVideoUrl(v))+'"></video>'+speedTools(id)+'<small>'+(vs.length>1?"Variação "+(i+1)+" · ":"")+esc(v.source_name||"")+"</small>"}).join(""):"<p>Vídeo indisponível.</p>";bindSpeeds($("#review-media"));bindVideoFallbacks($("#review-media"),s.name)}
+async function rate(r){if(!REVIEW_MEDIA_READY||!S.queue[S.i])return;let item=S.queue[S.i],now=new Date().toISOString(),signKey=signNormKey(item),old=rmap()[signKey],row={user_id:S.session.user.id,norm:signKey,...next(r,old),last_rating:r,last_reviewed_at:now,created_at:old?.created_at||now,updated_at:now,deleted_at:null},i=S.reviews.findIndex(x=>x.norm===signKey);if(i>=0)S.reviews[i]=row;else S.reviews.push(row);S.i++;cache();render();card();localStatus("📱 alterações locais · sincronize quando quiser")}
+let MODAL_FOCUS_RETURN=null;
+function modal(h){
+  let shell=$("#modal");
+  if(shell.classList.contains("hidden"))MODAL_FOCUS_RETURN=document.activeElement;
+  shell.classList.remove("study-session-open");
+  $("#modal-body").innerHTML=h;shell.classList.remove("hidden");
+  $("#close-modal")?.focus({preventScroll:true});
+}
+function closeStudioModal(){
+  let shell=$("#modal");
+  shell.classList.add("hidden");shell.classList.remove("study-session-open");
+  if(STUDY_PLAY){studySaveSession();STUDY_PLAY=null}
+  if(MODAL_FOCUS_RETURN?.isConnected)MODAL_FOCUS_RETURN.focus({preventScroll:true});
+  MODAL_FOCUS_RETURN=null;
+}
 async function clearStudioRuntime(){if("caches"in window){let ks=await caches.keys();await Promise.all(ks.filter(k=>k.startsWith("libras-studio-mobile-")||k.startsWith("libras-studio-catalog-")).map(k=>caches.delete(k)))}if("serviceWorker"in navigator){let regs=await navigator.serviceWorker.getRegistrations();await Promise.all(regs.filter(r=>r.scope.includes("/libras-studio/")).map(r=>r.unregister()))}}
 function nativeUpdaterAvailable(){return !!(IS_NATIVE_ANDROID&&window.LibrasUpdater&&typeof window.LibrasUpdater.loadLatestWeb==="function")}
 function nativeFullUpdaterAvailable(){return !!(nativeUpdaterAvailable()&&(typeof window.LibrasUpdater.stageLocalStorageAndUpdateEverything==="function"||typeof window.LibrasUpdater.updateEverything==="function"))}
@@ -1318,7 +1473,37 @@ function installDelegatedNavigation(){
     if(nav){e.preventDefault();go(nav.dataset.go)}
   });
 }
-function wire(){$("#auth-form").onsubmit=async e=>{e.preventDefault();let{error}=await sb.auth.signInWithPassword({email:$("#email").value,password:$("#password").value});$("#auth-status").textContent=error?error.message:""};$("#signup").onclick=async()=>{let{error}=await sb.auth.signUp({email:$("#email").value,password:$("#password").value});$("#auth-status").textContent=error?error.message:"Conta criada. Confira seu e-mail."};$("#logout").onclick=logoutUser;$("#profile-logout").onclick=logoutUser;$("#profile-menu-toggle").onclick=e=>{e.stopPropagation();toggleProfileMenu()};$("#profile-change-photo").onclick=()=>$("#profile-photo-input").click();$("#profile-photo-input").onchange=e=>changeProfilePhoto(e.target.files?.[0]);$("#profile-remove-photo").onclick=()=>{saveProfilePrefs({photo:""});toast("Foto removida.")};$("#profile-edit-name").onclick=openProfileNameEditor;$$("[data-profile-go]").forEach(b=>b.onclick=()=>{closeProfileMenu();go(b.dataset.profileGo)});document.addEventListener("click",e=>{let menu=$("#profile-menu"),toggle=$("#profile-menu-toggle");if(menu&&!menu.classList.contains("hidden")&&!menu.contains(e.target)&&!toggle?.contains(e.target))closeProfileMenu()});document.addEventListener("keydown",e=>{if(e.key==="Escape")closeProfileMenu()});$("#sync").onclick=$("#sync-now").onclick=openSyncChoice;let ms=$("#mobile-sync-now");if(ms)ms.onclick=()=>{$("#more")?.classList.add("hidden");openSyncChoice()};$("#app-update").onclick=$("#update-now").onclick=forceAppUpdate;let mu=$("#mobile-update-now");if(mu)mu.onclick=forceAppUpdate;$("#ll-enable").onclick=llOpenAccessibility;$("#ll-start").onclick=llStart;$("#ll-open").onclick=llOpen;$("#ll-stop").onclick=llStop;$("#ll-refresh").onclick=refreshLibrasLab;$("#ll-import").onclick=llImport;$("#ll-clear").onclick=llClear;$$("nav [data-view]").forEach(b=>b.onclick=()=>{if(IS_NATIVE_ANDROID&&Date.now()-Number(b.dataset.nativeTapAt||0)<700)return;if(b.dataset.view==="more"){closeProfileMenu();let s=$("#more");if(s)s.classList.toggle("hidden")}else go(b.dataset.view)});$$(".side-nav [data-view]").forEach(b=>b.onclick=()=>go(b.dataset.view));$$("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go));$$("[data-mode]").forEach(b=>b.onclick=()=>{$$("[data-mode]").forEach(x=>x.classList.toggle("active",x===b));$("#sign-box").classList.toggle("hidden",b.dataset.mode!=="sign");$("#phrase-box").classList.toggle("hidden",b.dataset.mode!=="phrase")});$("#create-search").onclick=createSign;$("#variants").onclick=variants;$("#video-file").onchange=e=>uploadVideo(e.target.files[0]);$("#phrase-search")&&($("#phrase-search").onclick=phrase);$("#phrase-available")&&($("#phrase-available").onclick=showAvailablePhrases);$("#explore-search").oninput=exploreCats;$("#global-search").onkeydown=e=>{if(e.key==="Enter"){let q=e.currentTarget.value.trim();go("explore");$("#create-name").value=q;$("#create-name").focus()}};$("#study-search").oninput=study;$("#library-search").oninput=library;$("#library-cat").onchange=library;$("#new-cat")&&($("#new-cat").onclick=newCat);$("#library-refresh")&&($("#library-refresh").onclick=openSyncChoice);$("#review-start").onclick=()=>{S.queue=queue();S.i=0;$("#review-setup").classList.add("hidden");card()};$("#reveal").onclick=()=>{let media=$("#review-media");media.classList.remove("hidden");$("#ratings").classList.remove("hidden");$("#reveal").classList.add("hidden");let first=media.querySelector("video");if(first){try{first.currentTime=0}catch{}let p=first.play();if(p?.catch)p.catch(e=>console.warn("autoplay revisão",e))}};$$("[data-rate]").forEach(b=>b.onclick=()=>rate(b.dataset.rate));$("#again-session").onclick=()=>{$("#review-setup").classList.remove("hidden");$("#review-done").classList.add("hidden")};$("#close-modal").onclick=()=>$("#modal").classList.add("hidden");$("#modal").onclick=e=>{if(e.target===$("#modal"))$("#modal").classList.add("hidden")}}
+function wire(){$("#auth-form").onsubmit=async e=>{e.preventDefault();let{error}=await sb.auth.signInWithPassword({email:$("#email").value,password:$("#password").value});$("#auth-status").textContent=error?error.message:""};$("#signup").onclick=async()=>{let{error}=await sb.auth.signUp({email:$("#email").value,password:$("#password").value});$("#auth-status").textContent=error?error.message:"Conta criada. Confira seu e-mail."};$("#logout").onclick=logoutUser;$("#profile-logout").onclick=logoutUser;$("#profile-menu-toggle").onclick=e=>{e.stopPropagation();toggleProfileMenu()};$("#profile-change-photo").onclick=()=>$("#profile-photo-input").click();$("#profile-photo-input").onchange=e=>changeProfilePhoto(e.target.files?.[0]);$("#profile-remove-photo").onclick=()=>{saveProfilePrefs({photo:""});toast("Foto removida.")};$("#profile-edit-name").onclick=openProfileNameEditor;$$("[data-profile-go]").forEach(b=>b.onclick=()=>{closeProfileMenu();go(b.dataset.profileGo)});document.addEventListener("click",e=>{let menu=$("#profile-menu"),toggle=$("#profile-menu-toggle");if(menu&&!menu.classList.contains("hidden")&&!menu.contains(e.target)&&!toggle?.contains(e.target))closeProfileMenu()});document.addEventListener("keydown",e=>{if(e.key==="Escape")closeProfileMenu()});$("#sync").onclick=$("#sync-now").onclick=openSyncChoice;let ms=$("#mobile-sync-now");if(ms)ms.onclick=()=>{$("#more")?.classList.add("hidden");openSyncChoice()};$("#app-update").onclick=$("#update-now").onclick=forceAppUpdate;let mu=$("#mobile-update-now");if(mu)mu.onclick=forceAppUpdate;$("#ll-enable").onclick=llOpenAccessibility;$("#ll-start").onclick=llStart;$("#ll-open").onclick=llOpen;$("#ll-stop").onclick=llStop;$("#ll-refresh").onclick=refreshLibrasLab;$("#ll-import").onclick=llImport;$("#ll-clear").onclick=llClear;$$("nav [data-view]").forEach(b=>b.onclick=()=>{if(IS_NATIVE_ANDROID&&Date.now()-Number(b.dataset.nativeTapAt||0)<700)return;if(b.dataset.view==="more"){closeProfileMenu();let s=$("#more");if(s)s.classList.toggle("hidden")}else go(b.dataset.view)});$$(".side-nav [data-view]").forEach(b=>b.onclick=()=>go(b.dataset.view));$$("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go));$$("[data-mode]").forEach(b=>b.onclick=()=>{$$("[data-mode]").forEach(x=>x.classList.toggle("active",x===b));$("#sign-box").classList.toggle("hidden",b.dataset.mode!=="sign");$("#phrase-box").classList.toggle("hidden",b.dataset.mode!=="phrase")});$("#create-search").onclick=createSign;$("#variants").onclick=variants;$("#video-file").onchange=e=>uploadVideo(e.target.files[0]);$("#phrase-search")&&($("#phrase-search").onclick=phrase);$("#phrase-available")&&($("#phrase-available").onclick=showAvailablePhrases);$("#explore-search").oninput=exploreCats;$("#global-search").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();let q=e.currentTarget.value.trim();if(!q)return;go("explore");$("#create-name").value=q;playPreferredSign(q)}};$("#study-search").oninput=study;$("#library-search").oninput=library;$("#library-cat").onchange=library;$("#new-cat")&&($("#new-cat").onclick=newCat);$("#library-refresh")&&($("#library-refresh").onclick=openSyncChoice);$("#review-start").onclick=()=>{S.queue=queue();S.i=0;$("#review-setup").classList.add("hidden");card()};$("#reveal").onclick=()=>{
+  let media=$("#review-media"),ratings=$("#ratings"),v=media.querySelector("video");
+  const token=REVIEW_MEDIA_TOKEN;
+  media.classList.remove("hidden");ratings.classList.add("hidden");$("#reveal").classList.add("hidden");
+  let status=document.createElement("p");status.setAttribute("role","status");status.textContent="Carregando vídeo…";media.append(status);
+  let skip=null,valid=()=>token===REVIEW_MEDIA_TOKEN;
+  const ready=()=>{
+    if(!valid()||!v||v.readyState<2||v.error)return;
+    REVIEW_MEDIA_READY=true;ratings.classList.remove("hidden");status.remove();skip?.remove();
+  };
+  const stalled=()=>{
+    if(!valid()||REVIEW_MEDIA_READY)return;
+    status.textContent="Vídeo indisponível. Você pode pular sem avaliar.";
+    if(!skip){skip=document.createElement("button");skip.className="soft wide";skip.textContent="Pular sem avaliar";
+      skip.onclick=()=>{if(valid()&&!REVIEW_MEDIA_READY){S.i++;card()}};media.append(skip)}
+  };
+  if(!v){stalled();return}
+  v.addEventListener("loadeddata",ready);v.addEventListener("canplay",ready);
+  try{v.currentTime=0;v.play()?.catch?.(()=>{})}catch{}
+  ready();setTimeout(stalled,12000);
+};$$("[data-rate]").forEach(b=>b.onclick=()=>rate(b.dataset.rate));$("#again-session").onclick=()=>{$("#review-setup").classList.remove("hidden");$("#review-done").classList.add("hidden")};$("#close-modal").onclick=closeStudioModal;
+  $("#modal").onclick=e=>{if(e.target===$("#modal"))closeStudioModal()};
+  $("#modal").addEventListener("keydown",e=>{
+    if(e.key==="Escape"){e.preventDefault();closeStudioModal();return}
+    if(e.key!=="Tab")return;
+    let tabbable=[...$("#modal").querySelectorAll('button:not([disabled]),[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')].filter(x=>x.getClientRects().length);
+    if(!tabbable.length)return;
+    let first=tabbable[0],last=tabbable[tabbable.length-1];
+    if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}
+    if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}
+  })}
 const CLOUD_ACTIVITY_PREFIX="ls-cloud-activity-v1:";
 async function touchCloudActivity(){
   if(!navigator.onLine||!S.session||S.session.offline||!S.session.user?.id||window.__lsCloudActivityTouching)return false;
@@ -1343,7 +1528,7 @@ async function init(){
     localStatus(navigator.onLine?"☁️ dados locais":"📴 offline · dados locais");
   }
   sb=supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:!IS_NATIVE_ANDROID,storage:window.localStorage}});
-  wire();let phraseBadge=$("#phrase-count-badge"),phraseTotal=window.LIBRAS_PHRASE_LIBRARY?.total||((window.LIBRAS_PHRASE_DATA||[]).length||0);if(phraseBadge)phraseBadge.textContent=phraseTotal.toLocaleString("pt-BR")+" frases";installDelegatedNavigation();if(window.LSHydrateIcons)LSHydrateIcons(document);installNativeTouchNavigation();applyEditionUI();
+  wire();let phraseBadge=$("#phrase-count-badge"),phraseTotal=window.LIBRAS_PHRASE_LIBRARY?.total||((window.LIBRAS_PHRASE_DATA||[]).length||0);if(phraseBadge)phraseBadge.textContent=phraseTotal.toLocaleString("pt-BR")+" modelos textuais";installDelegatedNavigation();if(window.LSHydrateIcons)LSHydrateIcons(document);installNativeTouchNavigation();applyEditionUI();
   sb.auth.onAuthStateChange((event,session)=>{
     if(session){
       S.session=session;rememberSession(session);cached(session.user.id);authUI();
