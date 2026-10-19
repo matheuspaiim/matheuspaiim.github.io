@@ -481,6 +481,24 @@ for(const unit of U){
     }));
   }
 }
+// A aprendizagem e cumulativa: reapresentar um sinal nao significa ensina-lo novamente.
+// Os IDs e o historico de conclusoes sao preservados para nao invalidar o progresso.
+const learnedKeys=new Set;
+const signKey=value=>{
+  const word=String(value||"").normalize("NFC").trim().toLocaleLowerCase("pt-BR");
+  return ["avô","avó","pais","país"].includes(word)?word:slug(word);
+};
+for(const row of content){
+  if(row.kind!=="signals")continue;
+  const fresh=row.signs.filter(name=>!learnedKeys.has(signKey(name)));
+  row.freshSigns=fresh;
+  row.familiarSigns=row.signs.filter(name=>learnedKeys.has(signKey(name)));
+  row.mode=fresh.length===0?"application":fresh.length<=2?"reinforcement":"introduction";
+  if(row.mode==="application"){
+    row.practice="Aplique os sinais ja conhecidos a uma situacao de "+row.module+". Nao e uma nova lista de sinais.";
+  }
+  row.signs.forEach(name=>learnedKeys.add(signKey(name)));
+}
 window.LIBRAS_STUDY_CYCLES=CYCLES;
 window.LIBRAS_STUDY_UNITS=U.map(u=>({id:u.n,cycle:u.c,title:u.t,subtitle:u.m,mission:u.m,band:cycleOf(u.c).range,icon:"👐"}));
 window.LIBRAS_STUDY_CONTENT=content.sort((a,b)=>a.unit-b.unit||a.order-b.order);
@@ -490,13 +508,16 @@ window.LIBRAS_STUDY_STATS={
   units:U.length,
   lessons:content.length,
   newContentLessons:content.filter(x=>x.kind==="signals").length,
+  introductionLessons:content.filter(x=>x.mode==="introduction").length,
+  reinforcementLessons:content.filter(x=>x.mode==="reinforcement").length,
+  applicationLessons:content.filter(x=>x.mode==="application").length,
   integrationLessons:content.filter(x=>x.kind==="integration").length,
   spacedReviews:content.filter(x=>x.kind==="review").length,
   microtheory:content.filter(x=>x.microtheory).length,
   signalSlots:content.reduce((n,x)=>n+(x.signs?.length||0),0),
-  uniqueSigns:new Set(content.flatMap(x=>x.signs||[]).map(slug)).size,
+  uniqueSigns:new Set(content.flatMap(x=>x.signs||[]).map(signKey)).size,
   expansionSlots:content.reduce((n,x)=>n+(x.expansion?.length||0),0),
-  uniqueExpansion:new Set(content.flatMap(x=>x.expansion||[]).map(slug)).size,
-  totalSequencedUnique:new Set(content.flatMap(x=>[...(x.signs||[]),...(x.expansion||[])]).map(slug)).size
+  uniqueExpansion:new Set(content.flatMap(x=>x.expansion||[]).map(signKey)).size,
+  totalSequencedUnique:new Set(content.flatMap(x=>[...(x.signs||[]),...(x.expansion||[])]).map(signKey)).size
 };
 })();
