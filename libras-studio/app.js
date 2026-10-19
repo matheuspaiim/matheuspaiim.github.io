@@ -1,4 +1,4 @@
-const APP_VERSION="0.5.80";
+const APP_VERSION="0.5.81";
 const cfg=window.LIBRAS_STUDIO_CONFIG||{},$=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const nativeParams=new URLSearchParams(location.search);
 const IS_NATIVE_ANDROID=nativeParams.get("native")==="android";
@@ -587,6 +587,34 @@ function studyChoiceOrder(target,pool,seed=0){
   let shift=(seed%list.length+list.length)%list.length;
   return [...list.slice(shift),...list.slice(0,shift)];
 }
+function studyInterleavePractice(steps,lesson){
+  // Alterna observação e reconhecimento; nunca testa sinais ainda não mostrados.
+  const familiar=new Set((lesson.familiarSigns||[]).map(signIdentity));
+  const prefix=steps.filter(s=>s.type==="intro"||s.type==="mission");
+  const learning=steps.filter(s=>s.type==="learn"||s.type==="concept");
+  const quizzes=steps.filter(s=>s.type==="recognize");
+  const production=steps.filter(s=>s.type==="produce");
+  const others=steps.filter(s=>["expansion","recap"].includes(s.type));
+  const result=[...prefix];let learnCount=0,quizCount=0;
+  const pushQuiz=(last="")=>{
+    const at=quizzes.findIndex(q=>familiar.has(signIdentity(q.target))&&signIdentity(q.target)!==signIdentity(last));
+    if(at<0)return false;
+    result.push(quizzes.splice(at,1)[0]);quizCount++;return true;
+  };
+  for(const part of learning){
+    result.push(part);
+    if(part.type!=="learn")continue;
+    learnCount++;familiar.add(signIdentity(part.target));
+    if(learnCount%2===0||learnCount===learning.filter(s=>s.type==="learn").length)pushQuiz(part.target);
+  }
+  // Nos desafios de aplicação e no fechamento, alterne reconhecimento e produção.
+  while(quizzes.length){
+    result.push(quizzes.shift());quizCount++;
+    if(quizCount%2===0&&production.length)result.push(production.shift());
+  }
+  result.push(...production,...others);
+  return result;
+}
 function studyBuildSteps(lesson){
   let pool=studyLessonPool(lesson),core=[...new Set((lesson.signs||[]).filter(Boolean))].slice(0,8),steps=[];
   let detail={
@@ -642,7 +670,7 @@ function studyBuildSteps(lesson){
     if((lesson.expansion||[]).length)steps.push({type:"expansion",signs:lesson.expansion.slice(0,2)});
     steps.push({type:"recap",title:practiceOnly?"Aplicação concluída":"Aula realizada",
       text:lesson.practice||detail.mission,take:lesson.take||[],signs:core});
-    return steps;
+    return studyInterleavePractice(steps,lesson);
   }
 
   if(lesson.kind==="integration"){
@@ -836,25 +864,37 @@ async function studyResolveTarget(step){
   return null;
 }
 function studyPlayerShell(body){
-  let p=STUDY_PLAY,lesson=p.lesson,meta=studyKindMeta(lesson.kind),pct=studyPlayerProgress(),unit=studyUnitMeta(lesson.unit);
-  return '<div class="study-player-top"><button type="button" class="study-player-close" data-study-exit aria-label="Fechar">×</button><div class="study-player-track"><span style="width:'+pct+'%"></span></div><small>'+Math.min(p.index+1,p.steps.length)+' / '+p.steps.length+'</small></div>'+
-    '<div class="study-player-heading"><span>'+esc(meta.icon)+'</span><div><small>UNIDADE '+lesson.unit+' · '+esc(meta.label)+'</small><b>'+esc(lesson.title)+'</b><em>'+esc(unit.title||"")+'</em></div></div>'+
+  let p=STUDY_PLAY,pct=studyPlayerProgress();
+  return '<div class="study-player-top"><button type="button" class="study-player-close" data-study-exit aria-label="Fechar">×</button><div class="study-player-track" role="progressbar" aria-label="Progresso da aula" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+pct+'"><span style="width:'+pct+'%"></span></div><small>'+Math.min(p.index+1,p.steps.length)+' / '+p.steps.length+'</small></div>'+
     '<div class="study-player-stage">'+body+'</div>';
 }
 function studyBindBase(){
   let root=$("#study-player");if(!root)return;
   root.querySelector("[data-study-exit]")?.addEventListener("click",()=>{$("#modal").classList.add("hidden");$("#modal").classList.remove("study-session-open");STUDY_PLAY=null});
   root.querySelectorAll("[data-study-next]").forEach(b=>b.onclick=()=>studyPlayerNext());
+  root.querySelectorAll("[data-study-intro-tab]").forEach(tab=>tab.onclick=()=>{
+    const chosen=tab.dataset.studyIntroTab;
+    root.querySelectorAll("[data-study-intro-tab]").forEach(x=>{
+      x.setAttribute("aria-selected",String(x===tab));
+    });
+    root.querySelectorAll("[data-study-intro-panel]").forEach(panel=>{
+      panel.classList.toggle("hidden",panel.dataset.studyIntroPanel!==chosen);
+    });
+  });
 }
 function studyIntroDetails(detail){
   let signs=(detail?.signs||[]).slice(0,8),take=(detail?.take||[]).slice(0,3),questions=(detail?.questions||[]).slice(0,3);
-  return '<div class="study-intro-detail">'+
-    (detail?.mission?'<div><small>OBJETIVO DA UNIDADE</small><p>'+esc(detail.mission)+'</p></div>':'')+
-    (detail?.context?'<div><small>CONTEXTO</small><p>'+esc(detail.context)+'</p></div>':'')+
-    (signs.length?'<div><small>SINAIS DESTA AULA</small><div class="study-intro-signs">'+signs.map(s=>'<span>'+esc(title(s))+'</span>').join("")+'</div></div>':'')+
-    (questions.length?'<div><small>O QUE OBSERVAR</small><ul>'+questions.map(x=>'<li>'+esc(x)+'</li>').join("")+'</ul></div>':'')+
-    (take.length?'<div><small>FOCO</small><ul>'+take.map(x=>'<li>'+esc(x)+'</li>').join("")+'</ul></div>':'')+
-  '</div>';
+  const sections=[
+    detail?.mission?{label:"Objetivo",html:'<p>'+esc(detail.mission)+'</p>'}:null,
+    detail?.context?{label:"Contexto",html:'<p>'+esc(detail.context)+'</p>'}:null,
+    signs.length?{label:"Sinais",html:'<div class="study-intro-signs">'+signs.map(x=>'<span>'+esc(title(x))+'</span>').join("")+'</div>'}:null,
+    questions.length?{label:"Observe",html:'<ul>'+questions.map(x=>'<li>'+esc(x)+'</li>').join("")+'</ul>'}:null,
+    take.length?{label:"Foco",html:'<ul>'+take.map(x=>'<li>'+esc(x)+'</li>').join("")+'</ul>'}:null
+  ].filter(Boolean);
+  if(!sections.length)return "";
+  return '<div class="study-intro-detail"><div class="study-intro-tabs" role="tablist" aria-label="Detalhes da aula">'+
+    sections.map((x,i)=>'<button type="button" role="tab" data-study-intro-tab="'+i+'" aria-selected="'+(!i)+'">'+esc(x.label)+'</button>').join("")+
+    '</div>'+sections.map((x,i)=>'<div role="tabpanel" class="study-intro-panel '+(i?"hidden":"")+'" data-study-intro-panel="'+i+'"><small>'+esc(x.label)+'</small>'+x.html+'</div>').join("")+'</div>';
 }
 function bindStudyVideoFallbacks(root,name){
   let videos=[...root.querySelectorAll("video")];
@@ -1007,8 +1047,11 @@ function studyApplyAnswer(correct,choice,{restore=false}={}){
     if(signIdentity(x.dataset.studyAnswer)===signIdentity(choice)&&!ok)x.classList.add("wrong");
   });
   let fb=$("#study-feedback");
-  if(fb)fb.innerHTML='<b>'+(ok?"✅ Certo!":"↻ Ainda não.")+'</b><span>'+(ok?"Você reconheceu o sinal.":"O sinal era "+esc(title(correct))+". Observe novamente antes de avançar.")+'</span><button class="primary" data-study-next>Continuar</button>';
-  root.querySelector("[data-study-next]")?.addEventListener("click",()=>studyPlayerNext());
+  if(fb)fb.innerHTML='<b>'+(ok?"✅ Certo!":"↻ Ainda não.")+'</b><span>'+(ok?"Você reconheceu o sinal.":"O sinal era "+esc(title(correct))+". Observe novamente antes de avançar.")+'</span><button type="button" class="primary" data-study-next>Continuar</button>';
+  root.querySelector(".study-task.quiz")?.classList.add("answered");
+  const next=root.querySelector("[data-study-next]");
+  next?.addEventListener("click",()=>studyPlayerNext());
+  if(!restore)next?.focus({preventScroll:true});
 }
 function bindStudyAnswers(correct){
   let root=$("#study-player");if(!root)return;
