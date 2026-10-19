@@ -1,1 +1,37 @@
-const CACHE="libras-studio-mobile-v99",LIBRARY_CACHE="libras-studio-library-v1";const SHELL=["./","./index.html","./vendor/supabase-js-2.116.0.js?v=0579","./app.css?v=0579","./redesign.css?v=0579","./soft-edge.css?v=0579","./app.js?v=0579","./icons.js?v=0579","./config.js","./study.js?v=0579","./explore-data.js?v=0579","./phrase-data.js?v=0579","./phrase-library.js?v=0579","./manifest.webmanifest","./libras_studio.png?v=0579","./version.json","./data/goias_nacional.csv"];self.addEventListener("install",e=>e.waitUntil(Promise.all([self.skipWaiting(),caches.open(CACHE).then(c=>c.addAll(SHELL))])));self.addEventListener("activate",e=>e.waitUntil(Promise.all([self.clients.claim(),caches.keys().then(k=>Promise.all(k.filter(x=>x.startsWith("libras-studio-mobile-")&&x!==CACHE).map(x=>caches.delete(x))))])));self.addEventListener("message",e=>{if(e.data==="SKIP_WAITING")self.skipWaiting()});self.addEventListener("fetch",e=>{if(e.request.method!=="GET")return;let u=new URL(e.request.url);if(u.origin===location.origin&&u.pathname.includes("/libras-studio/")){e.respondWith(fetch(e.request,{cache:"no-store"}).then(r=>{let c=r.clone();caches.open(CACHE).then(x=>x.put(e.request,c));return r}).catch(()=>caches.match(e.request).then(r=>r||caches.match("./index.html"))));return}e.respondWith(caches.open(LIBRARY_CACHE).then(async library=>{let saved=await library.match(e.request,{ignoreVary:true});if(saved)return saved;return caches.open(CACHE).then(async c=>{try{let r=await fetch(e.request);if(r&&(r.ok||r.type==="opaque"))await c.put(e.request,r.clone());return r}catch{return(await library.match(e.request,{ignoreVary:true}))||(await c.match(e.request))||Response.error()}})}))})
+const CACHE="libras-studio-mobile-v100",LIBRARY_CACHE="libras-studio-library-v1";const SHELL=["./","./index.html","./vendor/supabase-js-2.116.0.js?v=0540","./app.css?v=0580","./redesign.css?v=0580","./soft-edge.css?v=0580","./app.js?v=0580","./icons.js?v=0580","./config.js","./study.js?v=0580","./explore-data.js?v=0580","./phrase-data.js?v=0580","./phrase-library.js?v=0580","./manifest.webmanifest","./libras_studio.png?v=0580","./version.json","./data/goias_nacional.csv"];
+const SHELL_URLS=new Set(SHELL.map(path=>new URL(path,self.registration.scope).href));
+const HOME=new URL("./index.html",self.registration.scope).href;
+self.addEventListener("install",event=>{
+  event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting()));
+});
+self.addEventListener("activate",event=>{
+  event.waitUntil(Promise.all([
+    self.clients.claim(),
+    caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith("libras-studio-mobile-")&&key!==CACHE).map(key=>caches.delete(key))))
+  ]));
+});
+self.addEventListener("message",event=>{if(event.data==="SKIP_WAITING")self.skipWaiting()});
+self.addEventListener("fetch",event=>{
+  const req=event.request;
+  if(req.method!=="GET")return;
+  const url=new URL(req.url),scope=new URL(self.registration.scope);
+  const sameApp=url.origin===scope.origin&&url.pathname.startsWith(scope.pathname);
+  if(sameApp&&req.mode==="navigate"){
+    event.respondWith(fetch(req,{cache:"no-store"}).catch(async()=>{
+      const saved=await caches.match(HOME);
+      return saved||Response.error();
+    }));
+    return;
+  }
+  if(sameApp&&SHELL_URLS.has(url.href)){
+    event.respondWith(fetch(req,{cache:"no-store"}).then(async response=>{
+      if(response.ok){const cache=await caches.open(CACHE);await cache.put(req,response.clone())}
+      return response;
+    }).catch(async()=>await caches.match(req)||Response.error()));
+    return;
+  }
+  if(!sameApp){
+    // Library media are saved only by an explicit app action, never through passive browsing.
+    event.respondWith(caches.open(LIBRARY_CACHE).then(async cache=>await cache.match(req)||fetch(req)));
+  }
+});
