@@ -1,4 +1,4 @@
-const CACHE="libras-studio-mobile-v100",LIBRARY_CACHE="libras-studio-library-v1";const SHELL=["./","./index.html","./vendor/supabase-js-2.116.0.js?v=0540","./app.css?v=0580","./redesign.css?v=0580","./soft-edge.css?v=0580","./app.js?v=0580","./icons.js?v=0580","./config.js","./study.js?v=0580","./explore-data.js?v=0580","./phrase-data.js?v=0580","./phrase-library.js?v=0580","./manifest.webmanifest","./libras_studio.png?v=0580","./version.json","./data/goias_nacional.csv"];
+const CACHE="libras-studio-mobile-v101",LIBRARY_CACHE="libras-studio-library-v1";const SHELL=["./","./index.html","./vendor/supabase-js-2.116.0.js?v=0540","./app.css?v=0581","./redesign.css?v=0581","./soft-edge.css?v=0581","./app.js?v=0581","./icons.js?v=0581","./config.js","./study.js?v=0581","./explore-data.js?v=0581","./phrase-data.js?v=0581","./phrase-library.js?v=0581","./manifest.webmanifest","./libras_studio.png?v=0581","./version.json","./data/goias_nacional.csv"];
 const SHELL_URLS=new Set(SHELL.map(path=>new URL(path,self.registration.scope).href));
 const HOME=new URL("./index.html",self.registration.scope).href;
 self.addEventListener("install",event=>{
