@@ -30,4 +30,14 @@ window.LIBRAS_EXPLORE_DATA={
 "Acessibilidade e inclusão":["♿","Acessibilidade","acessibilidade inclusao surdo surda ouvinte libras interprete legenda comunidade deficiencia"],
 "Relacionamentos":["💞","Vínculos","amizade amigo amiga relacionamento namorado namorada noivo noiva casal parceiro marido esposa encontro amor gostar"],
 "Outros":["🧩","Outros sinais","sim nao talvez sempre nunca certo errado"]
-};for(const k in window.LIBRAS_EXPLORE_DATA){let x=window.LIBRAS_EXPLORE_DATA[k];window.LIBRAS_EXPLORE_DATA[k]={emoji:x[0],description:x[1],terms:x[2].split(/\s+/)}}
+};
+const MULTIWORD_SIGNS=["por favor","bom dia","boa tarde","boa noite"];
+function splitCategoryTerms(raw){
+  let text=" "+String(raw||"").trim()+" ";
+  for(const phrase of MULTIWORD_SIGNS)text=text.split(" "+phrase+" ").join(" "+phrase.replaceAll(" ","~")+" ");
+  return [...new Set(text.trim().split(/\s+/).map(x=>x.replaceAll("~"," ")).filter(Boolean))];
+}
+for(const k in window.LIBRAS_EXPLORE_DATA){
+  let x=window.LIBRAS_EXPLORE_DATA[k];
+  window.LIBRAS_EXPLORE_DATA[k]={emoji:x[0],description:x[1],terms:splitCategoryTerms(x[2])};
+}
