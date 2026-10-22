@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow">
+<title>Lumea Studio · revisão de Pins (protótipo)</title>
+<style>
+:root{--bg:#faf7fc;--purple:#7051a8;--line:#e8deed;--ink:#272332;--muted:#655d72;--ok:#126e5c}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,sans-serif}
+main{max-width:1150px;margin:0 auto;padding:34px 24px 60px}header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
+.brand{font-weight:850;font-size:25px;letter-spacing:-1px}.brand em{font-style:normal;color:var(--purple)}
+.pill{border:1px solid #ddcbec;background:#f0e7f7;border-radius:30px;padding:7px 12px;color:#5b3d88;font-size:12px;font-weight:700}
+.hero{border:1px solid #e3d3e9;background:linear-gradient(110deg,#eee2f8,#faedf1);border-radius:22px;padding:29px;margin:24px 0}
+.hero h1{font-size:clamp(23px,4vw,37px);line-height:1.16;margin:0 0 10px}.hero p{margin:0;max-width:750px;color:#595267}
+.grid{display:grid;grid-template-columns:minmax(280px,390px) 1fr;gap:20px;align-items:start}
+.panel{background:#fff;border:1px solid var(--line);border-radius:18px;padding:23px;box-shadow:0 10px 32px #32234308}
+h2{font-size:19px;margin:0 0 8px}.muted{color:var(--muted);font-size:13px;margin:0 0 16px}
+form{display:grid;gap:10px}label.field{font-size:12px;font-weight:700}label.field input,label.field textarea,label.field select{display:block;width:100%;border:1px solid #d9cddd;border-radius:10px;padding:10px;color:var(--ink);font:15px system-ui;margin-top:4px}
+textarea{resize:vertical;min-height:90px}.check{font-size:13px;display:flex;align-items:flex-start;gap:8px}
+button{border:0;border-radius:10px;padding:10px 13px;cursor:pointer;background:var(--purple);color:#fff;font:inherit;font-weight:700}
+button.secondary{background:#fff;color:var(--purple);border:1px solid #cab6e0}button.danger{background:#fff0f0;color:#a03535}
+button:hover{filter:brightness(.95)}button:disabled{opacity:.5;cursor:not-allowed}
+.head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.counts{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0 18px}.count{padding:7px 10px;border-radius:10px;background:#f5f0f8;font-size:12px}
+.card{border:1px solid var(--line);border-radius:14px;padding:16px;margin:12px 0}
+.card h3{font-size:16px;margin:0 0 7px;line-height:1.3}.card p{font-size:12px;color:var(--muted);overflow-wrap:anywhere;margin:0 0 12px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}.chip{color:#5a4281;background:#f3eafb;border-radius:7px;font-size:11px;font-weight:700;padding:4px 7px;display:inline-block;margin-bottom:9px}
+.chip.ok{color:var(--ok);background:#e7f6ef}.notice{border-left:3px solid #9c650b;background:#fff5df;padding:14px 16px;margin-top:18px;border-radius:0 9px 9px 0;font-size:12px}
+.empty{border:1px dashed #ccb9d7;padding:30px;text-align:center;border-radius:12px;color:var(--muted)}
+#status{min-height:20px;color:#8d4538;white-space:pre-wrap;font-size:12px}footer{margin-top:24px;font-size:12px;color:var(--muted);text-align:center}
+@media(max-width:850px){.grid{grid-template-columns:1fr}main{padding:20px 14px 35px}.hero{padding:21px}.panel{padding:17px}}
+</style>
+</head>
+<body><main>
+<header><div class="brand">✦ Lumea <em>Studio</em></div><span class="pill">Protótipo local · API desconectada</span></header>
+<section class="hero"><h1>Prepare hoje. Publique apenas o que aprovar.</h1><p>Uma fila visual para criar e escolher individualmente Pins com links de produtos. Nenhum dado é enviado ao Pinterest.</p></section>
+<div class="grid">
+<section class="panel"><h2>Preparar um Pin</h2><p class="muted">Adicione somente imagens cujo uso você tenha autorizado.</p>
+<form id="draft-form">
+<label class="field">Produto<input name="product" maxlength="120" required placeholder="Ex.: Organizador de cozinha"></label>
+<label class="field">Título<input name="title" maxlength="100" required placeholder="Título claro e fiel ao produto"></label>
+<label class="field">Descrição<textarea name="description" maxlength="500" required placeholder="Descreva o produto e informe se é afiliado."></textarea></label>
+<label class="field">URL HTTPS da imagem<input name="imageUrl" type="url" required placeholder="https://..."></label>
+<label class="field">URL HTTPS do produto ou afiliado<input name="affiliateUrl" type="url" required placeholder="https://..."></label>
+<label class="field">Pasta<input name="board" maxlength="120" required placeholder="Ex.: Organização"></label>
+<label class="field">Data e hora<input name="scheduleAt" type="datetime-local" required></label>
+<label class="field">Conta<select name="account"><option value="lumeaachados">Lumea Achados (identificada)</option></select></label>
+<label class="check"><input name="isAffiliate" type="checkbox" checked>Este Pin contém link afiliado. Identificarei a relação comercial na descrição.</label>
+<button type="submit">Criar rascunho</button>
+<div id="status" role="status" aria-live="polite"></div>
+</form></section>
+<section class="panel"><div class="head"><h2>Fila de aprovação</h2><button class="secondary" type="button" id="export">Exportar aprovados</button></div>
+<p class="muted">Aprovação explícita por Pin. A exportação não agenda nem publica nada.</p>
+<div class="counts"><span class="count">Rascunhos: <strong id="draft-count">0</strong></span><span class="count">Aprovados: <strong id="approved-count">0</strong></span></div>
+<div id="items" aria-live="polite"></div>
+<div class="notice"><strong>Cuidados:</strong> o protótipo não tem acesso à API nem conexão com sua conta. Informações digitadas são armazenadas apenas no seu navegador quando disponível. Exporte os Pins aprovados como backup. Não insira senhas nem tokens.</div></section>
+</div><footer>Lumea Automação · App ID 1625731 · Sem OAuth, sem publicação e sem cobrança</footer></main>
+<script>
+(function(){
+'use strict';
+var key='lumea-studio-drafts-v1',pins=[];
+var $=function(id){return document.getElementById(id);};
+try{var saved=JSON.parse(localStorage.getItem(key)||'[]');if(Array.isArray(saved))pins=saved.filter(function(x){return x&&typeof x==='object';});}catch(e){}
+function save(){try{localStorage.setItem(key,JSON.stringify(pins));return true;}catch(e){return false;}}
+function https(v){try{var u=new URL(String(v).trim());return u.protocol==='https:'&&!u.username&&!u.password&&Boolean(u.hostname);}catch(e){return false;}}
+function valid(p){var errors=[];
+if(!p.product||!p.title||!p.description||!p.board)errors.push('Preencha todos os textos.');
+if(!https(p.imageUrl)||!https(p.affiliateUrl))errors.push('Imagem e destino precisam ser URLs HTTPS válidas.');
+if(!p.scheduleAt||Number.isNaN(Date.parse(p.scheduleAt))||new Date(p.scheduleAt).getTime()<=Date.now())errors.push('Escolha um horário futuro.');
+if(p.account!=='lumeaachados')errors.push('Conta não verificada.');
+if(p.isAffiliate&&!/((link|conte[uú]do)\s+(de\s+)?afiliad[oa]|posso receber comiss[aã]o|publicidade|publi\b|#ad\b)/i.test(p.description))errors.push('Inclua aviso claro de afiliação na descrição.');
+return errors;}
+function fingerprint(p){return [p.account,p.board,p.imageUrl,p.affiliateUrl].map(function(x){return String(x).trim().toLowerCase();}).join('|');}
+function notice(msg){$('status').textContent=msg;}
+function make(tag,cls,text){var el=document.createElement(tag);if(cls)el.className=cls;if(text!==undefined)el.textContent=text;return el;}
+function draw(){var c=$('items');c.replaceChildren();$('draft-count').textContent=pins.filter(function(x){return x.status==='draft';}).length;$('approved-count').textContent=pins.filter(function(x){return x.status==='approved';}).length;
+if(!pins.length){c.append(make('div','empty','A fila está vazia. Comece criando um rascunho.'));return;}
+pins.slice().reverse().forEach(function(p){var card=make('article','card'),name=make('h3','',p.title),detail=make('p','',p.product+' · '+p.board+' · '+new Date(p.scheduleAt).toLocaleString('pt-BR')),chip=make('span','chip'+(p.status==='approved'?' ok':''),p.status==='approved'?'Aprovado pelo titular':'Pendente de aprovação'),action=make('div','actions');
+card.append(name,detail,chip);
+if(p.status==='draft'){var approve=make('button','', 'Aprovar este Pin');approve.type='button';approve.addEventListener('click',function(){var issues=valid(p);if(issues.length){notice(issues.join('\n'));return;}p.status='approved';p.selectedByOwnerAt=new Date().toISOString();save();draw();notice('Pin aprovado individualmente; nenhuma publicação foi realizada.');});action.append(approve);}
+var remove=make('button','danger','Excluir');remove.type='button';remove.addEventListener('click',function(){pins=pins.filter(function(x){return x.id!==p.id;});save();draw();});action.append(remove);card.append(action);c.append(card);});}
+$('draft-form').addEventListener('submit',function(e){e.preventDefault();var data=new FormData(this),p={id:'pin-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),status:'draft',createdAt:new Date().toISOString(),selectedByOwnerAt:null};
+['product','title','description','imageUrl','affiliateUrl','board','scheduleAt','account'].forEach(function(k){p[k]=String(data.get(k)||'').trim();});p.isAffiliate=data.get('isAffiliate')==='on';
+var issues=valid(p);if(issues.length){notice(issues.join('\n'));return;}
+if(pins.some(function(x){return fingerprint(x)===fingerprint(p);})){notice('Possível Pin duplicado: mesma conta, pasta, imagem e link.');return;}
+pins.push(p);var saved=save();this.reset();draw();notice(saved?'Rascunho adicionado. Selecione este Pin antes de exportar.':'Rascunho criado; armazenamento do navegador indisponível.');});
+$('export').addEventListener('click',function(){var approved=pins.filter(function(x){return x.status==='approved'&&x.selectedByOwnerAt;});if(!approved.length){notice('Nenhum Pin aprovado para exportar.');return;}
+var out={schemaVersion:1,source:'lumea-offline-preflight',notPublication:true,pins:approved.map(function(x){return {id:x.id,product:x.product,title:x.title,description:x.description,imageUrl:x.imageUrl,affiliateUrl:x.affiliateUrl,board:x.board,account:x.account,scheduleAt:x.scheduleAt,isAffiliate:x.isAffiliate,selectedByOwnerAt:x.selectedByOwnerAt};})};
+var url=URL.createObjectURL(new Blob([JSON.stringify(out,null,2)],{type:'application/json'}));var a=document.createElement('a');a.href=url;a.download='lumea-pins-aprovados.json';document.body.append(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url);},1000);notice('Exportados '+approved.length+' Pin(s). Isso não equivale a publicação.');});draw();
+})();
+</script>
+</body></html>
